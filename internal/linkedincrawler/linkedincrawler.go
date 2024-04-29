@@ -3,6 +3,7 @@ package linkedincrawler
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/go-rod/rod"
@@ -36,7 +37,16 @@ func Crawl() error {
 		return fmt.Errorf("failed to create stealth page > %v", err)
 	}
 
-	err = page.Navigate("https://linkedin.com")
+	keywords := []string{"typescript", "react"}
+	location := "United States"
+	workTypes := []string{"2"}    // 2 = remote
+	jobTypes := []string{"F"}     // F = fulltime
+	salaryRanges := []string{"5"} // 5 = $120,000+
+	ageOfPosting := 1 * time.Hour
+	url := fmt.Sprintf("https://www.linkedin.com/jobs/search/?keywords=%v&location=%v&f_WT=%v&f_JT=%v&f_SB2=%v&f_TPR=r%v", strings.Join(keywords, " OR "), location, strings.Join(workTypes, ","), strings.Join(jobTypes, ","), strings.Join(salaryRanges, ","), ageOfPosting.Seconds())
+	err = page.Navigate(url)
+
+	fmt.Println(url)
 	// err = page.Navigate("https://bot.sannysoft.com/")
 
 	if err != nil {
