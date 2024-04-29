@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log/slog"
 
 	"github.com/joho/godotenv"
@@ -12,7 +11,7 @@ import (
 )
 
 func main() {
-	fmt.Println("Starting...")
+	slog.Info("Starting...")
 	logger.Init()
 	godotenv.Load()
 

@@ -20,7 +20,7 @@ type JobPosting struct {
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 	LastPosted time.Time
-	Role       string
+	Position   string
 	Url        string
 	CompanyID  string
 }

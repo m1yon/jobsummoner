@@ -35,7 +35,7 @@ func (q *Queries) CreateCompany(ctx context.Context, arg CreateCompanyParams) er
 }
 
 const getCompany = `-- name: GetCompany :one
-SELECT created_at, updated_at, last_posted, role, url, company_id from job_postings
+SELECT created_at, updated_at, last_posted, position, url, company_id from job_postings
 `
 
 func (q *Queries) GetCompany(ctx context.Context) (JobPosting, error) {
@@ -45,7 +45,7 @@ func (q *Queries) GetCompany(ctx context.Context) (JobPosting, error) {
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.LastPosted,
-		&i.Role,
+		&i.Position,
 		&i.Url,
 		&i.CompanyID,
 	)
