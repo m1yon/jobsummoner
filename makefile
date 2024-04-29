@@ -14,3 +14,6 @@ generate:
 
 dev: 
 	go run ./cmd/jobsummoner
+
+dev-show: 
+	go run ./cmd/jobsummoner -rod=show

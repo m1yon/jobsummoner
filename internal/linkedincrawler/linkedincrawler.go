@@ -2,6 +2,7 @@ package linkedincrawler
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -43,8 +44,23 @@ func Crawl() error {
 	jobTypes := []string{"F"}     // F = fulltime
 	salaryRanges := []string{"5"} // 5 = $120,000+
 	ageOfPosting := 1 * time.Hour
-	url := fmt.Sprintf("https://www.linkedin.com/jobs/search/?keywords=%v&location=%v&f_WT=%v&f_JT=%v&f_SB2=%v&f_TPR=r%v", strings.Join(keywords, " OR "), location, strings.Join(workTypes, ","), strings.Join(jobTypes, ","), strings.Join(salaryRanges, ","), ageOfPosting.Seconds())
-	err = page.Navigate(url)
+	url, err := url.Parse("https://linkedin.com/jobs/search/")
+
+	if err != nil {
+		return fmt.Errorf("failed to build URL > %v", err)
+	}
+
+	q := url.Query()
+	q.Set("keywords", strings.Join(keywords, " OR "))
+	q.Set("location", location)
+	q.Set("f_WT", strings.Join(workTypes, ","))
+	q.Set("f_JT", strings.Join(jobTypes, ","))
+	q.Set("f_SB2", strings.Join(salaryRanges, ","))
+	q.Set("f_TPR", fmt.Sprintf("r%v", ageOfPosting.Seconds()))
+
+	url.RawQuery = q.Encode()
+
+	err = page.Navigate(url.String())
 
 	fmt.Println(url)
 	// err = page.Navigate("https://bot.sannysoft.com/")
