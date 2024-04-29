@@ -1,6 +1,8 @@
 package linkedincrawler
 
 import (
+	"context"
+	"database/sql"
 	"fmt"
 	"log/slog"
 	"net/url"
@@ -12,9 +14,19 @@ import (
 	"github.com/go-rod/rod/lib/launcher"
 	"github.com/go-rod/rod/lib/launcher/flags"
 	"github.com/go-rod/stealth"
+	"github.com/m1yon/jobsummoner/internal/database"
 )
 
 func Crawl() error {
+	ctx := context.Background()
+	dbConnection := os.Getenv("DB_CONNECTION")
+	db, err := sql.Open("sqlite", dbConnection)
+
+	if err != nil {
+		return fmt.Errorf("failed to open db connection > %v", err)
+	}
+
+	dbQueries := database.New(db)
 
 	PROXY_HOSTNAME := os.Getenv("PROXY_HOSTNAME")
 	PROXY_USERNAME := os.Getenv("PROXY_USERNAME")
@@ -34,7 +46,7 @@ func Crawl() error {
 	}
 	controlURL, _ := l.Launch()
 	browser := rod.New()
-	err := browser.ControlURL(controlURL).Connect()
+	err = browser.ControlURL(controlURL).Connect()
 
 	if err != nil {
 		return fmt.Errorf("browser connection failed > %v", err)
@@ -117,7 +129,7 @@ func Crawl() error {
 			return fmt.Errorf("failed to query for posting url in job posting > %v", err)
 		}
 
-		urlText, err := postingURL.Property("href")
+		postingUrlText, err := postingURL.Property("href")
 
 		if err != nil {
 			return fmt.Errorf("failed to get url from element > %v", err)
@@ -144,7 +156,22 @@ func Crawl() error {
 		segments := strings.Split(parsedCompanyLinkURL.EscapedPath(), "/")
 		companySlug := segments[len(segments)-1]
 
-		fmt.Println(positionText, companyNameText, urlText, companyLinkURL, companySlug)
+		createdAt := time.Now().UTC()
+		updatedAt := time.Now().UTC()
+
+		err = dbQueries.CreateCompany(ctx, database.CreateCompanyParams{ID: companySlug, Name: companyNameText, Url: companyLinkURL.String(), CreatedAt: createdAt, UpdatedAt: updatedAt})
+
+		if err != nil {
+			return fmt.Errorf("failed inserting company > %v", err)
+		}
+
+		lastPosted := time.Now().UTC()
+
+		err = dbQueries.CreateJobPosting(ctx, database.CreateJobPostingParams{CreatedAt: createdAt, UpdatedAt: updatedAt, LastPosted: lastPosted, Position: positionText, Url: postingUrlText.String(), CompanyID: companySlug})
+
+		if err != nil {
+			return fmt.Errorf("failed inserting job posting > %v", err)
+		}
 	}
 
 	return nil

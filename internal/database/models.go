@@ -9,7 +9,7 @@ import (
 )
 
 type Company struct {
-	ID        int64
+	ID        string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	Name      string

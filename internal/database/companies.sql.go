@@ -11,12 +11,12 @@ import (
 )
 
 const createCompany = `-- name: CreateCompany :exec
-INSERT INTO companies (id, created_at, updated_at, name, url)
+INSERT OR IGNORE INTO companies (id, created_at, updated_at, name, url)
 VALUES (?, ?, ?, ?, ?)
 `
 
 type CreateCompanyParams struct {
-	ID        int64
+	ID        string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	Name      string
