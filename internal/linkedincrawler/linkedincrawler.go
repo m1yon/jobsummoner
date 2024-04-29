@@ -111,6 +111,9 @@ func scrape(db *sql.DB) error {
 	for _, jobPosting := range jobPostings {
 		position, err := jobPosting.Element(".base-search-card__title")
 
+		position.ScrollIntoView()
+		page.MustWaitStable()
+
 		if err != nil {
 			return fmt.Errorf("failed to query for position in job posting > %v", err)
 		}
