@@ -14,18 +14,27 @@ import (
 	"github.com/go-rod/rod/lib/launcher"
 	"github.com/go-rod/rod/lib/launcher/flags"
 	"github.com/go-rod/stealth"
+	"github.com/lmittmann/tint"
 	"github.com/m1yon/jobsummoner/internal/database"
 )
 
-func Crawl() error {
-	ctx := context.Background()
-	dbConnection := os.Getenv("DB_CONNECTION")
-	db, err := sql.Open("sqlite", dbConnection)
+func ScrapeLoop(db *sql.DB) {
+	return
+	for {
+		slog.Info("starting scrape...")
+		err := scrape(db)
+		slog.Info("scrape finished")
 
-	if err != nil {
-		return fmt.Errorf("failed to open db connection > %v", err)
+		if err != nil {
+			slog.Error("failed to scrape linkedin", tint.Err(err))
+		}
+
+		time.Sleep(60 * time.Minute)
 	}
+}
 
+func scrape(db *sql.DB) error {
+	ctx := context.Background()
 	dbQueries := database.New(db)
 
 	PROXY_HOSTNAME := os.Getenv("PROXY_HOSTNAME")
@@ -46,7 +55,7 @@ func Crawl() error {
 	}
 	controlURL, _ := l.Launch()
 	browser := rod.New()
-	err = browser.ControlURL(controlURL).Connect()
+	err := browser.ControlURL(controlURL).Connect()
 
 	if err != nil {
 		return fmt.Errorf("browser connection failed > %v", err)

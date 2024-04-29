@@ -35,3 +35,44 @@ func (q *Queries) CreateJobPosting(ctx context.Context, arg CreateJobPostingPara
 	)
 	return err
 }
+
+const getJobPostings = `-- name: GetJobPostings :many
+SELECT job_postings.position, job_postings.url as job_posting_url, companies.name as company_name, last_posted from job_postings
+JOIN companies on job_postings.company_id = companies.id
+ORDER BY job_postings.last_posted DESC
+`
+
+type GetJobPostingsRow struct {
+	Position      string
+	JobPostingUrl string
+	CompanyName   string
+	LastPosted    time.Time
+}
+
+func (q *Queries) GetJobPostings(ctx context.Context) ([]GetJobPostingsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getJobPostings)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetJobPostingsRow
+	for rows.Next() {
+		var i GetJobPostingsRow
+		if err := rows.Scan(
+			&i.Position,
+			&i.JobPostingUrl,
+			&i.CompanyName,
+			&i.LastPosted,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

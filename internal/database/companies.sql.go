@@ -33,21 +33,3 @@ func (q *Queries) CreateCompany(ctx context.Context, arg CreateCompanyParams) er
 	)
 	return err
 }
-
-const getCompany = `-- name: GetCompany :one
-SELECT created_at, updated_at, last_posted, position, url, company_id from job_postings
-`
-
-func (q *Queries) GetCompany(ctx context.Context) (JobPosting, error) {
-	row := q.db.QueryRowContext(ctx, getCompany)
-	var i JobPosting
-	err := row.Scan(
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.LastPosted,
-		&i.Position,
-		&i.Url,
-		&i.CompanyID,
-	)
-	return i, err
-}
