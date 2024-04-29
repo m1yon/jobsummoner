@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8">
-  <title>Test page</title>
+  <title>Job Summoner - Dashboard</title>
   <meta name="author" content="">
   <meta name="description" content="">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,13 +11,22 @@
 </head>
 
 <body>
-  <div class="max-w-3xl m-auto">
+  <div class="max-w-3xl m-auto mb-12">
     <h1 class="mt-12 mb-6 text-2xl font-semibold">Job Summoner</h1>
     {{range .JobPostings}}
     <a class="p-4 bg-gray-100 mb-2 flex justify-between items-center" href="{{.JobPostingUrl}}">
-      <div>
-        <p class="font-bold">{{.Position}}</p>
-        <p>{{.CompanyName}}</p>
+      <div class="flex items-center">
+        {{if .CompanyAvatar.String}}
+        <img class="size-10 rounded-lg mr-4" src="{{.CompanyAvatar.String}}" alt="">
+        {{else}}
+        <div class="size-10 rounded-lg mr-4 bg-gray-300 flex items-center justify-center">
+          <p class="text-lg text-gray-600">?</p>
+        </div>
+        {{end}}
+        <div>
+          <p class="font-bold">{{.Position}}</p>
+          <p>{{.CompanyName}}</p>
+        </div>
       </div>
       <p class="text-sm text-gray-500">Posted {{.TimeAgo}}</p>
     </a>

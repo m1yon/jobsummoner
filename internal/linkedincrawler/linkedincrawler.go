@@ -19,7 +19,6 @@ import (
 )
 
 func ScrapeLoop(db *sql.DB) {
-	return
 	for {
 		slog.Info("starting scrape...")
 		err := scrape(db)
@@ -93,6 +92,8 @@ func scrape(db *sql.DB) error {
 
 	url.RawQuery = q.Encode()
 
+	slog.Info(url.String())
+
 	err = page.Navigate(url.String())
 
 	if err != nil {
@@ -165,10 +166,22 @@ func scrape(db *sql.DB) error {
 		segments := strings.Split(parsedCompanyLinkURL.EscapedPath(), "/")
 		companySlug := segments[len(segments)-1]
 
+		companyAvatar, err := jobPosting.Element(".base-card img")
+
+		if err != nil {
+			return fmt.Errorf("failed to query for company avatar in job posting > %v", err)
+		}
+
+		companyAvatarSrc, err := companyAvatar.Property("src")
+
+		if err != nil {
+			return fmt.Errorf("failed parsing company avatar > %v", err)
+		}
+
 		createdAt := time.Now().UTC()
 		updatedAt := time.Now().UTC()
 
-		err = dbQueries.CreateCompany(ctx, database.CreateCompanyParams{ID: companySlug, Name: companyNameText, Url: companyLinkURL.String(), CreatedAt: createdAt, UpdatedAt: updatedAt})
+		err = dbQueries.CreateCompany(ctx, database.CreateCompanyParams{ID: companySlug, Name: companyNameText, Url: companyLinkURL.String(), CreatedAt: createdAt, UpdatedAt: updatedAt, Avatar: sql.NullString{String: companyAvatarSrc.String(), Valid: true}})
 
 		if err != nil {
 			return fmt.Errorf("failed inserting company > %v", err)

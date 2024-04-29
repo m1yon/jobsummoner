@@ -7,6 +7,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"time"
 )
 
@@ -37,7 +38,7 @@ func (q *Queries) CreateJobPosting(ctx context.Context, arg CreateJobPostingPara
 }
 
 const getJobPostings = `-- name: GetJobPostings :many
-SELECT job_postings.position, job_postings.url as job_posting_url, companies.name as company_name, last_posted from job_postings
+SELECT job_postings.position, job_postings.url as job_posting_url, companies.name as company_name, last_posted, companies.avatar as company_avatar from job_postings
 JOIN companies on job_postings.company_id = companies.id
 ORDER BY job_postings.last_posted DESC
 `
@@ -47,6 +48,7 @@ type GetJobPostingsRow struct {
 	JobPostingUrl string
 	CompanyName   string
 	LastPosted    time.Time
+	CompanyAvatar sql.NullString
 }
 
 func (q *Queries) GetJobPostings(ctx context.Context) ([]GetJobPostingsRow, error) {
@@ -63,6 +65,7 @@ func (q *Queries) GetJobPostings(ctx context.Context) ([]GetJobPostingsRow, erro
 			&i.JobPostingUrl,
 			&i.CompanyName,
 			&i.LastPosted,
+			&i.CompanyAvatar,
 		); err != nil {
 			return nil, err
 		}

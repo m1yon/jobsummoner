@@ -5,6 +5,7 @@
 package database
 
 import (
+	"database/sql"
 	"time"
 )
 
@@ -14,6 +15,7 @@ type Company struct {
 	UpdatedAt time.Time
 	Name      string
 	Url       string
+	Avatar    sql.NullString
 }
 
 type JobPosting struct {

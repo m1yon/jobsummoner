@@ -7,12 +7,13 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"time"
 )
 
 const createCompany = `-- name: CreateCompany :exec
-INSERT OR IGNORE INTO companies (id, created_at, updated_at, name, url)
-VALUES (?, ?, ?, ?, ?)
+INSERT OR IGNORE INTO companies (id, created_at, updated_at, name, url, avatar)
+VALUES (?, ?, ?, ?, ?, ?)
 `
 
 type CreateCompanyParams struct {
@@ -21,6 +22,7 @@ type CreateCompanyParams struct {
 	UpdatedAt time.Time
 	Name      string
 	Url       string
+	Avatar    sql.NullString
 }
 
 func (q *Queries) CreateCompany(ctx context.Context, arg CreateCompanyParams) error {
@@ -30,6 +32,7 @@ func (q *Queries) CreateCompany(ctx context.Context, arg CreateCompanyParams) er
 		arg.UpdatedAt,
 		arg.Name,
 		arg.Url,
+		arg.Avatar,
 	)
 	return err
 }
