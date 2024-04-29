@@ -1,33 +1,24 @@
 package main
 
 import (
-	"context"
-	"database/sql"
 	"fmt"
-	"os"
-	"time"
+	"log/slog"
 
 	"github.com/joho/godotenv"
-	"github.com/m1yon/jobsummoner/internal/database"
+	"github.com/lmittmann/tint"
+	"github.com/m1yon/jobsummoner/internal/linkedincrawler"
+	"github.com/m1yon/jobsummoner/internal/logger"
 	_ "modernc.org/sqlite"
 )
 
 func main() {
+	fmt.Println("Starting...")
+	logger.Init()
 	godotenv.Load()
-	dbConnection := os.Getenv("DB_CONNECTION")
-	db, err := sql.Open("sqlite", dbConnection)
+
+	err := linkedincrawler.Crawl()
 
 	if err != nil {
-		fmt.Println("err:", err.Error())
-		return
+		slog.Error("failed to crawl linkedin", tint.Err(err))
 	}
-
-	dbQueries := database.New(db)
-	err = dbQueries.CreateCompany(context.Background(), database.CreateCompanyParams{ID: 1, CreatedAt: time.Now(), UpdatedAt: time.Now(), Name: "test", Url: "google.com"})
-
-	if err != nil {
-		fmt.Println("err:", dbConnection, err.Error())
-		return
-	}
-
 }

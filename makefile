@@ -3,9 +3,6 @@
 include .env
 export
 
-dev:
-	go run ./cmd/jobsummoner
-
 migrate-up:
 	goose -dir "./sql/schema" sqlite $(DB_CONNECTION) up
 
@@ -14,3 +11,6 @@ migrate-down:
 
 generate:
 	sqlc generate
+
+dev: 
+	go run ./cmd/jobsummoner
