@@ -16,6 +16,8 @@ import (
 	"github.com/go-rod/stealth"
 	"github.com/lmittmann/tint"
 	"github.com/m1yon/jobsummoner/internal/database"
+	"modernc.org/sqlite"
+	sqlite3 "modernc.org/sqlite/lib"
 )
 
 func ScrapeLoop(db *sql.DB) {
@@ -182,20 +184,29 @@ func scrape(db *sql.DB) error {
 			return fmt.Errorf("failed parsing company avatar > %v", err)
 		}
 
-		createdAt := time.Now().UTC()
-		updatedAt := time.Now().UTC()
-
-		err = dbQueries.CreateCompany(ctx, database.CreateCompanyParams{ID: companySlug, Name: companyNameText, Url: companyLinkURL.String(), CreatedAt: createdAt, UpdatedAt: updatedAt, Avatar: sql.NullString{String: companyAvatarSrc.String(), Valid: true}})
+		err = dbQueries.CreateCompany(ctx, database.CreateCompanyParams{ID: companySlug, Name: companyNameText, Url: companyLinkURL.String(), Avatar: sql.NullString{String: companyAvatarSrc.String(), Valid: true}})
 
 		if err != nil {
 			return fmt.Errorf("failed inserting company > %v", err)
 		}
 
-		lastPosted := time.Now().UTC()
-
-		err = dbQueries.CreateJobPosting(ctx, database.CreateJobPostingParams{CreatedAt: createdAt, UpdatedAt: updatedAt, LastPosted: lastPosted, Position: positionText, Url: postingUrlText.String(), CompanyID: companySlug})
+		err = dbQueries.CreateJobPosting(ctx, database.CreateJobPostingParams{Position: positionText, Url: postingUrlText.String(), CompanyID: companySlug})
 
 		if err != nil {
+			if sqlError, ok := err.(*sqlite.Error); ok {
+
+				// if the posting already exists, just update the last_posted field
+				if sqlError.Code() == sqlite3.SQLITE_CONSTRAINT_PRIMARYKEY {
+					err := dbQueries.UpdateJobPostingLastPosted(ctx, database.UpdateJobPostingLastPostedParams{Position: positionText, CompanyID: companySlug})
+
+					if err != nil {
+						return fmt.Errorf("failed updating job posting's last_posted field > %v", err)
+					}
+
+					continue
+				}
+			}
+
 			return fmt.Errorf("failed inserting job posting > %v", err)
 		}
 	}

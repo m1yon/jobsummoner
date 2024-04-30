@@ -8,28 +8,23 @@ package database
 import (
 	"context"
 	"database/sql"
-	"time"
 )
 
 const createCompany = `-- name: CreateCompany :exec
 INSERT OR IGNORE INTO companies (id, created_at, updated_at, name, url, avatar)
-VALUES (?, ?, ?, ?, ?, ?)
+VALUES (?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?, ?, ?)
 `
 
 type CreateCompanyParams struct {
-	ID        string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	Name      string
-	Url       string
-	Avatar    sql.NullString
+	ID     string
+	Name   string
+	Url    string
+	Avatar sql.NullString
 }
 
 func (q *Queries) CreateCompany(ctx context.Context, arg CreateCompanyParams) error {
 	_, err := q.db.ExecContext(ctx, createCompany,
 		arg.ID,
-		arg.CreatedAt,
-		arg.UpdatedAt,
 		arg.Name,
 		arg.Url,
 		arg.Avatar,
