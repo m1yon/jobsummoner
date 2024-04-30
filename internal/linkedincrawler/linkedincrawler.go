@@ -102,6 +102,10 @@ func scrape(db *sql.DB) error {
 
 	page.MustWaitStable()
 
+	// scroll to the bottom of the page to load all virtualized resources
+	scrollHeight := page.MustEval("() => document.documentElement.scrollHeight").Int()
+	page.Mouse.Scroll(0.0, float64(scrollHeight), 20)
+
 	jobPostings, err := page.Elements(".jobs-search__results-list > li")
 
 	if err != nil {
@@ -110,9 +114,6 @@ func scrape(db *sql.DB) error {
 
 	for _, jobPosting := range jobPostings {
 		position, err := jobPosting.Element(".base-search-card__title")
-
-		position.ScrollIntoView()
-		page.MustWaitStable()
 
 		if err != nil {
 			return fmt.Errorf("failed to query for position in job posting > %v", err)

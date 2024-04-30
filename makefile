@@ -17,3 +17,6 @@ dev:
 
 dev-show: 
 	go run ./cmd/jobsummoner -rod=show
+
+reset-db:
+	rm -f ./database.db && make migrate-up 
