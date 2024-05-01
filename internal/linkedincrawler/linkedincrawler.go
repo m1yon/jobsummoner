@@ -23,8 +23,8 @@ import (
 func ScrapeLoop(db *sql.DB) {
 	for {
 		slog.Info("starting scrape...")
-		err := scrape(db)
-		slog.Info("scrape finished")
+		numberOfJobPostings, numberOfJobRepostings, err := scrape(db)
+		slog.Info(fmt.Sprintf("successfully scraped (%v) job postings, (%v) of them being reposts", numberOfJobPostings, numberOfJobRepostings))
 
 		if err != nil {
 			slog.Error("failed to scrape linkedin", tint.Err(err))
@@ -34,7 +34,7 @@ func ScrapeLoop(db *sql.DB) {
 	}
 }
 
-func scrape(db *sql.DB) error {
+func scrape(db *sql.DB) (int, int, error) {
 	ctx := context.Background()
 	dbQueries := database.New(db)
 
@@ -59,7 +59,7 @@ func scrape(db *sql.DB) error {
 	err := browser.ControlURL(controlURL).Connect()
 
 	if err != nil {
-		return fmt.Errorf("browser connection failed > %v", err)
+		return 0, 0, fmt.Errorf("browser connection failed > %v", err)
 	}
 
 	if proxyEnabled {
@@ -69,7 +69,7 @@ func scrape(db *sql.DB) error {
 	page, err := stealth.Page(browser)
 
 	if err != nil {
-		return fmt.Errorf("failed to create stealth page > %v", err)
+		return 0, 0, fmt.Errorf("failed to create stealth page > %v", err)
 	}
 
 	keywords := []string{"typescript", "react"}
@@ -81,7 +81,7 @@ func scrape(db *sql.DB) error {
 	url, err := url.Parse("https://linkedin.com/jobs/search/")
 
 	if err != nil {
-		return fmt.Errorf("failed to build URL > %v", err)
+		return 0, 0, fmt.Errorf("failed to build URL > %v", err)
 	}
 
 	q := url.Query()
@@ -94,12 +94,12 @@ func scrape(db *sql.DB) error {
 
 	url.RawQuery = q.Encode()
 
-	slog.Info(url.String())
+	slog.Debug(url.String())
 
 	err = page.Navigate(url.String())
 
 	if err != nil {
-		return fmt.Errorf("failed to navigate to linkedin > %v", err)
+		return 0, 0, fmt.Errorf("failed to navigate to linkedin > %v", err)
 	}
 
 	page.MustWaitStable()
@@ -111,62 +111,65 @@ func scrape(db *sql.DB) error {
 	jobPostings, err := page.Elements(".jobs-search__results-list > li")
 
 	if err != nil {
-		return fmt.Errorf("failed to query for job postings > %v", err)
+		return 0, 0, fmt.Errorf("failed to query for job postings > %v", err)
 	}
+
+	numberOfJobPostings := len(jobPostings)
+	numberOfJobRepostings := 0
 
 	for _, jobPosting := range jobPostings {
 		position, err := jobPosting.Element(".base-search-card__title")
 
 		if err != nil {
-			return fmt.Errorf("failed to query for position in job posting > %v", err)
+			return 0, 0, fmt.Errorf("failed to query for position in job posting > %v", err)
 		}
 
 		positionText, err := position.Text()
 
 		if err != nil {
-			return fmt.Errorf("failed to get position text from element > %v", err)
+			return 0, 0, fmt.Errorf("failed to get position text from element > %v", err)
 		}
 
 		companyName, err := jobPosting.Element(".base-search-card__subtitle")
 
 		if err != nil {
-			return fmt.Errorf("failed to query for company name in job posting > %v", err)
+			return 0, 0, fmt.Errorf("failed to query for company name in job posting > %v", err)
 		}
 
 		companyNameText, err := companyName.Text()
 
 		if err != nil {
-			return fmt.Errorf("failed to get company name text from element > %v", err)
+			return 0, 0, fmt.Errorf("failed to get company name text from element > %v", err)
 		}
 
 		postingURL, err := jobPosting.Element("a")
 
 		if err != nil {
-			return fmt.Errorf("failed to query for posting url in job posting > %v", err)
+			return 0, 0, fmt.Errorf("failed to query for posting url in job posting > %v", err)
 		}
 
 		postingUrlText, err := postingURL.Property("href")
 
 		if err != nil {
-			return fmt.Errorf("failed to get url from element > %v", err)
+			return 0, 0, fmt.Errorf("failed to get url from element > %v", err)
 		}
 
 		companyLink, err := jobPosting.Element(".base-search-card__subtitle > a")
 
 		if err != nil {
-			return fmt.Errorf("failed to query for company link in job posting > %v", err)
+			return 0, 0, fmt.Errorf("failed to query for company link in job posting > %v", err)
 		}
 
 		companyLinkURL, err := companyLink.Property("href")
 
 		if err != nil {
-			return fmt.Errorf("failed to get company url from element > %v", err)
+			return 0, 0, fmt.Errorf("failed to get company url from element > %v", err)
 		}
 
 		parsedCompanyLinkURL, err := url.Parse(companyLinkURL.String())
 
 		if err != nil {
-			return fmt.Errorf("failed parsing company link url > %v", err)
+			return 0, 0, fmt.Errorf("failed parsing company link url > %v", err)
 		}
 
 		segments := strings.Split(parsedCompanyLinkURL.EscapedPath(), "/")
@@ -175,19 +178,19 @@ func scrape(db *sql.DB) error {
 		companyAvatar, err := jobPosting.Element(".base-card img")
 
 		if err != nil {
-			return fmt.Errorf("failed to query for company avatar in job posting > %v", err)
+			return 0, 0, fmt.Errorf("failed to query for company avatar in job posting > %v", err)
 		}
 
 		companyAvatarSrc, err := companyAvatar.Property("src")
 
 		if err != nil {
-			return fmt.Errorf("failed parsing company avatar > %v", err)
+			return 0, 0, fmt.Errorf("failed parsing company avatar > %v", err)
 		}
 
 		err = dbQueries.CreateCompany(ctx, database.CreateCompanyParams{ID: companySlug, Name: companyNameText, Url: companyLinkURL.String(), Avatar: sql.NullString{String: companyAvatarSrc.String(), Valid: true}})
 
 		if err != nil {
-			return fmt.Errorf("failed inserting company > %v", err)
+			return 0, 0, fmt.Errorf("failed inserting company > %v", err)
 		}
 
 		err = dbQueries.CreateJobPosting(ctx, database.CreateJobPostingParams{Position: positionText, Url: postingUrlText.String(), CompanyID: companySlug})
@@ -197,19 +200,21 @@ func scrape(db *sql.DB) error {
 
 				// if the posting already exists, just update the last_posted field
 				if sqlError.Code() == sqlite3.SQLITE_CONSTRAINT_PRIMARYKEY {
+					numberOfJobRepostings++
+
 					err := dbQueries.UpdateJobPostingLastPosted(ctx, database.UpdateJobPostingLastPostedParams{Position: positionText, CompanyID: companySlug})
 
 					if err != nil {
-						return fmt.Errorf("failed updating job posting's last_posted field > %v", err)
+						return 0, 0, fmt.Errorf("failed updating job posting's last_posted field > %v", err)
 					}
 
 					continue
 				}
 			}
 
-			return fmt.Errorf("failed inserting job posting > %v", err)
+			return 0, 0, fmt.Errorf("failed inserting job posting > %v", err)
 		}
 	}
 
-	return nil
+	return numberOfJobPostings, numberOfJobRepostings, nil
 }
