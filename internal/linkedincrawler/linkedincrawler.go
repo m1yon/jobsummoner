@@ -7,6 +7,8 @@ import (
 	"log/slog"
 	"net/url"
 	"os"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -154,6 +156,24 @@ func scrape(db *sql.DB) (int, int, error) {
 			return 0, 0, fmt.Errorf("failed to get url from element > %v", err)
 		}
 
+		relativeListingDate, err := jobPosting.Element(".job-search-card__listdate--new")
+
+		if err != nil {
+			return 0, 0, fmt.Errorf("failed to query for relative listing date in job posting > %v", err)
+		}
+
+		relativeListingDateText, err := relativeListingDate.Text()
+
+		if err != nil {
+			return 0, 0, fmt.Errorf("failed to get url from element > %v", err)
+		}
+
+		listingDate, err := parseRelativeTime(relativeListingDateText)
+
+		if err != nil {
+			return 0, 0, fmt.Errorf("failed to parse relative listing date > %v", err)
+		}
+
 		companyLink, err := jobPosting.Element(".base-search-card__subtitle > a")
 
 		if err != nil {
@@ -193,7 +213,7 @@ func scrape(db *sql.DB) (int, int, error) {
 			return 0, 0, fmt.Errorf("failed inserting company > %v", err)
 		}
 
-		err = dbQueries.CreateJobPosting(ctx, database.CreateJobPostingParams{Position: positionText, Url: postingUrlText.String(), CompanyID: companySlug})
+		err = dbQueries.CreateJobPosting(ctx, database.CreateJobPostingParams{Position: positionText, Url: postingUrlText.String(), CompanyID: companySlug, LastPosted: listingDate})
 
 		if err != nil {
 			if sqlError, ok := err.(*sqlite.Error); ok {
@@ -202,7 +222,7 @@ func scrape(db *sql.DB) (int, int, error) {
 				if sqlError.Code() == sqlite3.SQLITE_CONSTRAINT_PRIMARYKEY {
 					numberOfJobRepostings++
 
-					err := dbQueries.UpdateJobPostingLastPosted(ctx, database.UpdateJobPostingLastPostedParams{Position: positionText, CompanyID: companySlug})
+					err := dbQueries.UpdateJobPostingLastPosted(ctx, database.UpdateJobPostingLastPostedParams{Position: positionText, CompanyID: companySlug, LastPosted: listingDate})
 
 					if err != nil {
 						return 0, 0, fmt.Errorf("failed updating job posting's last_posted field > %v", err)
@@ -217,4 +237,39 @@ func scrape(db *sql.DB) (int, int, error) {
 	}
 
 	return numberOfJobPostings, numberOfJobRepostings, nil
+}
+
+func parseRelativeTime(input string) (time.Time, error) {
+	// Regex to find number and unit
+	re := regexp.MustCompile(`(\d+)\s*(second|minute|hour|day)s?\s*ago`)
+	matches := re.FindStringSubmatch(input)
+
+	if len(matches) != 3 {
+		return time.Time{}, fmt.Errorf("invalid format")
+	}
+
+	// Convert number to integer
+	value, err := strconv.Atoi(matches[1])
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	// Determine the unit of time
+	var duration time.Duration
+	switch matches[2] {
+	case "second":
+		duration = time.Second * time.Duration(value)
+	case "minute":
+		duration = time.Minute * time.Duration(value)
+	case "hour":
+		duration = time.Hour * time.Duration(value)
+	case "day":
+		duration = time.Hour * 24 * time.Duration(value)
+	default:
+		return time.Time{}, fmt.Errorf("unknown time unit")
+	}
+
+	// Calculate the time
+	actualTime := time.Now().Add(-duration)
+	return actualTime, nil
 }

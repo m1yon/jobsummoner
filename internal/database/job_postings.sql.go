@@ -13,17 +13,23 @@ import (
 
 const createJobPosting = `-- name: CreateJobPosting :exec
 INSERT INTO job_postings (created_at, updated_at, last_posted, position, url, company_id)
-VALUES (CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?, ?, ?)
+VALUES (CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?, ?, ?, ?)
 `
 
 type CreateJobPostingParams struct {
-	Position  string
-	Url       string
-	CompanyID string
+	LastPosted time.Time
+	Position   string
+	Url        string
+	CompanyID  string
 }
 
 func (q *Queries) CreateJobPosting(ctx context.Context, arg CreateJobPostingParams) error {
-	_, err := q.db.ExecContext(ctx, createJobPosting, arg.Position, arg.Url, arg.CompanyID)
+	_, err := q.db.ExecContext(ctx, createJobPosting,
+		arg.LastPosted,
+		arg.Position,
+		arg.Url,
+		arg.CompanyID,
+	)
 	return err
 }
 
@@ -72,16 +78,17 @@ func (q *Queries) GetJobPostings(ctx context.Context) ([]GetJobPostingsRow, erro
 
 const updateJobPostingLastPosted = `-- name: UpdateJobPostingLastPosted :exec
 UPDATE job_postings
-SET last_posted = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+SET last_posted = ?, updated_at = CURRENT_TIMESTAMP
 WHERE position = ? AND company_id = ?
 `
 
 type UpdateJobPostingLastPostedParams struct {
-	Position  string
-	CompanyID string
+	LastPosted time.Time
+	Position   string
+	CompanyID  string
 }
 
 func (q *Queries) UpdateJobPostingLastPosted(ctx context.Context, arg UpdateJobPostingLastPostedParams) error {
-	_, err := q.db.ExecContext(ctx, updateJobPostingLastPosted, arg.Position, arg.CompanyID)
+	_, err := q.db.ExecContext(ctx, updateJobPostingLastPosted, arg.LastPosted, arg.Position, arg.CompanyID)
 	return err
 }
