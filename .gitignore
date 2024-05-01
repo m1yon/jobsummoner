@@ -1,3 +1,4 @@
-database.db
+/db
 .env
 /jobsummoner
+/migrations

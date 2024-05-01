@@ -1,0 +1,4 @@
+#!/bin/bash
+
+./migrations
+./jobsummoner

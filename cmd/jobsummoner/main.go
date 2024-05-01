@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"os"
 	"text/template"
 	"time"
 
@@ -25,8 +24,7 @@ func main() {
 	godotenv.Load()
 	port := "3000"
 
-	dbConnection := os.Getenv("DB_CONNECTION")
-	db, err := sql.Open("sqlite", dbConnection)
+	db, err := sql.Open("sqlite", "./db/database.db")
 
 	if err != nil {
 		slog.Error("problem initializing handler mux", err)
