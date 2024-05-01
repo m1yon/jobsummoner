@@ -35,7 +35,4 @@ VOLUME /app/db
 
 EXPOSE 3000
 
-# run db migrations
-RUN ./migrations
-
 CMD scripts/run-docker.sh
