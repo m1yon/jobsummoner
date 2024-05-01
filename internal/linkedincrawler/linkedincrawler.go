@@ -23,20 +23,55 @@ import (
 )
 
 func ScrapeLoop(db *sql.DB) {
-	for {
-		slog.Info("starting scrape...")
-		numberOfJobPostings, numberOfJobRepostings, err := scrape(db)
-		slog.Info(fmt.Sprintf("successfully scraped (%v) job postings, (%v) of them being reposts", numberOfJobPostings, numberOfJobRepostings))
+	scrapes := []scrapeOptions{
+		{
+			name:         "Remote Roles",
+			keywords:     []string{"typescript", "react"},
+			location:     "United States",
+			workType:     2,             // 2 = remote
+			jobTypes:     []string{"F"}, // F = fulltime
+			salaryRanges: []string{"5"}, // 5 = $120,000+
+			ageOfPosting: 24 * time.Hour,
+		},
+		{
+			name:         "Colorado Hybrid Roles",
+			keywords:     []string{"typescript", "react"},
+			location:     "Colorado, United States",
+			workType:     3,
+			jobTypes:     []string{"F"},
+			salaryRanges: []string{"5"},
+			ageOfPosting: 24 * time.Hour,
+		},
+	}
 
-		if err != nil {
-			slog.Error("failed to scrape linkedin", tint.Err(err))
+	for {
+		for _, options := range scrapes {
+			slog.Info(fmt.Sprintf("starting scrape for '%v'...", options.name))
+
+			numberOfJobPostings, numberOfJobRepostings, err := scrape(db, options)
+
+			if err != nil {
+				slog.Error(fmt.Sprintf("failed to scrape '%v'", options.name), tint.Err(err))
+			}
+
+			slog.Info(fmt.Sprintf("successfully scraped '%v' and got (%v) job postings, (%v) of them being reposts", options.name, numberOfJobPostings, numberOfJobRepostings))
 		}
 
 		time.Sleep(60 * time.Minute)
 	}
 }
 
-func scrape(db *sql.DB) (int, int, error) {
+type scrapeOptions struct {
+	name         string
+	keywords     []string
+	location     string
+	workType     int64
+	jobTypes     []string
+	salaryRanges []string
+	ageOfPosting time.Duration
+}
+
+func scrape(db *sql.DB, options scrapeOptions) (int, int, error) {
 	ctx := context.Background()
 	dbQueries := database.New(db)
 
@@ -74,12 +109,6 @@ func scrape(db *sql.DB) (int, int, error) {
 		return 0, 0, fmt.Errorf("failed to create stealth page > %v", err)
 	}
 
-	keywords := []string{"typescript", "react"}
-	location := "United States"
-	workTypes := []string{"2"}    // 2 = remote
-	jobTypes := []string{"F"}     // F = fulltime
-	salaryRanges := []string{"5"} // 5 = $120,000+
-	ageOfPosting := 24 * time.Hour
 	url, err := url.Parse("https://linkedin.com/jobs/search/")
 
 	if err != nil {
@@ -87,12 +116,12 @@ func scrape(db *sql.DB) (int, int, error) {
 	}
 
 	q := url.Query()
-	q.Set("keywords", strings.Join(keywords, " OR "))
-	q.Set("location", location)
-	q.Set("f_WT", strings.Join(workTypes, ","))
-	q.Set("f_JT", strings.Join(jobTypes, ","))
-	q.Set("f_SB2", strings.Join(salaryRanges, ","))
-	q.Set("f_TPR", fmt.Sprintf("r%v", ageOfPosting.Seconds()))
+	q.Set("keywords", strings.Join(options.keywords, " OR "))
+	q.Set("location", options.location)
+	q.Set("f_WT", fmt.Sprintf("%v", options.workType))
+	q.Set("f_JT", strings.Join(options.jobTypes, ","))
+	q.Set("f_SB2", strings.Join(options.salaryRanges, ","))
+	q.Set("f_TPR", fmt.Sprintf("r%v", options.ageOfPosting.Seconds()))
 
 	url.RawQuery = q.Encode()
 
@@ -142,6 +171,18 @@ func scrape(db *sql.DB) (int, int, error) {
 
 		if err != nil {
 			return 0, 0, fmt.Errorf("failed to get company name text from element > %v", err)
+		}
+
+		location, err := jobPosting.Element(".job-search-card__location")
+
+		if err != nil {
+			return 0, 0, fmt.Errorf("failed to query for location in job posting > %v", err)
+		}
+
+		locationText, err := location.Text()
+
+		if err != nil {
+			return 0, 0, fmt.Errorf("failed to get location text from element > %v", err)
 		}
 
 		postingURL, err := jobPosting.Element("a")
@@ -213,7 +254,14 @@ func scrape(db *sql.DB) (int, int, error) {
 			return 0, 0, fmt.Errorf("failed inserting company > %v", err)
 		}
 
-		err = dbQueries.CreateJobPosting(ctx, database.CreateJobPostingParams{Position: positionText, Url: postingUrlText.String(), CompanyID: companySlug, LastPosted: listingDate})
+		err = dbQueries.CreateJobPosting(ctx, database.CreateJobPostingParams{
+			Position:     positionText,
+			Url:          postingUrlText.String(),
+			CompanyID:    companySlug,
+			LastPosted:   listingDate.UTC(),
+			Location:     sql.NullString{String: locationText, Valid: true},
+			LocationType: options.workType,
+		})
 
 		if err != nil {
 			if sqlError, ok := err.(*sqlite.Error); ok {
@@ -222,7 +270,11 @@ func scrape(db *sql.DB) (int, int, error) {
 				if sqlError.Code() == sqlite3.SQLITE_CONSTRAINT_PRIMARYKEY {
 					numberOfJobRepostings++
 
-					err := dbQueries.UpdateJobPostingLastPosted(ctx, database.UpdateJobPostingLastPostedParams{Position: positionText, CompanyID: companySlug, LastPosted: listingDate})
+					err := dbQueries.UpdateJobPostingLastPosted(ctx, database.UpdateJobPostingLastPostedParams{
+						Position:   positionText,
+						CompanyID:  companySlug,
+						LastPosted: listingDate.UTC(),
+					})
 
 					if err != nil {
 						return 0, 0, fmt.Errorf("failed updating job posting's last_posted field > %v", err)

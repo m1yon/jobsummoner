@@ -19,10 +19,12 @@ type Company struct {
 }
 
 type JobPosting struct {
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
-	LastPosted time.Time
-	Position   string
-	Url        string
-	CompanyID  string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	LastPosted   time.Time
+	Position     string
+	Url          string
+	CompanyID    string
+	LocationType int64
+	Location     sql.NullString
 }

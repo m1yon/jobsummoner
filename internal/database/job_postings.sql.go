@@ -12,15 +12,17 @@ import (
 )
 
 const createJobPosting = `-- name: CreateJobPosting :exec
-INSERT INTO job_postings (created_at, updated_at, last_posted, position, url, company_id)
-VALUES (CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?, ?, ?, ?)
+INSERT INTO job_postings (created_at, updated_at, last_posted, position, url, company_id, location_type, location)
+VALUES (CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?, ?, ?, ?, ?, ?)
 `
 
 type CreateJobPostingParams struct {
-	LastPosted time.Time
-	Position   string
-	Url        string
-	CompanyID  string
+	LastPosted   time.Time
+	Position     string
+	Url          string
+	CompanyID    string
+	LocationType int64
+	Location     sql.NullString
 }
 
 func (q *Queries) CreateJobPosting(ctx context.Context, arg CreateJobPostingParams) error {
@@ -29,6 +31,8 @@ func (q *Queries) CreateJobPosting(ctx context.Context, arg CreateJobPostingPara
 		arg.Position,
 		arg.Url,
 		arg.CompanyID,
+		arg.LocationType,
+		arg.Location,
 	)
 	return err
 }
