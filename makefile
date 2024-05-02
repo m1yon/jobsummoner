@@ -22,4 +22,4 @@ reset-db:
 	rm -f ./database.db && make migrate-up 
 
 docker-dev:
-	./scripts/build-docker.sh && docker build -t m1yon/jobsummoner:latest . && docker run -v db:/app/db -p 3000:3000 -d m1yon/jobsummoner:latest
+	./scripts/build-docker.sh && docker compose up --build

@@ -1,0 +1,15 @@
+services:
+  jobsummoner:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - PROXY_HOSTNAME=${PROXY_HOSTNAME}
+      - PROXY_USERNAME=${PROXY_USERNAME}
+      - PROXY_PASSWORD=${PROXY_PASSWORD}
+      - DEBUG=${DEBUG}
+    volumes: 
+      - db:/app/db
+
+volumes:
+  db:
