@@ -8,11 +8,10 @@ CREATE TABLE users(
 CREATE TABLE user_job_postings(
   created_at TIMESTAMP NOT NULL,
   user_id INTEGER NOT NULL,
-  position TEXT NOT NULL,
-  company_id TEXT NOT NULL,
+  job_posting_id TEXT NOT NULL,
   FOREIGN KEY (user_id) REFERENCES users(id),
-  FOREIGN KEY (position) REFERENCES job_postings(position),
-  FOREIGN KEY (company_id) REFERENCES job_postings(company_id)
+  FOREIGN KEY (job_posting_id) REFERENCES job_postings(id),
+  PRIMARY KEY (user_id, job_posting_id)
 );
 
 -- +goose Down

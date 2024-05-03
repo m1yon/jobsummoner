@@ -2,7 +2,9 @@ package linkedincrawler
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 	"fmt"
 	"log/slog"
 	"net/url"
@@ -32,7 +34,7 @@ func ScrapeLoop(db *sql.DB) {
 			workType:     2,             // 2 = remote
 			jobTypes:     []string{"F"}, // F = fulltime
 			salaryRanges: []string{"5"}, // 5 = $120,000+
-			ageOfPosting: 35 * time.Minute,
+			ageOfPosting: 35 * time.Hour,
 			userID:       1,
 		},
 		{
@@ -42,7 +44,7 @@ func ScrapeLoop(db *sql.DB) {
 			workType:     3,
 			jobTypes:     []string{"F"},
 			salaryRanges: []string{"5"},
-			ageOfPosting: 35 * time.Minute,
+			ageOfPosting: 35 * time.Hour,
 			userID:       1,
 		},
 	}
@@ -287,7 +289,10 @@ func scrape(db *sql.DB, options scrapeOptions) {
 			continue
 		}
 
+		jobPostingID := getJobPostingID(companySlug, positionText)
+
 		err = dbQueries.CreateJobPosting(ctx, database.CreateJobPostingParams{
+			ID:           jobPostingID,
 			Position:     positionText,
 			Url:          postingUrlText.String(),
 			CompanyID:    companySlug,
@@ -308,8 +313,7 @@ func scrape(db *sql.DB, options scrapeOptions) {
 				numberOfJobRepostings++
 
 				err = dbQueries.UpdateJobPostingLastPosted(ctx, database.UpdateJobPostingLastPostedParams{
-					Position:   positionText,
-					CompanyID:  companySlug,
+					ID:         jobPostingID,
 					LastPosted: listingDate.UTC(),
 				})
 
@@ -321,9 +325,8 @@ func scrape(db *sql.DB, options scrapeOptions) {
 		}
 
 		err = dbQueries.CreateUserJobPosting(ctx, database.CreateUserJobPostingParams{
-			UserID:    int64(options.userID),
-			Position:  positionText,
-			CompanyID: companySlug,
+			JobPostingID: jobPostingID,
+			UserID:       int64(options.userID),
 		})
 
 		if err != nil {
@@ -338,6 +341,18 @@ func scrape(db *sql.DB, options scrapeOptions) {
 	}
 
 	slog.Info("scrape finished", slog.String("name", options.name), slog.Int("postings", numberOfJobPostings), slog.Int("repostings", numberOfJobRepostings))
+}
+
+func getJobPostingID(company_id string, position string) string {
+	data := company_id + "|" + position
+
+	hasher := sha256.New()
+
+	hasher.Write([]byte(data))
+
+	hash := hasher.Sum(nil)
+
+	return hex.EncodeToString(hash)
 }
 
 func parseRelativeTime(input string) (time.Time, error) {

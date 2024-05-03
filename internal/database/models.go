@@ -19,6 +19,7 @@ type Company struct {
 }
 
 type JobPosting struct {
+	ID           string
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 	LastPosted   time.Time
@@ -36,8 +37,8 @@ type User struct {
 }
 
 type UserJobPosting struct {
-	CreatedAt time.Time
-	UserID    int64
-	Position  string
-	CompanyID string
+	CreatedAt    time.Time
+	UserID       int64
+	JobPostingID string
+	Hidden       bool
 }

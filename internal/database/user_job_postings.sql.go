@@ -12,27 +12,26 @@ import (
 )
 
 const createUserJobPosting = `-- name: CreateUserJobPosting :exec
-INSERT INTO user_job_postings (created_at, user_id, position, company_id)
-VALUES (CURRENT_TIMESTAMP, ?, ?, ?)
+INSERT INTO user_job_postings (created_at, user_id, job_posting_id)
+VALUES (CURRENT_TIMESTAMP, ?, ?)
 `
 
 type CreateUserJobPostingParams struct {
-	UserID    int64
-	Position  string
-	CompanyID string
+	UserID       int64
+	JobPostingID string
 }
 
 func (q *Queries) CreateUserJobPosting(ctx context.Context, arg CreateUserJobPostingParams) error {
-	_, err := q.db.ExecContext(ctx, createUserJobPosting, arg.UserID, arg.Position, arg.CompanyID)
+	_, err := q.db.ExecContext(ctx, createUserJobPosting, arg.UserID, arg.JobPostingID)
 	return err
 }
 
 const getUserJobPostings = `-- name: GetUserJobPostings :many
-SELECT job_postings.position, job_postings.url as job_posting_url, companies.name as company_name, last_posted, companies.avatar as company_avatar 
+SELECT job_postings.position, job_postings.url as job_posting_url, companies.name as company_name, last_posted, companies.avatar as company_avatar, companies.id as company_id, job_postings.id as job_posting_id
 FROM user_job_postings
 JOIN companies on job_postings.company_id = companies.id
-JOIN job_postings on user_job_postings.position = job_postings.position AND user_job_postings.company_id = job_postings.company_id
-WHERE user_job_postings.user_id = ?
+JOIN job_postings on user_job_postings.job_posting_id = job_postings.id
+WHERE user_job_postings.user_id = ? AND user_job_postings.hidden = false
 ORDER BY job_postings.last_posted DESC
 `
 
@@ -42,6 +41,8 @@ type GetUserJobPostingsRow struct {
 	CompanyName   string
 	LastPosted    time.Time
 	CompanyAvatar sql.NullString
+	CompanyID     string
+	JobPostingID  string
 }
 
 func (q *Queries) GetUserJobPostings(ctx context.Context, userID int64) ([]GetUserJobPostingsRow, error) {
@@ -59,6 +60,8 @@ func (q *Queries) GetUserJobPostings(ctx context.Context, userID int64) ([]GetUs
 			&i.CompanyName,
 			&i.LastPosted,
 			&i.CompanyAvatar,
+			&i.CompanyID,
+			&i.JobPostingID,
 		); err != nil {
 			return nil, err
 		}
@@ -71,4 +74,20 @@ func (q *Queries) GetUserJobPostings(ctx context.Context, userID int64) ([]GetUs
 		return nil, err
 	}
 	return items, nil
+}
+
+const hideUserJobPosting = `-- name: HideUserJobPosting :exec
+UPDATE user_job_postings
+SET hidden = 1
+WHERE user_id = ? AND job_posting_id = ?
+`
+
+type HideUserJobPostingParams struct {
+	UserID       int64
+	JobPostingID string
+}
+
+func (q *Queries) HideUserJobPosting(ctx context.Context, arg HideUserJobPostingParams) error {
+	_, err := q.db.ExecContext(ctx, hideUserJobPosting, arg.UserID, arg.JobPostingID)
+	return err
 }

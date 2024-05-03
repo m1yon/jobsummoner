@@ -1,0 +1,24 @@
+{{define "user_job_postings"}}
+{{range .JobPostings}}
+<div id="user_job_posting-{{ .JobPostingID }}" class="p-4 bg-gray-100 mb-2 flex justify-between items-center"
+  href="{{.JobPostingUrl}}">
+  <div class="flex items-center">
+    {{if .CompanyAvatar.String}}
+    <img class="size-10 rounded-lg mr-4" src="{{.CompanyAvatar.String}}" alt="">
+    {{else}}
+    <div class="size-10 rounded-lg mr-4 bg-gray-300 flex items-center justify-center">
+      <p class="text-lg text-gray-600">?</p>
+    </div>
+    {{end}}
+    <div>
+      <p class="font-bold">{{.Position}}</p>
+      <p>{{.CompanyName}}</p>
+      <p class="text-sm text-gray-500">Posted {{.TimeAgo}}</p>
+    </div>
+  </div>
+
+  <button type="button" hx-patch="/user_job_postings/{{ .JobPostingID }}"
+    hx-target="#user_job_posting-{{ .JobPostingID }}" hx-swap="outerHTML">Hide</button>
+</div>
+{{end}}
+{{end}}
