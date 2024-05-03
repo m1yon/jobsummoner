@@ -46,15 +46,7 @@ func ScrapeLoop(db *sql.DB) {
 
 	for {
 		for _, options := range scrapes {
-			slog.Info(fmt.Sprintf("starting scrape for '%v'...", options.name))
-
-			numberOfJobPostings, numberOfJobRepostings, err := scrape(db, options)
-
-			if err != nil {
-				slog.Error(fmt.Sprintf("failed to scrape '%v'", options.name), tint.Err(err))
-			}
-
-			slog.Info(fmt.Sprintf("successfully scraped '%v' and got (%v) job postings, (%v) of them being reposts", options.name, numberOfJobPostings, numberOfJobRepostings))
+			scrape(db, options)
 		}
 
 		time.Sleep(60 * time.Minute)
@@ -71,7 +63,7 @@ type scrapeOptions struct {
 	ageOfPosting time.Duration
 }
 
-func scrape(db *sql.DB, options scrapeOptions) (int, int, error) {
+func scrape(db *sql.DB, options scrapeOptions) {
 	ctx := context.Background()
 	dbQueries := database.New(db)
 
@@ -81,9 +73,7 @@ func scrape(db *sql.DB, options scrapeOptions) (int, int, error) {
 
 	proxyEnabled := len(PROXY_HOSTNAME) != 0
 
-	if !proxyEnabled {
-		slog.Warn("no PROXY_HOSTNAME found, proxy server disabled")
-	}
+	slog.Info("starting scrape", slog.String("name", options.name), slog.Bool("proxy", proxyEnabled))
 
 	// proxy setup
 	l := launcher.New()
@@ -96,7 +86,8 @@ func scrape(db *sql.DB, options scrapeOptions) (int, int, error) {
 	err := browser.ControlURL(controlURL).Connect()
 
 	if err != nil {
-		return 0, 0, fmt.Errorf("browser connection failed > %v", err)
+		slog.Error("browser connection failed", tint.Err(err))
+		return
 	}
 
 	if proxyEnabled {
@@ -106,13 +97,15 @@ func scrape(db *sql.DB, options scrapeOptions) (int, int, error) {
 	page, err := stealth.Page(browser)
 
 	if err != nil {
-		return 0, 0, fmt.Errorf("failed to create stealth page > %v", err)
+		slog.Error("failed to create stealth page", tint.Err(err))
+		return
 	}
 
 	url, err := url.Parse("https://linkedin.com/jobs/search/")
 
 	if err != nil {
-		return 0, 0, fmt.Errorf("failed to build URL > %v", err)
+		slog.Error("failed to build URL", tint.Err(err))
+		return
 	}
 
 	q := url.Query()
@@ -130,7 +123,8 @@ func scrape(db *sql.DB, options scrapeOptions) (int, int, error) {
 	err = page.Navigate(url.String())
 
 	if err != nil {
-		return 0, 0, fmt.Errorf("failed to navigate to linkedin > %v", err)
+		slog.Error("failed to navigate to linkedin", slog.String("url", url.String()), tint.Err(err))
+		return
 	}
 
 	page.MustWaitStable()
@@ -142,7 +136,8 @@ func scrape(db *sql.DB, options scrapeOptions) (int, int, error) {
 	jobPostings, err := page.Elements(".jobs-search__results-list > li")
 
 	if err != nil {
-		return 0, 0, fmt.Errorf("failed to query for job postings > %v", err)
+		slog.Error("failed to query for job postings", slog.String("url", url.String()), tint.Err(err))
+		return
 	}
 
 	numberOfJobPostings := len(jobPostings)
@@ -152,85 +147,99 @@ func scrape(db *sql.DB, options scrapeOptions) (int, int, error) {
 		position, err := jobPosting.Element(".base-search-card__title")
 
 		if err != nil {
-			return 0, 0, fmt.Errorf("failed to query for position in job posting > %v", err)
+			slog.Error("failed to query for position in job posting", slog.String("url", url.String()), tint.Err(err))
+			continue
 		}
 
 		positionText, err := position.Text()
 
 		if err != nil {
-			return 0, 0, fmt.Errorf("failed to get position text from element > %v", err)
+			slog.Error("failed to get position text from element", slog.String("url", url.String()), tint.Err(err))
+			continue
 		}
 
 		companyName, err := jobPosting.Element(".base-search-card__subtitle")
 
 		if err != nil {
-			return 0, 0, fmt.Errorf("failed to query for company name in job posting > %v", err)
+			slog.Error("failed to query for company name in job posting", slog.String("url", url.String()), tint.Err(err))
+			continue
 		}
 
 		companyNameText, err := companyName.Text()
 
 		if err != nil {
-			return 0, 0, fmt.Errorf("failed to get company name text from element > %v", err)
+			slog.Error("failed to get company name text from element", slog.String("url", url.String()), tint.Err(err))
+			continue
 		}
 
 		location, err := jobPosting.Element(".job-search-card__location")
 
 		if err != nil {
-			return 0, 0, fmt.Errorf("failed to query for location in job posting > %v", err)
+			slog.Error("failed to query for location in job posting", slog.String("url", url.String()), tint.Err(err))
+			continue
 		}
 
 		locationText, err := location.Text()
 
 		if err != nil {
-			return 0, 0, fmt.Errorf("failed to get location text from element > %v", err)
+			slog.Error("failed to get location text from element", slog.String("url", url.String()), tint.Err(err))
+			continue
 		}
 
 		postingURL, err := jobPosting.Element("a")
 
 		if err != nil {
-			return 0, 0, fmt.Errorf("failed to query for posting url in job posting > %v", err)
+			slog.Error("failed to query for posting url in job posting", slog.String("url", url.String()), tint.Err(err))
+			continue
 		}
 
 		postingUrlText, err := postingURL.Property("href")
 
 		if err != nil {
-			return 0, 0, fmt.Errorf("failed to get url from element > %v", err)
+			slog.Error("failed to get url from element", slog.String("url", url.String()), tint.Err(err))
+			continue
 		}
 
 		relativeListingDate, err := jobPosting.Element(".job-search-card__listdate--new")
 
 		if err != nil {
-			return 0, 0, fmt.Errorf("failed to query for relative listing date in job posting > %v", err)
+			slog.Error("faled to query for relative listing date in job posting", slog.String("url", url.String()), tint.Err(err))
+			continue
 		}
 
 		relativeListingDateText, err := relativeListingDate.Text()
 
 		if err != nil {
-			return 0, 0, fmt.Errorf("failed to get url from element > %v", err)
+			slog.Error("failed to get url from element", slog.String("url", url.String()), tint.Err(err))
+			continue
 		}
 
 		listingDate, err := parseRelativeTime(relativeListingDateText)
 
 		if err != nil {
-			return 0, 0, fmt.Errorf("failed to parse relative listing date > %v", err)
+			slog.Error("failed to parse relative listing date", slog.String("url", url.String()), tint.Err(err))
+			continue
 		}
 
 		companyLink, err := jobPosting.Element(".base-search-card__subtitle > a")
 
 		if err != nil {
-			return 0, 0, fmt.Errorf("failed to query for company link in job posting > %v", err)
+			slog.Error("failed to query for company link in job posting", slog.String("url", url.String()), tint.Err(err))
+			continue
 		}
 
 		companyLinkURL, err := companyLink.Property("href")
 
 		if err != nil {
-			return 0, 0, fmt.Errorf("failed to get company url from element > %v", err)
+			slog.Error("failed to get company url from element", slog.String("url", url.String()), tint.Err(err))
+			continue
 		}
 
 		parsedCompanyLinkURL, err := url.Parse(companyLinkURL.String())
 
 		if err != nil {
-			return 0, 0, fmt.Errorf("failed parsing company link url > %v", err)
+			slog.Error("failed parsing company link url", slog.String("url", url.String()), tint.Err(err))
+			continue
 		}
 
 		segments := strings.Split(parsedCompanyLinkURL.EscapedPath(), "/")
@@ -239,19 +248,22 @@ func scrape(db *sql.DB, options scrapeOptions) (int, int, error) {
 		companyAvatar, err := jobPosting.Element(".base-card img")
 
 		if err != nil {
-			return 0, 0, fmt.Errorf("failed to query for company avatar in job posting > %v", err)
+			slog.Error("failed to query for company avatar in job posting", slog.String("url", url.String()), tint.Err(err))
+			continue
 		}
 
 		companyAvatarSrc, err := companyAvatar.Property("src")
 
 		if err != nil {
-			return 0, 0, fmt.Errorf("failed parsing company avatar > %v", err)
+			slog.Error("failed parsing company avatar", slog.String("url", url.String()), tint.Err(err))
+			continue
 		}
 
 		err = dbQueries.CreateCompany(ctx, database.CreateCompanyParams{ID: companySlug, Name: companyNameText, Url: companyLinkURL.String(), Avatar: sql.NullString{String: companyAvatarSrc.String(), Valid: true}})
 
 		if err != nil {
-			return 0, 0, fmt.Errorf("failed inserting company > %v", err)
+			slog.Error("failed inserting company", slog.String("url", url.String()), tint.Err(err))
+			continue
 		}
 
 		err = dbQueries.CreateJobPosting(ctx, database.CreateJobPostingParams{
@@ -277,18 +289,20 @@ func scrape(db *sql.DB, options scrapeOptions) (int, int, error) {
 					})
 
 					if err != nil {
-						return 0, 0, fmt.Errorf("failed updating job posting's last_posted field > %v", err)
+						slog.Error("failed updating job posting's last_posted field", slog.String("url", url.String()), tint.Err(err))
+						continue
 					}
 
 					continue
 				}
 			}
 
-			return 0, 0, fmt.Errorf("failed inserting job posting > %v", err)
+			slog.Error("failed inserting job posting", slog.String("url", url.String()), tint.Err(err))
+			continue
 		}
 	}
 
-	return numberOfJobPostings, numberOfJobRepostings, nil
+	slog.Info("scrape finished", slog.String("name", options.name), slog.Int("postings", numberOfJobPostings), slog.Int("repostings", numberOfJobRepostings))
 }
 
 func parseRelativeTime(input string) (time.Time, error) {
