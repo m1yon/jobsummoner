@@ -56,7 +56,7 @@ func ScrapeLoop(db *sql.DB) {
 	c := cron.NewWithLocation(location)
 
 	for _, options := range scrapes {
-		c.AddFunc("* */30 7-22 * * *", func() {
+		c.AddFunc("0 */30 7-22 * * *", func() {
 			localOptions := options
 			scrape(db, localOptions)
 		})
