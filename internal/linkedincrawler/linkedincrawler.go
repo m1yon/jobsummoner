@@ -200,7 +200,7 @@ func scrape(db *sql.DB, options scrapeOptions) {
 			continue
 		}
 
-		relativeListingDate, err := jobPosting.Element(".job-search-card__listdate--new")
+		relativeListingDate, err := jobPosting.Element(".base-search-card__metadata > time")
 
 		if err != nil {
 			slog.Error("faled to query for relative listing date in job posting", slog.String("url", url.String()), tint.Err(err))
