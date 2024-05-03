@@ -28,3 +28,16 @@ type JobPosting struct {
 	LocationType int64
 	Location     sql.NullString
 }
+
+type User struct {
+	ID        int64
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type UserJobPosting struct {
+	CreatedAt time.Time
+	UserID    int64
+	Position  string
+	CompanyID string
+}

@@ -33,6 +33,7 @@ func ScrapeLoop(db *sql.DB) {
 			jobTypes:     []string{"F"}, // F = fulltime
 			salaryRanges: []string{"5"}, // 5 = $120,000+
 			ageOfPosting: 24 * time.Hour,
+			userID:       1,
 		},
 		{
 			name:         "Colorado Hybrid Roles",
@@ -42,6 +43,7 @@ func ScrapeLoop(db *sql.DB) {
 			jobTypes:     []string{"F"},
 			salaryRanges: []string{"5"},
 			ageOfPosting: 24 * time.Hour,
+			userID:       1,
 		},
 	}
 
@@ -79,6 +81,7 @@ type scrapeOptions struct {
 	jobTypes     []string
 	salaryRanges []string
 	ageOfPosting time.Duration
+	userID       int
 }
 
 func scrape(db *sql.DB, options scrapeOptions) {
@@ -295,28 +298,42 @@ func scrape(db *sql.DB, options scrapeOptions) {
 
 		if err != nil {
 			if sqlError, ok := err.(*sqlite.Error); ok {
+				// fail if it's not an expected error
+				if sqlError.Code() != sqlite3.SQLITE_CONSTRAINT_PRIMARYKEY {
+					slog.Error("failed inserting job posting", slog.String("url", url.String()), tint.Err(err))
+					continue
+				}
 
 				// if the posting already exists, just update the last_posted field
+				numberOfJobRepostings++
+
+				err = dbQueries.UpdateJobPostingLastPosted(ctx, database.UpdateJobPostingLastPostedParams{
+					Position:   positionText,
+					CompanyID:  companySlug,
+					LastPosted: listingDate.UTC(),
+				})
+
+				if err != nil {
+					slog.Error("failed updating job posting's last_posted field", slog.String("url", url.String()), tint.Err(err))
+					continue
+				}
+			}
+		}
+
+		err = dbQueries.CreateUserJobPosting(ctx, database.CreateUserJobPostingParams{
+			UserID:    int64(options.userID),
+			Position:  positionText,
+			CompanyID: companySlug,
+		})
+
+		if err != nil {
+			if sqlError, ok := err.(*sqlite.Error); ok {
 				if sqlError.Code() == sqlite3.SQLITE_CONSTRAINT_PRIMARYKEY {
-					numberOfJobRepostings++
-
-					err := dbQueries.UpdateJobPostingLastPosted(ctx, database.UpdateJobPostingLastPostedParams{
-						Position:   positionText,
-						CompanyID:  companySlug,
-						LastPosted: listingDate.UTC(),
-					})
-
-					if err != nil {
-						slog.Error("failed updating job posting's last_posted field", slog.String("url", url.String()), tint.Err(err))
-						continue
-					}
-
 					continue
 				}
 			}
 
-			slog.Error("failed inserting job posting", slog.String("url", url.String()), tint.Err(err))
-			continue
+			slog.Error("failed insert user job posting", slog.String("url", url.String()), tint.Err(err))
 		}
 	}
 

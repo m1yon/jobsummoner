@@ -36,6 +36,12 @@ func main() {
 	mux := http.NewServeMux()
 	dbQueries := database.New(db)
 
+	// create our seed user
+	_, err = dbQueries.GetUser(ctx, 1)
+	if err != nil {
+		dbQueries.CreateUser(ctx)
+	}
+
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		t, err := template.ParseFiles("cmd/jobsummoner/index.html")
 
@@ -43,21 +49,21 @@ func main() {
 			slog.Error("could not parse template", tint.Err(err))
 		}
 
-		JobPostings, err := dbQueries.GetJobPostings(ctx)
+		JobPostings, err := dbQueries.GetUserJobPostings(ctx, 1)
 
 		if err != nil {
 			slog.Error("failed to query job postings", tint.Err(err))
 		}
 
 		type FormattedJobPosting struct {
-			database.GetJobPostingsRow
+			database.GetUserJobPostingsRow
 			TimeAgo string
 		}
 
 		formattedJobPostings := make([]FormattedJobPosting, 0, len(JobPostings))
 
 		for _, jobPosting := range JobPostings {
-			formattedJobPostings = append(formattedJobPostings, FormattedJobPosting{GetJobPostingsRow: jobPosting, TimeAgo: timeAgo(jobPosting.LastPosted)})
+			formattedJobPostings = append(formattedJobPostings, FormattedJobPosting{GetUserJobPostingsRow: jobPosting, TimeAgo: timeAgo(jobPosting.LastPosted)})
 		}
 
 		homepage := struct {

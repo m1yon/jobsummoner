@@ -19,7 +19,10 @@ dev-show:
 	go run ./cmd/jobsummoner -rod=show
 
 reset-db:
-	rm -f ./database.db && make migrate-up 
+	rm -f ./db/database.db && make migrate-up 
 
 docker-dev:
 	./scripts/build-docker.sh && docker compose up --build
+
+query-db:
+	sqlite3 db/database.db
