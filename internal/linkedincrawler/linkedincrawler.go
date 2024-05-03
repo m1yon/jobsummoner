@@ -32,7 +32,7 @@ func ScrapeLoop(db *sql.DB) {
 			workType:     2,             // 2 = remote
 			jobTypes:     []string{"F"}, // F = fulltime
 			salaryRanges: []string{"5"}, // 5 = $120,000+
-			ageOfPosting: 24 * time.Hour,
+			ageOfPosting: 35 * time.Minute,
 			userID:       1,
 		},
 		{
@@ -42,7 +42,7 @@ func ScrapeLoop(db *sql.DB) {
 			workType:     3,
 			jobTypes:     []string{"F"},
 			salaryRanges: []string{"5"},
-			ageOfPosting: 24 * time.Hour,
+			ageOfPosting: 35 * time.Minute,
 			userID:       1,
 		},
 	}

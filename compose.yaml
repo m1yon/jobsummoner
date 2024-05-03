@@ -8,6 +8,7 @@ services:
       - PROXY_USERNAME=${PROXY_USERNAME}
       - PROXY_PASSWORD=${PROXY_PASSWORD}
       - DEBUG=${DEBUG}
+      - SCRAPE_ON_START=${SCRAPE_ON_START}
     volumes: 
       - db:/app/db
 
