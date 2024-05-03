@@ -1,7 +1,6 @@
 {{define "user_job_postings"}}
 {{range .JobPostings}}
-<div id="user_job_posting-{{ .JobPostingID }}" class="p-4 bg-gray-100 mb-2 flex justify-between items-center"
-  href="{{.JobPostingUrl}}">
+<div id="user_job_posting-{{ .JobPostingID }}" class="p-4 bg-gray-100 mb-2 flex justify-between items-center">
   <div class="flex items-center">
     {{if .CompanyAvatar.String}}
     <img class="size-10 rounded-lg mr-4" src="{{.CompanyAvatar.String}}" alt="">
@@ -11,7 +10,8 @@
     </div>
     {{end}}
     <div>
-      <p class="font-bold">{{.Position}}</p>
+      <a class="font-semibold text-blue-700 hover:text-blue-500" href="{{.JobPostingUrl}}" target="_blank"
+        rel="noreferrer">{{.Position}}</a>
       <p>{{.CompanyName}}</p>
       <p class="text-sm text-gray-500">Posted {{.TimeAgo}}</p>
     </div>
