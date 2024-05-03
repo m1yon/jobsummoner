@@ -18,6 +18,7 @@ import (
 	"github.com/go-rod/stealth"
 	"github.com/lmittmann/tint"
 	"github.com/m1yon/jobsummoner/internal/database"
+	"github.com/robfig/cron"
 	"modernc.org/sqlite"
 	sqlite3 "modernc.org/sqlite/lib"
 )
@@ -44,13 +45,29 @@ func ScrapeLoop(db *sql.DB) {
 		},
 	}
 
-	for {
+	location, err := time.LoadLocation("America/Denver")
+
+	if err != nil {
+		slog.Error("failed creating cron location", tint.Err(err))
+	}
+
+	c := cron.NewWithLocation(location)
+
+	for _, options := range scrapes {
+		c.AddFunc("*/30 7-22 * * *", func() {
+			scrape(db, options)
+		})
+	}
+
+	scrapeOnStart := os.Getenv("SCRAPE_ON_START")
+
+	if scrapeOnStart == "true" {
 		for _, options := range scrapes {
 			scrape(db, options)
 		}
-
-		time.Sleep(60 * time.Minute)
 	}
+
+	c.Start()
 }
 
 type scrapeOptions struct {
