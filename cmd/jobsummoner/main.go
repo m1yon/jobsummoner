@@ -14,6 +14,7 @@ import (
 	"github.com/m1yon/jobsummoner/internal/database"
 	"github.com/m1yon/jobsummoner/internal/linkedincrawler"
 	"github.com/m1yon/jobsummoner/internal/logger"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	_ "modernc.org/sqlite"
 )
 
@@ -35,7 +36,7 @@ func main() {
 	mux := http.NewServeMux()
 	dbQueries := database.New(db)
 
-	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		t, err := template.ParseFiles("cmd/jobsummoner/index.html")
 
 		if err != nil {
@@ -71,6 +72,7 @@ func main() {
 			slog.Error("could not execute template", tint.Err(err))
 		}
 	})
+	mux.Handle("/metrics/", promhttp.Handler())
 
 	corsMux := middlewareCors(mux)
 
