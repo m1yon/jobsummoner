@@ -20,6 +20,8 @@ import (
 	"github.com/go-rod/stealth"
 	"github.com/lmittmann/tint"
 	"github.com/m1yon/jobsummoner/internal/database"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/robfig/cron"
 	"modernc.org/sqlite"
 	sqlite3 "modernc.org/sqlite/lib"
@@ -85,6 +87,17 @@ type scrapeOptions struct {
 	ageOfPosting time.Duration
 	userID       int
 }
+
+var (
+	postingsScrapedTotal = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "jobsummoner_postings_scraped_total",
+		Help: "The total number of job postings scraped.",
+	})
+	newPostingsScrapedTotal = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "jobsummoner_new_postings_scraped_total",
+		Help: "The total number of new job postings scraped.",
+	})
+)
 
 func scrape(db *sql.DB, options scrapeOptions) {
 	ctx := context.Background()
@@ -334,12 +347,16 @@ func scrape(db *sql.DB, options scrapeOptions) {
 		if err != nil {
 			if sqlError, ok := err.(*sqlite.Error); ok {
 				if sqlError.Code() == sqlite3.SQLITE_CONSTRAINT_PRIMARYKEY {
+					postingsScrapedTotal.Inc()
 					continue
 				}
 			}
 
 			slog.Error("failed insert user job posting", slog.String("url", url.String()), tint.Err(err))
 		}
+
+		postingsScrapedTotal.Inc()
+		newPostingsScrapedTotal.Inc()
 	}
 
 	slog.Info("scrape finished", slog.String("name", options.name), slog.Int("postings", numberOfJobPostings), slog.Int("repostings", numberOfJobRepostings))
