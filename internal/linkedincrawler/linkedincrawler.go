@@ -113,6 +113,8 @@ func scrape(db *sql.DB, options scrapeOptions) {
 		return
 	}
 
+	defer browser.MustClose()
+
 	if proxyEnabled {
 		go browser.MustHandleAuth(PROXY_USERNAME, PROXY_PASSWORD)()
 	}
