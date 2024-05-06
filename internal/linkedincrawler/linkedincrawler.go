@@ -7,10 +7,9 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log/slog"
+	"math"
 	"net/url"
 	"os"
-	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -132,7 +131,21 @@ func scrape(db *sql.DB, currentScrape database.GetAllScrapesWithKeywordsRow) {
 		return
 	}
 
-	defaultTime := time.Hour * 1
+	lastScrapedDate, err := dbQueries.GetLastScrapedDate(ctx, currentScrape.ID)
+
+	if err != nil {
+		slog.Error("failed to get last scraped date", tint.Err(err))
+		return
+	}
+
+	timeRange := time.Hour * 12
+
+	// overlap buffer to prevent data loss
+	timeRangeBuffer := time.Minute * 5
+
+	if lastScrapedDate.Valid {
+		timeRange = time.Duration(time.Since(lastScrapedDate.Time))
+	}
 
 	q := url.Query()
 	q.Set("keywords", currentScrape.Keywords)
@@ -140,7 +153,7 @@ func scrape(db *sql.DB, currentScrape database.GetAllScrapesWithKeywordsRow) {
 	q.Set("f_WT", fmt.Sprintf("%v", currentScrape.WorkType))
 	q.Set("f_JT", "F")
 	q.Set("f_SB2", "5")
-	q.Set("f_TPR", fmt.Sprintf("r%v", defaultTime.Seconds()))
+	q.Set("f_TPR", fmt.Sprintf("r%v", math.Round(timeRange.Seconds()+timeRangeBuffer.Seconds())))
 
 	url.RawQuery = q.Encode()
 
@@ -361,39 +374,4 @@ func getJobPostingID(company_id string, position string) string {
 	hash := hasher.Sum(nil)
 
 	return hex.EncodeToString(hash)
-}
-
-func parseRelativeTime(input string) (time.Time, error) {
-	// Regex to find number and unit
-	re := regexp.MustCompile(`(\d+)\s*(second|minute|hour|day)s?\s*ago`)
-	matches := re.FindStringSubmatch(input)
-
-	if len(matches) != 3 {
-		return time.Time{}, fmt.Errorf("invalid format")
-	}
-
-	// Convert number to integer
-	value, err := strconv.Atoi(matches[1])
-	if err != nil {
-		return time.Time{}, err
-	}
-
-	// Determine the unit of time
-	var duration time.Duration
-	switch matches[2] {
-	case "second":
-		duration = time.Second * time.Duration(value)
-	case "minute":
-		duration = time.Minute * time.Duration(value)
-	case "hour":
-		duration = time.Hour * time.Duration(value)
-	case "day":
-		duration = time.Hour * 24 * time.Duration(value)
-	default:
-		return time.Time{}, fmt.Errorf("unknown time unit")
-	}
-
-	// Calculate the time
-	actualTime := time.Now().Add(-duration)
-	return actualTime, nil
 }

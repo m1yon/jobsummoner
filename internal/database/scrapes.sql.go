@@ -7,6 +7,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 )
 
 const createScrape = `-- name: CreateScrape :exec
@@ -31,9 +32,24 @@ func (q *Queries) CreateScrape(ctx context.Context, arg CreateScrapeParams) erro
 	return err
 }
 
+const getLastScrapedDate = `-- name: GetLastScrapedDate :one
+SELECT last_scraped
+FROM scrapes
+WHERE id = ?
+ORDER BY last_scraped DESC
+LIMIT 1
+`
+
+func (q *Queries) GetLastScrapedDate(ctx context.Context, id int64) (sql.NullTime, error) {
+	row := q.db.QueryRowContext(ctx, getLastScrapedDate, id)
+	var last_scraped sql.NullTime
+	err := row.Scan(&last_scraped)
+	return last_scraped, err
+}
+
 const updateLastScraped = `-- name: UpdateLastScraped :exec
 UPDATE scrapes
-SET last_scraped = CURRENT_TIMESTAMP
+SET last_scraped = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
 WHERE id = ?
 `
 

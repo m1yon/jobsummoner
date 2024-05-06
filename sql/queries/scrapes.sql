@@ -4,5 +4,12 @@ VALUES (CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL, ?, ?, ?, ?);
 
 -- name: UpdateLastScraped :exec
 UPDATE scrapes
-SET last_scraped = CURRENT_TIMESTAMP, SET updated_at = CURRENT_TIMESTAMP
+SET last_scraped = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
 WHERE id = ?;
+
+-- name: GetLastScrapedDate :one
+SELECT last_scraped
+FROM scrapes
+WHERE id = ?
+ORDER BY last_scraped DESC
+LIMIT 1;
