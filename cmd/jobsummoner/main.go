@@ -5,8 +5,10 @@ import (
 	"database/sql"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/joho/godotenv"
+	"github.com/lmittmann/tint"
 	"github.com/m1yon/jobsummoner/internal/database"
 	"github.com/m1yon/jobsummoner/internal/handlers"
 	"github.com/m1yon/jobsummoner/internal/linkedincrawler"
@@ -15,7 +17,6 @@ import (
 )
 
 func main() {
-	ctx := context.Background()
 
 	logger.Init()
 	godotenv.Load()
@@ -28,13 +29,7 @@ func main() {
 		return
 	}
 
-	dbQueries := database.New(db)
-
-	// create our seed user
-	_, err = dbQueries.GetUser(ctx, 1)
-	if err != nil {
-		dbQueries.CreateUser(ctx)
-	}
+	seedDB(db)
 
 	go linkedincrawler.ScrapeLoop(db)
 
@@ -67,4 +62,91 @@ func middlewareCors(next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+func seedDB(db *sql.DB) {
+	ctx := context.Background()
+
+	dbQueries := database.New(db)
+
+	// create our seed user
+	_, err := dbQueries.GetUser(ctx, 1)
+	if err != nil {
+		dbQueries.CreateUser(ctx)
+	}
+
+	scrapes, err := dbQueries.GetAllScrapesWithKeywords(ctx)
+	if err != nil {
+		if !strings.Contains(err.Error(), "converting NULL to int64 is unsupported") {
+			slog.Error("failed querying for all scrapes", tint.Err(err))
+			return
+		}
+	}
+
+	if len(scrapes) == 0 {
+		err := dbQueries.CreateScrape(ctx, database.CreateScrapeParams{
+			Name:     "Remote Roles",
+			Location: "United States",
+			WorkType: 2,
+			UserID:   1,
+		})
+
+		if err != nil {
+			slog.Error("failed inserting seed scrape", tint.Err(err))
+			return
+		}
+
+		err = dbQueries.AddKeywordToScrape(ctx, database.AddKeywordToScrapeParams{
+			ScrapeID: 1,
+			Keyword:  "typescript",
+		})
+
+		if err != nil {
+			slog.Error("failed inserting seed scrape keyword", tint.Err(err))
+			return
+		}
+
+		err = dbQueries.AddKeywordToScrape(ctx, database.AddKeywordToScrapeParams{
+			ScrapeID: 1,
+			Keyword:  "react",
+		})
+
+		if err != nil {
+			slog.Error("failed inserting seed scrape keyword", tint.Err(err))
+			return
+		}
+
+		err = dbQueries.CreateScrape(ctx, database.CreateScrapeParams{
+			Name:     "Colorado Hybrid Roles",
+			Location: "Colorado, United States",
+			WorkType: 3,
+			UserID:   1,
+		})
+
+		if err != nil {
+			slog.Error("failed inserting seed scrape", tint.Err(err))
+			return
+		}
+
+		err = dbQueries.AddKeywordToScrape(ctx, database.AddKeywordToScrapeParams{
+			ScrapeID: 2,
+			Keyword:  "typescript",
+		})
+
+		if err != nil {
+			slog.Error("failed inserting seed scrape keyword", tint.Err(err))
+			return
+		}
+
+		err = dbQueries.AddKeywordToScrape(ctx, database.AddKeywordToScrapeParams{
+			ScrapeID: 2,
+			Keyword:  "react",
+		})
+
+		if err != nil {
+			slog.Error("failed inserting seed scrape keyword", tint.Err(err))
+			return
+		}
+
+	}
 }

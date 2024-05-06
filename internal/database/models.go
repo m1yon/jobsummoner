@@ -30,6 +30,25 @@ type JobPosting struct {
 	Location     sql.NullString
 }
 
+type Scrape struct {
+	ID          int64
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	LastScraped sql.NullTime
+	Name        string
+	Location    string
+	WorkType    int64
+	UserID      int64
+}
+
+type ScrapeKeyword struct {
+	ID        int64
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	ScrapeID  int64
+	Keyword   string
+}
+
 type User struct {
 	ID        int64
 	CreatedAt time.Time

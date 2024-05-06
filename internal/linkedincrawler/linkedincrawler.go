@@ -28,27 +28,18 @@ import (
 )
 
 func ScrapeLoop(db *sql.DB) {
-	scrapes := []scrapeOptions{
-		{
-			name:         "Remote Roles",
-			keywords:     []string{"typescript", "react"},
-			location:     "United States",
-			workType:     2,             // 2 = remote
-			jobTypes:     []string{"F"}, // F = fulltime
-			salaryRanges: []string{"5"}, // 5 = $120,000+
-			ageOfPosting: 35 * time.Minute,
-			userID:       1,
-		},
-		{
-			name:         "Colorado Hybrid Roles",
-			keywords:     []string{"typescript", "react"},
-			location:     "Colorado, United States",
-			workType:     3,
-			jobTypes:     []string{"F"},
-			salaryRanges: []string{"5"},
-			ageOfPosting: 35 * time.Minute,
-			userID:       1,
-		},
+	ctx := context.Background()
+	dbQueries := database.New(db)
+
+	scrapes, err := dbQueries.GetAllScrapesWithKeywords(ctx)
+
+	if err != nil {
+		if !strings.Contains(err.Error(), "converting NULL to int64 is unsupported") {
+			slog.Error("failed querying for all scrapes", tint.Err(err))
+			return
+		}
+
+		slog.Warn("no scrapes found in db")
 	}
 
 	location, err := time.LoadLocation("America/Denver")
@@ -59,9 +50,9 @@ func ScrapeLoop(db *sql.DB) {
 
 	c := cron.NewWithLocation(location)
 
-	for _, options := range scrapes {
+	for _, currentScrape := range scrapes {
 		c.AddFunc("0 */30 7-22 * * *", func() {
-			localOptions := options
+			localOptions := currentScrape
 			scrape(db, localOptions)
 		})
 	}
@@ -69,23 +60,12 @@ func ScrapeLoop(db *sql.DB) {
 	scrapeOnStart := os.Getenv("SCRAPE_ON_START")
 
 	if scrapeOnStart == "true" {
-		for _, options := range scrapes {
-			scrape(db, options)
+		for _, currentScrape := range scrapes {
+			scrape(db, currentScrape)
 		}
 	}
 
 	c.Start()
-}
-
-type scrapeOptions struct {
-	name         string
-	keywords     []string
-	location     string
-	workType     int64
-	jobTypes     []string
-	salaryRanges []string
-	ageOfPosting time.Duration
-	userID       int
 }
 
 var (
@@ -99,7 +79,7 @@ var (
 	})
 )
 
-func scrape(db *sql.DB, options scrapeOptions) {
+func scrape(db *sql.DB, currentScrape database.GetAllScrapesWithKeywordsRow) {
 	ctx := context.Background()
 	dbQueries := database.New(db)
 
@@ -109,7 +89,13 @@ func scrape(db *sql.DB, options scrapeOptions) {
 
 	proxyEnabled := len(PROXY_HOSTNAME) != 0
 
-	slog.Info("starting scrape", slog.String("name", options.name), slog.Bool("proxy", proxyEnabled))
+	slog.Info("starting scrape", slog.String("name", currentScrape.Name), slog.Bool("proxy", proxyEnabled))
+
+	defer func() {
+		if err := dbQueries.UpdateLastScraped(ctx, currentScrape.ID); err != nil {
+			slog.Error("failed to updated last_scraped field", tint.Err(err))
+		}
+	}()
 
 	// proxy setup
 	l := launcher.New()
@@ -146,13 +132,15 @@ func scrape(db *sql.DB, options scrapeOptions) {
 		return
 	}
 
+	defaultTime := time.Hour * 1
+
 	q := url.Query()
-	q.Set("keywords", strings.Join(options.keywords, " OR "))
-	q.Set("location", options.location)
-	q.Set("f_WT", fmt.Sprintf("%v", options.workType))
-	q.Set("f_JT", strings.Join(options.jobTypes, ","))
-	q.Set("f_SB2", strings.Join(options.salaryRanges, ","))
-	q.Set("f_TPR", fmt.Sprintf("r%v", options.ageOfPosting.Seconds()))
+	q.Set("keywords", currentScrape.Keywords)
+	q.Set("location", currentScrape.Location)
+	q.Set("f_WT", fmt.Sprintf("%v", currentScrape.WorkType))
+	q.Set("f_JT", "F")
+	q.Set("f_SB2", "5")
+	q.Set("f_TPR", fmt.Sprintf("r%v", defaultTime.Seconds()))
 
 	url.RawQuery = q.Encode()
 
@@ -313,7 +301,7 @@ func scrape(db *sql.DB, options scrapeOptions) {
 			CompanyID:    companySlug,
 			LastPosted:   listingDate.UTC(),
 			Location:     sql.NullString{String: locationText, Valid: true},
-			LocationType: options.workType,
+			LocationType: currentScrape.WorkType,
 		})
 
 		if err != nil {
@@ -341,12 +329,13 @@ func scrape(db *sql.DB, options scrapeOptions) {
 
 		err = dbQueries.CreateUserJobPosting(ctx, database.CreateUserJobPostingParams{
 			JobPostingID: jobPostingID,
-			UserID:       int64(options.userID),
+			UserID:       int64(currentScrape.UserID),
 		})
 
 		if err != nil {
 			if sqlError, ok := err.(*sqlite.Error); ok {
 				if sqlError.Code() == sqlite3.SQLITE_CONSTRAINT_PRIMARYKEY {
+
 					postingsScrapedTotal.Inc()
 					continue
 				}
@@ -359,7 +348,7 @@ func scrape(db *sql.DB, options scrapeOptions) {
 		newPostingsScrapedTotal.Inc()
 	}
 
-	slog.Info("scrape finished", slog.String("name", options.name), slog.Int("postings", numberOfJobPostings), slog.Int("repostings", numberOfJobRepostings))
+	slog.Info("scrape finished", slog.String("name", currentScrape.Name), slog.Int("postings", numberOfJobPostings), slog.Int("repostings", numberOfJobRepostings))
 }
 
 func getJobPostingID(company_id string, position string) string {
