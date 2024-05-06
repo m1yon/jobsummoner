@@ -26,3 +26,6 @@ docker-dev:
 
 query-db:
 	sqlite3 db/database.db
+
+test:
+	go test ./...

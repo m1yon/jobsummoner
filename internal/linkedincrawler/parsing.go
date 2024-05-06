@@ -7,9 +7,9 @@ import (
 	"time"
 )
 
-func parseRelativeTime(input string) (time.Time, error) {
+func parseRelativeTime(now time.Time, input string) (time.Time, error) {
 	// Regex to find number and unit
-	re := regexp.MustCompile(`(\d+)\s*(second|minute|hour|day)s?\s*ago`)
+	re := regexp.MustCompile(`(\d+)\s*(second|minute|hour|day)s?\b\s*ago`)
 	matches := re.FindStringSubmatch(input)
 
 	if len(matches) != 3 {
@@ -38,6 +38,6 @@ func parseRelativeTime(input string) (time.Time, error) {
 	}
 
 	// Calculate the time
-	actualTime := time.Now().Add(-duration)
+	actualTime := now.Add(-duration)
 	return actualTime, nil
 }

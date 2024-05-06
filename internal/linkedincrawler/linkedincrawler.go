@@ -253,7 +253,7 @@ func scrape(db *sql.DB, currentScrape database.GetAllScrapesWithKeywordsRow) {
 			continue
 		}
 
-		listingDate, err := parseRelativeTime(relativeListingDateText)
+		listingDate, err := parseRelativeTime(time.Now(), relativeListingDateText)
 
 		if err != nil {
 			slog.Error("failed to parse relative listing date", slog.String("url", url.String()), tint.Err(err))
