@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"text/template"
 	"time"
 
 	"github.com/lmittmann/tint"
@@ -14,11 +13,6 @@ import (
 
 func (cfg *handlersConfig) rootHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
-	t, err := template.ParseFiles("cmd/jobsummoner/index.html", "cmd/jobsummoner/user_job_postings.html")
-
-	if err != nil {
-		slog.Error("could not parse template", tint.Err(err))
-	}
 
 	JobPostings, err := cfg.DB.GetUserJobPostings(ctx, 1)
 
@@ -57,7 +51,7 @@ func (cfg *handlersConfig) rootHandler(w http.ResponseWriter, r *http.Request) {
 		LastScrapedTime,
 	}
 
-	err = t.Execute(w, homepage)
+	cfg.Renderer.Render(w, "root", homepage)
 
 	if err != nil {
 		slog.Error("could not execute template", tint.Err(err))

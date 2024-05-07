@@ -3,7 +3,6 @@ package handlers
 import (
 	"log/slog"
 	"net/http"
-	"text/template"
 
 	"github.com/lmittmann/tint"
 	"github.com/m1yon/jobsummoner/internal/database"
@@ -12,13 +11,7 @@ import (
 func (cfg *handlersConfig) putUserJobPostingsHandler(w http.ResponseWriter, r *http.Request) {
 	jobPostingID := r.PathValue("jobPostingID")
 
-	t, err := template.ParseFiles("cmd/jobsummoner/user_job_postings.html")
-
-	if err != nil {
-		slog.Error("could not parse template", tint.Err(err))
-	}
-
-	err = cfg.DB.HideUserJobPosting(r.Context(), database.HideUserJobPostingParams{UserID: 1, JobPostingID: jobPostingID})
+	err := cfg.DB.HideUserJobPosting(r.Context(), database.HideUserJobPostingParams{UserID: 1, JobPostingID: jobPostingID})
 
 	if err != nil {
 		slog.Error("failed to hide user job posting", slog.String("id", jobPostingID), tint.Err(err))
@@ -41,13 +34,13 @@ func (cfg *handlersConfig) putUserJobPostingsHandler(w http.ResponseWriter, r *h
 		formattedJobPostings = append(formattedJobPostings, FormattedJobPosting{GetUserJobPostingsRow: jobPosting, TimeAgo: timeAgo(jobPosting.LastPosted)})
 	}
 
-	ui := struct {
+	FormattedJobPostings := struct {
 		JobPostings []FormattedJobPosting
 	}{
 		formattedJobPostings,
 	}
 
-	err = t.Execute(w, ui)
+	err = cfg.Renderer.Render(w, "user_job_postings", FormattedJobPostings)
 
 	if err != nil {
 		slog.Error("could not execute template", tint.Err(err))

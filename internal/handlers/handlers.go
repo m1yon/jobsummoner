@@ -2,14 +2,31 @@ package handlers
 
 import (
 	"database/sql"
+	"io"
 	"net/http"
+	"text/template"
 
 	"github.com/m1yon/jobsummoner/internal/database"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+type Templates struct {
+	templates *template.Template
+}
+
+func NewTemplates() *Templates {
+	return &Templates{
+		templates: template.Must(template.ParseGlob("views/**/*.html")),
+	}
+}
+
 type handlersConfig struct {
-	DB *database.Queries
+	DB       *database.Queries
+	Renderer *Templates
+}
+
+func (t *Templates) Render(w io.Writer, name string, data interface{}) error {
+	return t.templates.ExecuteTemplate(w, name, data)
 }
 
 func NewHandlerMux(db *sql.DB) (*http.ServeMux, error) {
@@ -17,7 +34,8 @@ func NewHandlerMux(db *sql.DB) (*http.ServeMux, error) {
 	dbQueries := database.New(db)
 
 	cfg := handlersConfig{
-		DB: dbQueries,
+		DB:       dbQueries,
+		Renderer: NewTemplates(),
 	}
 
 	mux.HandleFunc("/", cfg.rootHandler)
