@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -12,13 +13,14 @@ import (
 )
 
 func (cfg *handlersConfig) rootHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
 	t, err := template.ParseFiles("cmd/jobsummoner/index.html", "cmd/jobsummoner/user_job_postings.html")
 
 	if err != nil {
 		slog.Error("could not parse template", tint.Err(err))
 	}
 
-	JobPostings, err := cfg.DB.GetUserJobPostings(r.Context(), 1)
+	JobPostings, err := cfg.DB.GetUserJobPostings(ctx, 1)
 
 	if err != nil {
 		slog.Error("failed to query job postings", tint.Err(err))
@@ -35,10 +37,24 @@ func (cfg *handlersConfig) rootHandler(w http.ResponseWriter, r *http.Request) {
 		formattedJobPostings = append(formattedJobPostings, FormattedJobPosting{GetUserJobPostingsRow: jobPosting, TimeAgo: timeAgo(jobPosting.LastPosted)})
 	}
 
+	lastScrapedDate, err := cfg.DB.GetLastScrapedDate(ctx, 1)
+
+	if err != nil {
+		slog.Error("failed to get user's last scraped date", tint.Err(err))
+	}
+
+	LastScrapedTime := "N/A"
+
+	if lastScrapedDate.Valid {
+		LastScrapedTime = timeAgo(lastScrapedDate.Time)
+	}
+
 	homepage := struct {
-		JobPostings []FormattedJobPosting
+		JobPostings     []FormattedJobPosting
+		LastScrapedTime string
 	}{
 		formattedJobPostings,
+		LastScrapedTime,
 	}
 
 	err = t.Execute(w, homepage)
