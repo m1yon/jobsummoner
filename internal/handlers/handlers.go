@@ -2,9 +2,8 @@ package handlers
 
 import (
 	"database/sql"
-	"io"
+	"html/template"
 	"net/http"
-	"text/template"
 
 	"github.com/m1yon/jobsummoner/internal/database"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -25,7 +24,9 @@ type handlersConfig struct {
 	Renderer *Templates
 }
 
-func (t *Templates) Render(w io.Writer, name string, data interface{}) error {
+func (t *Templates) Render(w http.ResponseWriter, status int, name string, data interface{}) error {
+	w.Header().Add("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(status)
 	return t.templates.ExecuteTemplate(w, name, data)
 }
 
@@ -39,7 +40,9 @@ func NewHandlerMux(db *sql.DB) (*http.ServeMux, error) {
 	}
 
 	mux.HandleFunc("/", cfg.rootHandler)
-	mux.HandleFunc("PATCH /user_job_postings/{jobPostingID}", cfg.putUserJobPostingsHandler)
+
+	mux.HandleFunc("GET /user_job_postings", cfg.getUserJobPostingsHandler)
+	mux.HandleFunc("PATCH /user_job_postings/{jobPostingID}", cfg.patchUserJobPostingsHandler)
 
 	mux.Handle("/metrics/", promhttp.Handler())
 

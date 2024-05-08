@@ -1,5 +1,15 @@
 {{block "user_job_postings" .}}
 <div id="user-job-postings">
+  <div class="flex gap-4 mb-4" role="tablist">
+    <button role="tab" class="aria-selected:font-semibold" aria-selected="{{if eq .Status 0}}true{{else}}false{{end}}"
+      hx-get="/user_job_postings?status=0" hx-target="#user-job-postings" hx-swap="outerHTML"
+      type="button">Inbox</button>
+    <button role="tab" class="aria-selected:font-semibold" aria-selected="{{if eq .Status 1}}true{{else}}false{{end}}"
+      hx-get="/user_job_postings?status=1" hx-target="#user-job-postings" hx-swap="outerHTML"
+      type="button">Hidden</button>
+  </div>
+
+
   {{range .JobPostings}}
   <div id="user_job_posting-{{ .JobPostingID }}" class="p-4 bg-gray-100 mb-2 flex justify-between items-center">
     <div class="flex items-center">
@@ -18,9 +28,18 @@
       </div>
     </div>
 
-    <button type="button" hx-patch="/user_job_postings/{{ .JobPostingID }}" hx-target="#user-job-postings"
-      hx-swap="outerHTML">Hide</button>
+    <form hx-patch="/user_job_postings/{{ .JobPostingID }}" hx-target="#user-job-postings" hx-swap="outerHTML"
+      class="m-0">
+      {{if eq .Status 0}}
+      <button name="status" type="submit" value="1">Hide</button>
+      {{else if eq .Status 1}}
+      <button name="status" type="submit" value="0">Show</button>
+      {{end}}
+      <input hidden type="text" name="currentStatus" value="{{.Status}}">
+    </form>
+
   </div>
   {{end}}
+
 </div>
 {{end}}

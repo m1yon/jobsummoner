@@ -14,21 +14,21 @@ import (
 func (cfg *handlersConfig) rootHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 
-	JobPostings, err := cfg.DB.GetUserJobPostings(ctx, 1)
+	JobPostings, err := cfg.DB.GetUserJobPostingsByStatus(ctx, database.GetUserJobPostingsByStatusParams{UserID: 1, Status: 0})
 
 	if err != nil {
 		slog.Error("failed to query job postings", tint.Err(err))
 	}
 
 	type FormattedJobPosting struct {
-		database.GetUserJobPostingsRow
+		database.GetUserJobPostingsByStatusRow
 		TimeAgo string
 	}
 
 	formattedJobPostings := make([]FormattedJobPosting, 0, len(JobPostings))
 
 	for _, jobPosting := range JobPostings {
-		formattedJobPostings = append(formattedJobPostings, FormattedJobPosting{GetUserJobPostingsRow: jobPosting, TimeAgo: timeAgo(jobPosting.LastPosted)})
+		formattedJobPostings = append(formattedJobPostings, FormattedJobPosting{GetUserJobPostingsByStatusRow: jobPosting, TimeAgo: timeAgo(jobPosting.LastPosted)})
 	}
 
 	lastScrapedDate, err := cfg.DB.GetLastScrapedDate(ctx, 1)
@@ -44,14 +44,16 @@ func (cfg *handlersConfig) rootHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	homepage := struct {
+		Status          int
 		JobPostings     []FormattedJobPosting
 		LastScrapedTime string
 	}{
-		formattedJobPostings,
-		LastScrapedTime,
+		Status:          0,
+		JobPostings:     formattedJobPostings,
+		LastScrapedTime: LastScrapedTime,
 	}
 
-	cfg.Renderer.Render(w, "root", homepage)
+	cfg.Renderer.Render(w, 200, "root", homepage)
 
 	if err != nil {
 		slog.Error("could not execute template", tint.Err(err))

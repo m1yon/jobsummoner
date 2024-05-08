@@ -26,16 +26,21 @@ func (q *Queries) CreateUserJobPosting(ctx context.Context, arg CreateUserJobPos
 	return err
 }
 
-const getUserJobPostings = `-- name: GetUserJobPostings :many
-SELECT job_postings.position, job_postings.url as job_posting_url, companies.name as company_name, last_posted, companies.avatar as company_avatar, companies.id as company_id, job_postings.id as job_posting_id
+const getUserJobPostingsByStatus = `-- name: GetUserJobPostingsByStatus :many
+SELECT job_postings.position, job_postings.url as job_posting_url, companies.name as company_name, last_posted, companies.avatar as company_avatar, companies.id as company_id, job_postings.id as job_posting_id, user_job_postings.status
 FROM user_job_postings
 JOIN companies on job_postings.company_id = companies.id
 JOIN job_postings on user_job_postings.job_posting_id = job_postings.id
-WHERE user_job_postings.user_id = ? AND user_job_postings.hidden = false
+WHERE user_job_postings.user_id = ? AND user_job_postings.status = ?
 ORDER BY job_postings.last_posted DESC
 `
 
-type GetUserJobPostingsRow struct {
+type GetUserJobPostingsByStatusParams struct {
+	UserID int64
+	Status int64
+}
+
+type GetUserJobPostingsByStatusRow struct {
 	Position      string
 	JobPostingUrl string
 	CompanyName   string
@@ -43,17 +48,18 @@ type GetUserJobPostingsRow struct {
 	CompanyAvatar sql.NullString
 	CompanyID     string
 	JobPostingID  string
+	Status        int64
 }
 
-func (q *Queries) GetUserJobPostings(ctx context.Context, userID int64) ([]GetUserJobPostingsRow, error) {
-	rows, err := q.db.QueryContext(ctx, getUserJobPostings, userID)
+func (q *Queries) GetUserJobPostingsByStatus(ctx context.Context, arg GetUserJobPostingsByStatusParams) ([]GetUserJobPostingsByStatusRow, error) {
+	rows, err := q.db.QueryContext(ctx, getUserJobPostingsByStatus, arg.UserID, arg.Status)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetUserJobPostingsRow
+	var items []GetUserJobPostingsByStatusRow
 	for rows.Next() {
-		var i GetUserJobPostingsRow
+		var i GetUserJobPostingsByStatusRow
 		if err := rows.Scan(
 			&i.Position,
 			&i.JobPostingUrl,
@@ -62,6 +68,7 @@ func (q *Queries) GetUserJobPostings(ctx context.Context, userID int64) ([]GetUs
 			&i.CompanyAvatar,
 			&i.CompanyID,
 			&i.JobPostingID,
+			&i.Status,
 		); err != nil {
 			return nil, err
 		}
@@ -76,18 +83,19 @@ func (q *Queries) GetUserJobPostings(ctx context.Context, userID int64) ([]GetUs
 	return items, nil
 }
 
-const hideUserJobPosting = `-- name: HideUserJobPosting :exec
+const updateUserJobPostingStatus = `-- name: UpdateUserJobPostingStatus :exec
 UPDATE user_job_postings
-SET hidden = 1
+SET status = ?
 WHERE user_id = ? AND job_posting_id = ?
 `
 
-type HideUserJobPostingParams struct {
+type UpdateUserJobPostingStatusParams struct {
+	Status       int64
 	UserID       int64
 	JobPostingID string
 }
 
-func (q *Queries) HideUserJobPosting(ctx context.Context, arg HideUserJobPostingParams) error {
-	_, err := q.db.ExecContext(ctx, hideUserJobPosting, arg.UserID, arg.JobPostingID)
+func (q *Queries) UpdateUserJobPostingStatus(ctx context.Context, arg UpdateUserJobPostingStatusParams) error {
+	_, err := q.db.ExecContext(ctx, updateUserJobPostingStatus, arg.Status, arg.UserID, arg.JobPostingID)
 	return err
 }

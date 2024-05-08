@@ -1,5 +1,5 @@
 -- name: GetAllScrapesWithKeywords :many
-SELECT *, GROUP_CONCAT(scrape_keywords.keyword, " OR ") AS keywords 
+SELECT *, GROUP_CONCAT(scrape_keywords.keyword, " OR ") AS keywords
 FROM scrapes
 JOIN scrape_keywords on scrapes.id = scrape_keywords.scrape_id
 GROUP BY scrapes.id;

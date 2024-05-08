@@ -40,28 +40,16 @@ func main() {
 		return
 	}
 
-	corsMux := middlewareCors(mux)
+	corsMux := handlers.MiddlewareCors(mux)
+	loggingMux := handlers.MiddlewareLogging(corsMux)
 
 	server := http.Server{
 		Addr:    ":" + port,
-		Handler: corsMux,
+		Handler: loggingMux,
 	}
 
 	slog.Info("Running server", slog.String("port", port))
 	server.ListenAndServe()
-}
-
-func middlewareCors(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE")
-		w.Header().Set("Access-Control-Allow-Headers", "*")
-		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
 }
 
 func seedDB(db *sql.DB) {

@@ -59,5 +59,5 @@ type UserJobPosting struct {
 	CreatedAt    time.Time
 	UserID       int64
 	JobPostingID string
-	Hidden       bool
+	Status       int64
 }
