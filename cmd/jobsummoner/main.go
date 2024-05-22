@@ -97,7 +97,7 @@ func seedDB(db *sql.DB) {
 			}
 		}
 
-		positionBlacklistedWords := []string{"manager", "executive", "staff", "principal", "architect", "react native", "lead", "designer", "python", "jr", "technologist", "engineer"}
+		positionBlacklistedWords := []string{"manager", "executive", "staff", "principal", "architect", "react native", "lead", "designer", "python", "jr", "technologist", "director", "clearance"}
 		for _, positionBlacklistedWord := range positionBlacklistedWords {
 			err = dbQueries.AddPositionBlacklistedWordToScrape(ctx, database.AddPositionBlacklistedWordToScrapeParams{
 				ScrapeID:        1,
