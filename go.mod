@@ -3,6 +3,7 @@ module github.com/m1yon/jobsummoner
 go 1.22.2
 
 require (
+	github.com/a-h/templ v0.2.680
 	github.com/go-rod/rod v0.115.0
 	github.com/go-rod/stealth v0.4.9
 	github.com/joho/godotenv v1.5.1

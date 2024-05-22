@@ -13,7 +13,7 @@ generate:
 	sqlc generate
 
 dev: 
-	go run ./cmd/jobsummoner
+	templ generate --watch --proxy="http://localhost:3000" --cmd="go run ./cmd/jobsummoner"
 
 dev-show: 
 	go run ./cmd/jobsummoner -rod=show

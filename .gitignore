@@ -2,3 +2,5 @@
 .env
 /jobsummoner
 /migrations
+tmp
+**_templ.txt

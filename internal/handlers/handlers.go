@@ -20,14 +20,7 @@ func NewTemplates() *Templates {
 }
 
 type handlersConfig struct {
-	DB       *database.Queries
-	Renderer *Templates
-}
-
-func (t *Templates) Render(w http.ResponseWriter, status int, name string, data interface{}) error {
-	w.Header().Add("Content-Type", "text/html; charset=utf-8")
-	w.WriteHeader(status)
-	return t.templates.ExecuteTemplate(w, name, data)
+	DB *database.Queries
 }
 
 func NewHandlerMux(db *sql.DB) (*http.ServeMux, error) {
@@ -35,8 +28,7 @@ func NewHandlerMux(db *sql.DB) (*http.ServeMux, error) {
 	dbQueries := database.New(db)
 
 	cfg := handlersConfig{
-		DB:       dbQueries,
-		Renderer: NewTemplates(),
+		DB: dbQueries,
 	}
 
 	mux.HandleFunc("/", cfg.rootHandler)

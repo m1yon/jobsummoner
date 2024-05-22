@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -26,14 +27,14 @@ func (cfg *handlersConfig) patchUserJobPostingsHandler(w http.ResponseWriter, r 
 
 	if err != nil {
 		slog.Error("failed to convert currentStatus", tint.Err(err))
-		CurrentStatus = 0
+		CurrentStatus = 1
 	}
 
 	Status, err := strconv.Atoi(status)
 
 	if err != nil {
 		slog.Error("failed to convert status", tint.Err(err))
-		Status = 0
+		Status = 1
 	}
 
 	err = cfg.DB.UpdateUserJobPostingStatus(r.Context(), database.UpdateUserJobPostingStatusParams{UserID: 1, JobPostingID: jobPostingID, Status: int64(Status)})
@@ -48,26 +49,14 @@ func (cfg *handlersConfig) patchUserJobPostingsHandler(w http.ResponseWriter, r 
 		slog.Error("failed to query job postings", tint.Err(err))
 	}
 
-	type FormattedJobPosting struct {
-		database.GetUserJobPostingsByStatusRow
-		TimeAgo string
-	}
-
 	formattedJobPostings := make([]FormattedJobPosting, 0, len(JobPostings))
 
 	for _, jobPosting := range JobPostings {
 		formattedJobPostings = append(formattedJobPostings, FormattedJobPosting{GetUserJobPostingsByStatusRow: jobPosting, TimeAgo: timeAgo(jobPosting.LastPosted)})
 	}
 
-	FormattedJobPostings := struct {
-		Status      int
-		JobPostings []FormattedJobPosting
-	}{
-		Status:      CurrentStatus,
-		JobPostings: formattedJobPostings,
-	}
-
-	err = cfg.Renderer.Render(w, 200, "user_job_postings", FormattedJobPostings)
+	component := userJobPostingsTemplate(formattedJobPostings, CurrentStatus)
+	component.Render(context.Background(), w)
 
 	if err != nil {
 		slog.Error("could not execute template", tint.Err(err))
@@ -80,7 +69,7 @@ func (cfg *handlersConfig) getUserJobPostingsHandler(w http.ResponseWriter, r *h
 	Status, err := strconv.Atoi(statusFilter)
 
 	if err != nil {
-		Status = 0
+		Status = 1
 	}
 
 	JobPostings, err := cfg.DB.GetUserJobPostingsByStatus(r.Context(), database.GetUserJobPostingsByStatusParams{UserID: 1, Status: int64(Status)})
@@ -89,26 +78,14 @@ func (cfg *handlersConfig) getUserJobPostingsHandler(w http.ResponseWriter, r *h
 		slog.Error("failed to query job postings", tint.Err(err))
 	}
 
-	type FormattedJobPosting struct {
-		database.GetUserJobPostingsByStatusRow
-		TimeAgo string
-	}
-
 	formattedJobPostings := make([]FormattedJobPosting, 0, len(JobPostings))
 
 	for _, jobPosting := range JobPostings {
 		formattedJobPostings = append(formattedJobPostings, FormattedJobPosting{GetUserJobPostingsByStatusRow: jobPosting, TimeAgo: timeAgo(jobPosting.LastPosted)})
 	}
 
-	FormattedJobPostings := struct {
-		Status      int
-		JobPostings []FormattedJobPosting
-	}{
-		Status:      Status,
-		JobPostings: formattedJobPostings,
-	}
-
-	err = cfg.Renderer.Render(w, 200, "user_job_postings", FormattedJobPostings)
+	component := userJobPostingsTemplate(formattedJobPostings, Status)
+	component.Render(context.Background(), w)
 
 	if err != nil {
 		slog.Error("could not execute template", tint.Err(err))

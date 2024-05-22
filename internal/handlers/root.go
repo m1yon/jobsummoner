@@ -11,18 +11,18 @@ import (
 	"github.com/m1yon/jobsummoner/internal/database"
 )
 
+type FormattedJobPosting struct {
+	database.GetUserJobPostingsByStatusRow
+	TimeAgo string
+}
+
 func (cfg *handlersConfig) rootHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 
-	JobPostings, err := cfg.DB.GetUserJobPostingsByStatus(ctx, database.GetUserJobPostingsByStatusParams{UserID: 1, Status: 0})
+	JobPostings, err := cfg.DB.GetUserJobPostingsByStatus(ctx, database.GetUserJobPostingsByStatusParams{UserID: 1, Status: 1})
 
 	if err != nil {
 		slog.Error("failed to query job postings", tint.Err(err))
-	}
-
-	type FormattedJobPosting struct {
-		database.GetUserJobPostingsByStatusRow
-		TimeAgo string
 	}
 
 	formattedJobPostings := make([]FormattedJobPosting, 0, len(JobPostings))
@@ -43,17 +43,8 @@ func (cfg *handlersConfig) rootHandler(w http.ResponseWriter, r *http.Request) {
 		LastScrapedTime = timeAgo(lastScrapedDate.Time)
 	}
 
-	homepage := struct {
-		Status          int
-		JobPostings     []FormattedJobPosting
-		LastScrapedTime string
-	}{
-		Status:          0,
-		JobPostings:     formattedJobPostings,
-		LastScrapedTime: LastScrapedTime,
-	}
-
-	cfg.Renderer.Render(w, 200, "root", homepage)
+	component := homepageTemplate(LastScrapedTime, formattedJobPostings)
+	component.Render(context.Background(), w)
 
 	if err != nil {
 		slog.Error("could not execute template", tint.Err(err))
