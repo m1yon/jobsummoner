@@ -7,8 +7,6 @@ package database
 
 import (
 	"context"
-	"database/sql"
-	"time"
 )
 
 const addKeywordToScrape = `-- name: AddKeywordToScrape :exec
@@ -24,66 +22,4 @@ type AddKeywordToScrapeParams struct {
 func (q *Queries) AddKeywordToScrape(ctx context.Context, arg AddKeywordToScrapeParams) error {
 	_, err := q.db.ExecContext(ctx, addKeywordToScrape, arg.ScrapeID, arg.Keyword)
 	return err
-}
-
-const getAllScrapesWithKeywords = `-- name: GetAllScrapesWithKeywords :many
-SELECT scrapes.id, scrapes.created_at, scrapes.updated_at, last_scraped, name, location, work_type, user_id, scrape_keywords.id, scrape_keywords.created_at, scrape_keywords.updated_at, scrape_id, keyword, GROUP_CONCAT(scrape_keywords.keyword, " OR ") AS keywords 
-FROM scrapes
-JOIN scrape_keywords on scrapes.id = scrape_keywords.scrape_id
-GROUP BY scrapes.id
-`
-
-type GetAllScrapesWithKeywordsRow struct {
-	ID          int64
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	LastScraped sql.NullTime
-	Name        string
-	Location    string
-	WorkType    int64
-	UserID      int64
-	ID_2        int64
-	CreatedAt_2 time.Time
-	UpdatedAt_2 time.Time
-	ScrapeID    int64
-	Keyword     string
-	Keywords    string
-}
-
-func (q *Queries) GetAllScrapesWithKeywords(ctx context.Context) ([]GetAllScrapesWithKeywordsRow, error) {
-	rows, err := q.db.QueryContext(ctx, getAllScrapesWithKeywords)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GetAllScrapesWithKeywordsRow
-	for rows.Next() {
-		var i GetAllScrapesWithKeywordsRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-			&i.LastScraped,
-			&i.Name,
-			&i.Location,
-			&i.WorkType,
-			&i.UserID,
-			&i.ID_2,
-			&i.CreatedAt_2,
-			&i.UpdatedAt_2,
-			&i.ScrapeID,
-			&i.Keyword,
-			&i.Keywords,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }

@@ -63,7 +63,7 @@ func seedDB(db *sql.DB) {
 		dbQueries.CreateUser(ctx)
 	}
 
-	scrapes, err := dbQueries.GetAllScrapesWithKeywords(ctx)
+	scrapes, err := dbQueries.GetAllScrapes(ctx)
 	if err != nil {
 		if !strings.Contains(err.Error(), "converting NULL to int64 is unsupported") {
 			slog.Error("failed querying for all scrapes", tint.Err(err))
@@ -84,24 +84,30 @@ func seedDB(db *sql.DB) {
 			return
 		}
 
-		err = dbQueries.AddKeywordToScrape(ctx, database.AddKeywordToScrapeParams{
-			ScrapeID: 1,
-			Keyword:  "typescript",
-		})
+		keywords := []string{"typescript", "react"}
+		for _, keyword := range keywords {
+			err = dbQueries.AddKeywordToScrape(ctx, database.AddKeywordToScrapeParams{
+				ScrapeID: 1,
+				Keyword:  keyword,
+			})
 
-		if err != nil {
-			slog.Error("failed inserting seed scrape keyword", tint.Err(err))
-			return
+			if err != nil {
+				slog.Error("failed inserting seed scrape keyword", tint.Err(err))
+				return
+			}
 		}
 
-		err = dbQueries.AddKeywordToScrape(ctx, database.AddKeywordToScrapeParams{
-			ScrapeID: 1,
-			Keyword:  "react",
-		})
+		positionBlacklistedWords := []string{"manager", "executive", "staff", "principal", "architect", "react native", "lead", "designer", "python", "jr", "technologist", "engineer"}
+		for _, positionBlacklistedWord := range positionBlacklistedWords {
+			err = dbQueries.AddPositionBlacklistedWordToScrape(ctx, database.AddPositionBlacklistedWordToScrapeParams{
+				ScrapeID:        1,
+				BlacklistedWord: positionBlacklistedWord,
+			})
 
-		if err != nil {
-			slog.Error("failed inserting seed scrape keyword", tint.Err(err))
-			return
+			if err != nil {
+				slog.Error("failed inserting seed scrape position blacklisted word", tint.Err(err))
+				return
+			}
 		}
 
 		err = dbQueries.CreateScrape(ctx, database.CreateScrapeParams{
@@ -116,25 +122,28 @@ func seedDB(db *sql.DB) {
 			return
 		}
 
-		err = dbQueries.AddKeywordToScrape(ctx, database.AddKeywordToScrapeParams{
-			ScrapeID: 2,
-			Keyword:  "typescript",
-		})
+		for _, keyword := range keywords {
+			err = dbQueries.AddKeywordToScrape(ctx, database.AddKeywordToScrapeParams{
+				ScrapeID: 2,
+				Keyword:  keyword,
+			})
 
-		if err != nil {
-			slog.Error("failed inserting seed scrape keyword", tint.Err(err))
-			return
+			if err != nil {
+				slog.Error("failed inserting seed scrape keyword", tint.Err(err))
+				return
+			}
 		}
 
-		err = dbQueries.AddKeywordToScrape(ctx, database.AddKeywordToScrapeParams{
-			ScrapeID: 2,
-			Keyword:  "react",
-		})
+		for _, positionBlacklistedWord := range positionBlacklistedWords {
+			err = dbQueries.AddPositionBlacklistedWordToScrape(ctx, database.AddPositionBlacklistedWordToScrapeParams{
+				ScrapeID:        2,
+				BlacklistedWord: positionBlacklistedWord,
+			})
 
-		if err != nil {
-			slog.Error("failed inserting seed scrape keyword", tint.Err(err))
-			return
+			if err != nil {
+				slog.Error("failed inserting seed scrape position blacklisted word", tint.Err(err))
+				return
+			}
 		}
-
 	}
 }

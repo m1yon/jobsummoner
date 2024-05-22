@@ -2,9 +2,7 @@ package linkedincrawler
 
 import (
 	"context"
-	"crypto/sha256"
 	"database/sql"
-	"encoding/hex"
 	"fmt"
 	"log/slog"
 	"math"
@@ -30,7 +28,7 @@ func ScrapeLoop(db *sql.DB) {
 	ctx := context.Background()
 	dbQueries := database.New(db)
 
-	scrapes, err := dbQueries.GetAllScrapesWithKeywords(ctx)
+	scrapes, err := dbQueries.GetAllScrapes(ctx)
 
 	if err != nil {
 		if !strings.Contains(err.Error(), "converting NULL to int64 is unsupported") {
@@ -78,7 +76,7 @@ var (
 	})
 )
 
-func scrape(db *sql.DB, currentScrape database.GetAllScrapesWithKeywordsRow) {
+func scrape(db *sql.DB, currentScrape database.GetAllScrapesRow) {
 	ctx := context.Background()
 	dbQueries := database.New(db)
 
@@ -194,6 +192,12 @@ func scrape(db *sql.DB, currentScrape database.GetAllScrapesWithKeywordsRow) {
 
 		if err != nil {
 			slog.Error("failed to get position text from element", slog.String("url", url.String()), tint.Err(err))
+			continue
+		}
+
+		positionBlacklistedWords := strings.Split(currentScrape.BlacklistedWords, ",")
+		if containsBlacklistedWord(positionBlacklistedWords, positionText) {
+			slog.Debug("Skipping job listing", slog.String("positionText", positionText), slog.String("blacklistedWord", currentScrape.BlacklistedWord))
 			continue
 		}
 
@@ -362,16 +366,4 @@ func scrape(db *sql.DB, currentScrape database.GetAllScrapesWithKeywordsRow) {
 	}
 
 	slog.Info("scrape finished", slog.String("name", currentScrape.Name), slog.Int("postings", numberOfJobPostings), slog.Int("repostings", numberOfJobRepostings))
-}
-
-func getJobPostingID(company_id string, position string) string {
-	data := company_id + "|" + position
-
-	hasher := sha256.New()
-
-	hasher.Write([]byte(data))
-
-	hash := hasher.Sum(nil)
-
-	return hex.EncodeToString(hash)
 }

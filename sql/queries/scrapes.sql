@@ -13,3 +13,10 @@ FROM scrapes
 WHERE id = ?
 ORDER BY last_scraped DESC
 LIMIT 1;
+
+-- name: GetAllScrapes :many
+SELECT *, scrapes.id, rtrim(replace(group_concat(DISTINCT LOWER(scrape_keywords.keyword)||'@!'), '@!,', ' OR '),'@!') AS keywords, rtrim(replace(group_concat(DISTINCT scrape_position_blacklisted_words.blacklisted_word||'@!'), '@!,', ','),'@!') AS blacklisted_words
+FROM scrapes
+JOIN scrape_keywords on scrapes.id = scrape_keywords.scrape_id
+JOIN scrape_position_blacklisted_words on scrapes.id = scrape_position_blacklisted_words.scrape_id
+GROUP BY scrapes.id;

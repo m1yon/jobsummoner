@@ -49,6 +49,14 @@ type ScrapeKeyword struct {
 	Keyword   string
 }
 
+type ScrapePositionBlacklistedWord struct {
+	ID              int64
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	ScrapeID        int64
+	BlacklistedWord string
+}
+
 type User struct {
 	ID        int64
 	CreatedAt time.Time

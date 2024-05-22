@@ -8,6 +8,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"time"
 )
 
 const createScrape = `-- name: CreateScrape :exec
@@ -30,6 +31,83 @@ func (q *Queries) CreateScrape(ctx context.Context, arg CreateScrapeParams) erro
 		arg.UserID,
 	)
 	return err
+}
+
+const getAllScrapes = `-- name: GetAllScrapes :many
+SELECT scrapes.id, scrapes.created_at, scrapes.updated_at, last_scraped, name, location, work_type, user_id, scrape_keywords.id, scrape_keywords.created_at, scrape_keywords.updated_at, scrape_keywords.scrape_id, keyword, scrape_position_blacklisted_words.id, scrape_position_blacklisted_words.created_at, scrape_position_blacklisted_words.updated_at, scrape_position_blacklisted_words.scrape_id, blacklisted_word, scrapes.id, rtrim(replace(group_concat(DISTINCT LOWER(scrape_keywords.keyword)||'@!'), '@!,', ' OR '),'@!') AS keywords, rtrim(replace(group_concat(DISTINCT scrape_position_blacklisted_words.blacklisted_word||'@!'), '@!,', ','),'@!') AS blacklisted_words
+FROM scrapes
+JOIN scrape_keywords on scrapes.id = scrape_keywords.scrape_id
+JOIN scrape_position_blacklisted_words on scrapes.id = scrape_position_blacklisted_words.scrape_id
+GROUP BY scrapes.id
+`
+
+type GetAllScrapesRow struct {
+	ID               int64
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+	LastScraped      sql.NullTime
+	Name             string
+	Location         string
+	WorkType         int64
+	UserID           int64
+	ID_2             int64
+	CreatedAt_2      time.Time
+	UpdatedAt_2      time.Time
+	ScrapeID         int64
+	Keyword          string
+	ID_3             int64
+	CreatedAt_3      time.Time
+	UpdatedAt_3      time.Time
+	ScrapeID_2       int64
+	BlacklistedWord  string
+	ID_4             int64
+	Keywords         string
+	BlacklistedWords string
+}
+
+func (q *Queries) GetAllScrapes(ctx context.Context) ([]GetAllScrapesRow, error) {
+	rows, err := q.db.QueryContext(ctx, getAllScrapes)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAllScrapesRow
+	for rows.Next() {
+		var i GetAllScrapesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.LastScraped,
+			&i.Name,
+			&i.Location,
+			&i.WorkType,
+			&i.UserID,
+			&i.ID_2,
+			&i.CreatedAt_2,
+			&i.UpdatedAt_2,
+			&i.ScrapeID,
+			&i.Keyword,
+			&i.ID_3,
+			&i.CreatedAt_3,
+			&i.UpdatedAt_3,
+			&i.ScrapeID_2,
+			&i.BlacklistedWord,
+			&i.ID_4,
+			&i.Keywords,
+			&i.BlacklistedWords,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getLastScrapedDate = `-- name: GetLastScrapedDate :one
