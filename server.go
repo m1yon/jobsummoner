@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"net/http"
 )
 
@@ -8,7 +9,8 @@ func HomepageServer(w http.ResponseWriter, r *http.Request) {
 	jobPostings := GetJobPostings()
 	m := NewHomepageViewModel(jobPostings)
 
-	w.Write([]byte(m.text))
+	component := homepage(m)
+	component.Render(context.Background(), w)
 }
 
 type HomepageViewModel struct {
