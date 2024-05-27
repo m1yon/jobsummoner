@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/a-h/templ"
+	"github.com/m1yon/jobsummoner/internal/components"
 )
 
 type Server interface {
@@ -32,7 +33,7 @@ func (h *DefaultServer) GetHomepage(w http.ResponseWriter, r *http.Request) {
 	jobs := h.JobService.GetJobs()
 
 	m := NewHomepageViewModel(jobs)
-	component := homepage(m)
+	component := components.Homepage(m)
 	err := h.Render(component, context.Background(), w)
 
 	if err != nil {

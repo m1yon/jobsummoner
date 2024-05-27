@@ -1,12 +1,10 @@
 package main
 
-type HomepageViewModel struct {
-	text string
-}
+import "github.com/m1yon/jobsummoner/internal/models"
 
-func NewHomepageViewModel(jobs []Job) (m HomepageViewModel) {
+func NewHomepageViewModel(jobs []Job) (m models.HomepageViewModel) {
 	for _, position := range jobs {
-		m.text += position.name + ","
+		m.Text += position.name + ","
 	}
 
 	return m
