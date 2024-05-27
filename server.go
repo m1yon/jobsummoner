@@ -14,11 +14,13 @@ type Server interface {
 
 type DefaultServer struct {
 	Render func(component templ.Component, ctx context.Context, w io.Writer) error
+	JobService
 }
 
 func NewDefaultServer() *DefaultServer {
 	return &DefaultServer{
-		Render: Render,
+		Render:     Render,
+		JobService: NewDefaultJobService(),
 	}
 }
 
@@ -27,9 +29,9 @@ func (h *DefaultServer) ServerHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *DefaultServer) GetHomepage(w http.ResponseWriter, r *http.Request) {
-	jobPostings := GetJobPostings()
-	m := NewHomepageViewModel(jobPostings)
+	jobPostings := h.JobService.GetJobPostings()
 
+	m := NewHomepageViewModel(jobPostings)
 	component := homepage(m)
 	err := h.Render(component, context.Background(), w)
 
