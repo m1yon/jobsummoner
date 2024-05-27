@@ -14,5 +14,5 @@ func TestGETHomepage(t *testing.T) {
 
 	HomepageServer(response, request)
 
-	assert.Equal(t, response.Body.String(), "Hello, world!")
+	assert.Equal(t, response.Body.String(), "Software Engineer,Manager,")
 }
