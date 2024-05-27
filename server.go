@@ -13,6 +13,17 @@ type HomepageServer interface {
 }
 
 type DefaultHomepageServer struct {
+	Render func(component templ.Component, ctx context.Context, w io.Writer) error
+}
+
+func NewDefaultHomepageServer() *DefaultHomepageServer {
+	return &DefaultHomepageServer{
+		Render: Render,
+	}
+}
+
+func (h *DefaultHomepageServer) ServerHTTP(w http.ResponseWriter, r *http.Request) {
+	h.Get(w, r)
 }
 
 func (h *DefaultHomepageServer) Get(w http.ResponseWriter, r *http.Request) {
@@ -20,9 +31,13 @@ func (h *DefaultHomepageServer) Get(w http.ResponseWriter, r *http.Request) {
 	m := NewHomepageViewModel(jobPostings)
 
 	component := homepage(m)
-	h.Render(component, context.Background(), w)
+	err := h.Render(component, context.Background(), w)
+
+	if err != nil {
+		w.WriteHeader(500)
+	}
 }
 
-func (h *DefaultHomepageServer) Render(component templ.Component, ctx context.Context, w io.Writer) error {
+func Render(component templ.Component, ctx context.Context, w io.Writer) error {
 	return component.Render(ctx, w)
 }
