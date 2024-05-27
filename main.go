@@ -1,8 +1,11 @@
 package main
 
-import "net/http"
+import (
+	"log"
+	"net/http"
+)
 
 func main() {
 	handler := http.HandlerFunc(HomepageServer)
-	http.ListenAndServe(":3000", handler)
+	log.Fatal(http.ListenAndServe(":3000", handler))
 }
