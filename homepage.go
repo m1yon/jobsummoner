@@ -4,8 +4,8 @@ type HomepageViewModel struct {
 	text string
 }
 
-func NewHomepageViewModel(jobPostings []JobPosting) (m HomepageViewModel) {
-	for _, position := range jobPostings {
+func NewHomepageViewModel(jobs []Job) (m HomepageViewModel) {
+	for _, position := range jobs {
 		m.text += position.name + ","
 	}
 

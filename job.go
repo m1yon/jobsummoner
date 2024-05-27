@@ -1,7 +1,7 @@
 package main
 
 type JobService interface {
-	GetJobPostings() []JobPosting
+	GetJobs() []Job
 }
 
 type DefaultJobService struct{}
@@ -10,16 +10,12 @@ func NewDefaultJobService() *DefaultJobService {
 	return &DefaultJobService{}
 }
 
-type JobPosting struct {
+type Job struct {
 	name string
 }
 
-type JobPostingStore interface {
-	GetJobPostings() []JobPosting
-}
-
-func (j *DefaultJobService) GetJobPostings() []JobPosting {
-	return []JobPosting{
+func (j *DefaultJobService) GetJobs() []Job {
+	return []Job{
 		{"Software Engineer"},
 		{"Manager"},
 	}

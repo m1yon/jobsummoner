@@ -6,11 +6,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetJobPostings(t *testing.T) {
+func TestGetJobs(t *testing.T) {
 	jobService := NewDefaultJobService()
-	res := jobService.GetJobPostings()
+	res := jobService.GetJobs()
 
-	assert.Equal(t, []JobPosting{
+	assert.Equal(t, []Job{
 		{"Software Engineer"},
 		{"Manager"},
 	}, res)
