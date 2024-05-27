@@ -8,25 +8,25 @@ import (
 	"github.com/a-h/templ"
 )
 
-type HomepageServer interface {
+type Server interface {
 	Render(component templ.Component, ctx context.Context, w io.Writer) error
 }
 
-type DefaultHomepageServer struct {
+type DefaultServer struct {
 	Render func(component templ.Component, ctx context.Context, w io.Writer) error
 }
 
-func NewDefaultHomepageServer() *DefaultHomepageServer {
-	return &DefaultHomepageServer{
+func NewDefaultServer() *DefaultServer {
+	return &DefaultServer{
 		Render: Render,
 	}
 }
 
-func (h *DefaultHomepageServer) ServerHTTP(w http.ResponseWriter, r *http.Request) {
-	h.Get(w, r)
+func (h *DefaultServer) ServerHTTP(w http.ResponseWriter, r *http.Request) {
+	h.GetHomepage(w, r)
 }
 
-func (h *DefaultHomepageServer) Get(w http.ResponseWriter, r *http.Request) {
+func (h *DefaultServer) GetHomepage(w http.ResponseWriter, r *http.Request) {
 	jobPostings := GetJobPostings()
 	m := NewHomepageViewModel(jobPostings)
 

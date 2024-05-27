@@ -17,7 +17,7 @@ func TestGETHomepage(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/", nil)
 		response := httptest.NewRecorder()
 
-		server := NewDefaultHomepageServer()
+		server := NewDefaultServer()
 		server.ServerHTTP(response, request)
 
 		assert.Equal(t, response.Code, 200)
@@ -28,7 +28,7 @@ func TestGETHomepage(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/", nil)
 		response := httptest.NewRecorder()
 
-		server := NewDefaultHomepageServer()
+		server := NewDefaultServer()
 		server.Render = func(component templ.Component, ctx context.Context, w io.Writer) error {
 			return errors.New("could not render template")
 		}
