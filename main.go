@@ -6,6 +6,7 @@ import (
 )
 
 func main() {
-	handler := http.HandlerFunc(HomepageServer)
+	server := DefaultHomepageServer{}
+	handler := http.HandlerFunc(server.Get)
 	log.Fatal(http.ListenAndServe(":3000", handler))
 }

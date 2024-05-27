@@ -1,10 +1,5 @@
 package main
 
-import (
-	"context"
-	"io"
-)
-
 type HomepageViewModel struct {
 	text string
 }
@@ -15,9 +10,4 @@ func NewHomepageViewModel(jobPostings []JobPosting) (m HomepageViewModel) {
 	}
 
 	return m
-}
-
-func RenderHomepage(m HomepageViewModel, w io.Writer) {
-	component := homepage(m)
-	component.Render(context.Background(), w)
 }
