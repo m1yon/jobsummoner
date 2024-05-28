@@ -36,6 +36,22 @@ func TestLinkedInURLBuilder(t *testing.T) {
 			},
 			"?f_WT=2%2C1",
 		},
+		{
+			"JobTypes field",
+			func() ScrapeConfig {
+				config := ScrapeConfig{JobTypes: []JobType{JobTypeFullTime, JobTypeOther}}
+				return config
+			},
+			"?f_JT=F%2CO",
+		},
+		{
+			"SalaryRange field",
+			func() ScrapeConfig {
+				config := ScrapeConfig{SalaryRange: SalaryRange160kPlus}
+				return config
+			},
+			"?f_SB2=7",
+		},
 	}
 
 	for _, tt := range tests {
