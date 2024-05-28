@@ -98,6 +98,7 @@ type CrawledJob struct {
 	Position    string
 	CompanyName string
 	Location    string
+	URL         string
 }
 
 type CrawledJobsPage struct {
@@ -115,11 +116,13 @@ func CrawlLinkedInPage(r io.Reader) CrawledJobsPage {
 		Position := strings.TrimSpace(s.Find(".base-search-card__title").Text())
 		CompanyName := strings.TrimSpace(s.Find(".base-search-card__subtitle").Text())
 		Location := strings.TrimSpace(s.Find(".job-search-card__location").Text())
+		URL, _ := s.Find(".base-card__full-link").Attr("href")
 
 		Jobs = append(Jobs, CrawledJob{
 			Position,
 			CompanyName,
 			Location,
+			URL,
 		})
 	})
 
