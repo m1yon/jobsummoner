@@ -1,14 +1,10 @@
 package main
 
 import (
-	"log"
-	"net/http"
-
-	"github.com/m1yon/jobsummoner"
+	"github.com/m1yon/jobsummoner/pkg/http"
 )
 
 func main() {
-	server := jobsummoner.DefaultServer{}
-	handler := http.HandlerFunc(server.ServerHTTP)
-	log.Fatal(http.ListenAndServe(":3000", handler))
+	server := http.DefaultServer{}
+	server.ListenAndServe(":3000")
 }

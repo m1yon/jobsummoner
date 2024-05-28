@@ -1,4 +1,4 @@
-package jobsummoner
+package http
 
 import (
 	"context"
