@@ -23,7 +23,7 @@ func main() {
 		slog.Error(err.Error())
 	}
 
-	results, errs := jobsummoner.CrawlLinkedInPage(resp.Body)
+	results, errs := jobsummoner.ScrapeLinkedInPage(resp.Body)
 
 	if len(errs) != 0 {
 		for _, err := range errs {

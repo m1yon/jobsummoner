@@ -97,11 +97,11 @@ func TestLinkedInScraper(t *testing.T) {
 			t.Fatal("could not open file")
 		}
 
-		got, errs := CrawlLinkedInPage(file)
+		got, errs := ScrapeLinkedInPage(file)
 
 		assert.Equal(t, 0, len(errs))
-		assert.Equal(t, CrawledJobsPage{
-			Jobs: []CrawledJob{
+		assert.Equal(t, ScrapedJobsPage{
+			Jobs: []ScrapedJob{
 				{
 					Position:    "Full Stack Engineer",
 					CompanyID:   "venchrpartners",
@@ -134,13 +134,13 @@ func TestLinkedInScraper(t *testing.T) {
 			t.Fatal("could not open file")
 		}
 
-		got, errs := CrawlLinkedInPage(file)
+		got, errs := ScrapeLinkedInPage(file)
 
 		assert.Equal(t, errs, []error{
 			fmt.Errorf(ErrMalformedompanyLink, "fda&=+!-//"),
 		})
-		assert.Equal(t, CrawledJobsPage{
-			Jobs: []CrawledJob{
+		assert.Equal(t, ScrapedJobsPage{
+			Jobs: []ScrapedJob{
 				{
 					Position:    "Software Engineer II (Frontend) - Seller Experience",
 					CompanyID:   "stubhub",

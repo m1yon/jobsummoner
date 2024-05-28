@@ -101,7 +101,7 @@ func join[T ~string](input []T, sep string) string {
 	return result
 }
 
-type CrawledJob struct {
+type ScrapedJob struct {
 	Position    string
 	CompanyID   string
 	CompanyName string
@@ -109,22 +109,22 @@ type CrawledJob struct {
 	URL         string
 }
 
-type CrawledJobsPage struct {
-	Jobs []CrawledJob
+type ScrapedJobsPage struct {
+	Jobs []ScrapedJob
 }
 
-func CrawlLinkedInPage(r io.Reader) (CrawledJobsPage, []error) {
+func ScrapeLinkedInPage(r io.Reader) (ScrapedJobsPage, []error) {
 	errs := make([]error, 0, 1)
 	doc, err := goquery.NewDocumentFromReader(r)
 
 	if err != nil {
 		errs = append(errs, errors.Wrap(err, ErrInvalidHTML))
-		return CrawledJobsPage{}, errs
+		return ScrapedJobsPage{}, errs
 	}
 
 	jobElements := doc.Find("body > li")
 
-	Jobs := make([]CrawledJob, 0, jobElements.Length())
+	Jobs := make([]ScrapedJob, 0, jobElements.Length())
 
 	jobElements.Each(func(i int, s *goquery.Selection) {
 		Position := strings.TrimSpace(s.Find(".base-search-card__title").Text())
@@ -149,7 +149,7 @@ func CrawlLinkedInPage(r io.Reader) (CrawledJobsPage, []error) {
 		Location := strings.TrimSpace(s.Find(".job-search-card__location").Text())
 		URL, _ := s.Find(".base-card__full-link").Attr("href")
 
-		Jobs = append(Jobs, CrawledJob{
+		Jobs = append(Jobs, ScrapedJob{
 			Position,
 			CompanyID,
 			CompanyName,
@@ -158,7 +158,7 @@ func CrawlLinkedInPage(r io.Reader) (CrawledJobsPage, []error) {
 		})
 	})
 
-	return CrawledJobsPage{
+	return ScrapedJobsPage{
 		Jobs,
 	}, errs
 }
