@@ -1,4 +1,4 @@
-package models
+package jobsummoner
 
 type HomepageViewModel struct {
 	Text string

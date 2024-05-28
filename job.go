@@ -11,7 +11,7 @@ func NewDefaultJobService() *DefaultJobService {
 }
 
 type Job struct {
-	name string
+	Name string
 }
 
 func (j *DefaultJobService) GetJobs() []Job {

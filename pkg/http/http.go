@@ -23,7 +23,7 @@ type DefaultServer struct {
 
 func NewDefaultServer() *DefaultServer {
 	return &DefaultServer{
-		Render:     Render,
+		Render:     components.Render,
 		JobService: jobsummoner.NewDefaultJobService(),
 	}
 }
@@ -35,7 +35,7 @@ func (h *DefaultServer) ServerHTTP(w http.ResponseWriter, r *http.Request) {
 func (h *DefaultServer) GetHomepage(w http.ResponseWriter, r *http.Request) {
 	jobs := h.JobService.GetJobs()
 
-	m := jobsummoner.NewHomepageViewModel(jobs)
+	m := components.NewHomepageViewModel(jobs)
 	component := components.Homepage(m)
 	err := h.Render(component, context.Background(), w)
 
@@ -47,8 +47,4 @@ func (h *DefaultServer) GetHomepage(w http.ResponseWriter, r *http.Request) {
 func (h *DefaultServer) ListenAndServe(addr string) {
 	handler := http.HandlerFunc(h.ServerHTTP)
 	log.Fatal(http.ListenAndServe(addr, handler))
-}
-
-func Render(component templ.Component, ctx context.Context, w io.Writer) error {
-	return component.Render(ctx, w)
 }
