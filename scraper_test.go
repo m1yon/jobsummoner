@@ -6,46 +6,35 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestLinkedInPage(t *testing.T) {
+func TestLinkedInURLBuilder(t *testing.T) {
 	var tests = []struct {
 		name      string
 		getConfig func() ScrapeConfig
 		want      string
 	}{
 		{
-			"builds correct URL given a config",
+			"Keywords field",
 			func() ScrapeConfig {
-				config := getMockScrapeConfig()
+				config := ScrapeConfig{Keywords: []string{"react", "typescript"}}
 				return config
 			},
-			"?f_WT=2%2C1&keywords=react+OR+typescript&location=United+States",
+			"?keywords=react+OR+typescript",
 		},
 		{
-			"ignores empty Keyword field",
+			"Location field",
 			func() ScrapeConfig {
-				config := getMockScrapeConfig()
-				config.Keywords = []string{}
+				config := ScrapeConfig{Location: "United States"}
 				return config
 			},
-			"?f_WT=2%2C1&location=United+States",
+			"?location=United+States",
 		},
 		{
-			"ignores empty Location field",
+			"WorkTypes field",
 			func() ScrapeConfig {
-				config := getMockScrapeConfig()
-				config.Location = ""
+				config := ScrapeConfig{WorkTypes: []WorkType{WorkTypeRemote, WorkTypeOnSite}}
 				return config
 			},
-			"?f_WT=2%2C1&keywords=react+OR+typescript",
-		},
-		{
-			"ignores empty WorkType field",
-			func() ScrapeConfig {
-				config := getMockScrapeConfig()
-				config.WorkType = []WorkType{}
-				return config
-			},
-			"?keywords=react+OR+typescript&location=United+States",
+			"?f_WT=2%2C1",
 		},
 	}
 
@@ -63,14 +52,4 @@ func TestLinkedInPage(t *testing.T) {
 	// 	Position:    "Software Developer",
 	// 	CompanyName: "Google",
 	// }, got)
-}
-
-func getMockScrapeConfig() ScrapeConfig {
-	config := ScrapeConfig{
-		Keywords: []string{"react", "typescript"},
-		Location: "United States",
-		WorkType: []WorkType{WorkTypeRemote, WorkTypeOnSite},
-	}
-
-	return config
 }

@@ -13,12 +13,25 @@ const (
 	WorkTypeHybrid WorkType = "3"
 )
 
+type JobType string
+
+const (
+	JobTypeFullTime   JobType = "F"
+	JobTypePartTime   JobType = "P"
+	JobTypeContract   JobType = "C"
+	JobTypeTemporary  JobType = "T"
+	JobTypeVolunteer  JobType = "V"
+	JobTypeInternship JobType = "I"
+	JobTypeOther      JobType = "O"
+)
+
 const linkedInBaseSearchURL = "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search"
 
 type ScrapeConfig struct {
-	Keywords []string
-	Location string
-	WorkType []WorkType
+	Keywords  []string
+	Location  string
+	WorkTypes []WorkType
+	JobTypes  []JobType
 }
 
 func BuildURL(config ScrapeConfig) string {
@@ -31,8 +44,8 @@ func BuildURL(config ScrapeConfig) string {
 	if config.Location != "" {
 		q.Set("location", config.Location)
 	}
-	if len(config.WorkType) > 0 {
-		q.Set("f_WT", join(config.WorkType, ","))
+	if len(config.WorkTypes) > 0 {
+		q.Set("f_WT", join(config.WorkTypes, ","))
 	}
 
 	url.RawQuery = q.Encode()
