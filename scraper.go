@@ -44,6 +44,11 @@ const (
 	SalaryRange200kPlus SalaryRange = "9"
 )
 
+const (
+	ErrParsingCompanyLink  = "problem parsing company link url: %v"
+	ErrMalformedompanyLink = "malformed company link url for parsed company link url: %v"
+)
+
 const linkedInBaseSearchURL = "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search"
 
 type ScrapeConfig struct {
@@ -106,21 +111,33 @@ type CrawledJobsPage struct {
 	Jobs []CrawledJob
 }
 
-func CrawlLinkedInPage(r io.Reader) CrawledJobsPage {
+func CrawlLinkedInPage(r io.Reader) (CrawledJobsPage, []error) {
 	doc, _ := goquery.NewDocumentFromReader(r)
 
 	jobElements := doc.Find("body > li")
 
 	Jobs := make([]CrawledJob, 0, jobElements.Length())
 
+	errors := []error{}
+
 	jobElements.Each(func(i int, s *goquery.Selection) {
 		Position := strings.TrimSpace(s.Find(".base-search-card__title").Text())
 		companyLinkURL, _ := s.Find(".base-search-card__subtitle > a").Attr("href")
 
-		parsedCompanyLinkURL, _ := url.Parse(companyLinkURL)
+		parsedCompanyLinkURL, err := url.Parse(companyLinkURL)
+
+		if err != nil {
+			errors = append(errors, fmt.Errorf(ErrParsingCompanyLink, err.Error()))
+			return
+		}
 
 		segments := strings.Split(parsedCompanyLinkURL.EscapedPath(), "/")
 		CompanyID := segments[len(segments)-1]
+
+		if CompanyID == "" {
+			errors = append(errors, fmt.Errorf(ErrMalformedompanyLink, parsedCompanyLinkURL))
+			return
+		}
 
 		CompanyName := strings.TrimSpace(s.Find(".base-search-card__subtitle").Text())
 		Location := strings.TrimSpace(s.Find(".job-search-card__location").Text())
@@ -137,5 +154,5 @@ func CrawlLinkedInPage(r io.Reader) CrawledJobsPage {
 
 	return CrawledJobsPage{
 		Jobs,
-	}
+	}, errors
 }
