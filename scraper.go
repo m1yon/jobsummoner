@@ -96,6 +96,7 @@ func join[T ~string](input []T, sep string) string {
 
 type CrawledJob struct {
 	Position    string
+	CompanyID   string
 	CompanyName string
 	Location    string
 	URL         string
@@ -114,12 +115,20 @@ func CrawlLinkedInPage(r io.Reader) CrawledJobsPage {
 
 	jobElements.Each(func(i int, s *goquery.Selection) {
 		Position := strings.TrimSpace(s.Find(".base-search-card__title").Text())
+		companyLinkURL, _ := s.Find(".base-search-card__subtitle > a").Attr("href")
+
+		parsedCompanyLinkURL, _ := url.Parse(companyLinkURL)
+
+		segments := strings.Split(parsedCompanyLinkURL.EscapedPath(), "/")
+		CompanyID := segments[len(segments)-1]
+
 		CompanyName := strings.TrimSpace(s.Find(".base-search-card__subtitle").Text())
 		Location := strings.TrimSpace(s.Find(".job-search-card__location").Text())
 		URL, _ := s.Find(".base-card__full-link").Attr("href")
 
 		Jobs = append(Jobs, CrawledJob{
 			Position,
+			CompanyID,
 			CompanyName,
 			Location,
 			URL,
