@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"net/url"
 	"strings"
+	"time"
 )
 
 type WorkType string
@@ -47,6 +49,7 @@ type ScrapeConfig struct {
 	WorkTypes   []WorkType
 	JobTypes    []JobType
 	SalaryRange SalaryRange
+	MaxAge      time.Duration
 }
 
 func BuildURL(config ScrapeConfig) string {
@@ -67,6 +70,9 @@ func BuildURL(config ScrapeConfig) string {
 	}
 	if config.SalaryRange != "" {
 		q.Set("f_SB2", string(config.SalaryRange))
+	}
+	if config.MaxAge != 0.0 {
+		q.Set("f_TPR", fmt.Sprintf("r%v", config.MaxAge.Seconds()))
 	}
 
 	url.RawQuery = q.Encode()

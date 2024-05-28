@@ -2,12 +2,13 @@ package main
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestLinkedInURLBuilder(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		name      string
 		getConfig func() ScrapeConfig
 		want      string
@@ -51,6 +52,29 @@ func TestLinkedInURLBuilder(t *testing.T) {
 				return config
 			},
 			"?f_SB2=7",
+		},
+		{
+			"MaxAge field",
+			func() ScrapeConfig {
+				config := ScrapeConfig{MaxAge: time.Hour * 24}
+				return config
+			},
+			"?f_TPR=r86400",
+		},
+		{
+			"All fields",
+			func() ScrapeConfig {
+				config := ScrapeConfig{
+					Keywords:    []string{"go", "templ"},
+					Location:    "Africa",
+					WorkTypes:   []WorkType{WorkTypeHybrid},
+					JobTypes:    []JobType{JobTypeFullTime, JobTypeOther},
+					SalaryRange: SalaryRange200kPlus,
+					MaxAge:      time.Hour * 12,
+				}
+				return config
+			},
+			"?f_JT=F%2CO&f_SB2=9&f_TPR=r43200&f_WT=3&keywords=go+OR+templ&location=Africa",
 		},
 	}
 
