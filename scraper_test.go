@@ -102,14 +102,17 @@ func TestLinkedInScraper(t *testing.T) {
 			{
 				Position:    "Full Stack Engineer",
 				CompanyName: "Venchr",
+				Location:    "San Francisco Bay Area",
 			},
 			{
 				Position:    "Software Engineer II (Frontend) - Seller Experience",
 				CompanyName: "StubHub",
+				Location:    "Los Angeles, CA",
 			},
 			{
 				Position:    "Senior Frontend Developer",
 				CompanyName: "Trilogy International",
+				Location:    "South San Francisco, CA",
 			},
 		},
 	}, got)
