@@ -1,4 +1,4 @@
-package main
+package jobsummoner
 
 import "github.com/m1yon/jobsummoner/internal/models"
 

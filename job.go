@@ -1,4 +1,4 @@
-package main
+package jobsummoner
 
 type JobService interface {
 	GetJobs() []Job
