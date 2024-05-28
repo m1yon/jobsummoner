@@ -25,9 +25,15 @@ func BuildURL(config ScrapeConfig) string {
 	url, _ := url.Parse(linkedInBaseSearchURL)
 
 	q := url.Query()
-	q.Set("keywords", strings.Join(config.Keywords, " OR "))
-	q.Set("location", config.Location)
-	q.Set("f_WT", join(config.WorkType, ","))
+	if len(config.Keywords) > 0 {
+		q.Set("keywords", strings.Join(config.Keywords, " OR "))
+	}
+	if config.Location != "" {
+		q.Set("location", config.Location)
+	}
+	if len(config.WorkType) > 0 {
+		q.Set("f_WT", join(config.WorkType, ","))
+	}
 
 	url.RawQuery = q.Encode()
 
