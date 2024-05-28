@@ -158,5 +158,4 @@ func TestLinkedInScraper(t *testing.T) {
 			},
 		}, got)
 	})
-
 }

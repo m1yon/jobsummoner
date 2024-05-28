@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/pkg/errors"
 )
 
 type WorkType string
@@ -45,7 +46,8 @@ const (
 )
 
 const (
-	ErrParsingCompanyLink  = "problem parsing company link url: %v"
+	ErrInvalidHTML         = "HTML could not be parsed"
+	ErrParsingCompanyLink  = "problem parsing company link url"
 	ErrMalformedompanyLink = "malformed company link url for parsed company link url: %v"
 )
 
@@ -112,13 +114,17 @@ type CrawledJobsPage struct {
 }
 
 func CrawlLinkedInPage(r io.Reader) (CrawledJobsPage, []error) {
-	doc, _ := goquery.NewDocumentFromReader(r)
+	errs := make([]error, 0, 1)
+	doc, err := goquery.NewDocumentFromReader(r)
+
+	if err != nil {
+		errs = append(errs, errors.Wrap(err, ErrInvalidHTML))
+		return CrawledJobsPage{}, errs
+	}
 
 	jobElements := doc.Find("body > li")
 
 	Jobs := make([]CrawledJob, 0, jobElements.Length())
-
-	errors := []error{}
 
 	jobElements.Each(func(i int, s *goquery.Selection) {
 		Position := strings.TrimSpace(s.Find(".base-search-card__title").Text())
@@ -127,7 +133,7 @@ func CrawlLinkedInPage(r io.Reader) (CrawledJobsPage, []error) {
 		parsedCompanyLinkURL, err := url.Parse(companyLinkURL)
 
 		if err != nil {
-			errors = append(errors, fmt.Errorf(ErrParsingCompanyLink, err.Error()))
+			errs = append(errs, errors.Wrap(err, ErrParsingCompanyLink))
 			return
 		}
 
@@ -135,7 +141,7 @@ func CrawlLinkedInPage(r io.Reader) (CrawledJobsPage, []error) {
 		CompanyID := segments[len(segments)-1]
 
 		if CompanyID == "" {
-			errors = append(errors, fmt.Errorf(ErrMalformedompanyLink, parsedCompanyLinkURL))
+			errs = append(errs, fmt.Errorf(ErrMalformedompanyLink, parsedCompanyLinkURL))
 			return
 		}
 
@@ -154,5 +160,5 @@ func CrawlLinkedInPage(r io.Reader) (CrawledJobsPage, []error) {
 
 	return CrawledJobsPage{
 		Jobs,
-	}, errors
+	}, errs
 }
