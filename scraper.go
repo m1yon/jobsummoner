@@ -2,9 +2,12 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/PuerkitoBio/goquery"
 )
 
 type WorkType string
@@ -89,4 +92,35 @@ func join[T ~string](input []T, sep string) string {
 	result := strings.Join(slice, sep)
 
 	return result
+}
+
+type CrawledJob struct {
+	Position    string
+	CompanyName string
+}
+
+type CrawledJobsPage struct {
+	Jobs []CrawledJob
+}
+
+func CrawlLinkedInPage(r io.Reader) CrawledJobsPage {
+	doc, _ := goquery.NewDocumentFromReader(r)
+
+	jobElements := doc.Find("body > li")
+
+	Jobs := make([]CrawledJob, 0, jobElements.Length())
+
+	jobElements.Each(func(i int, s *goquery.Selection) {
+		Position := strings.TrimSpace(s.Find(".base-search-card__title").Text())
+		CompanyName := strings.TrimSpace(s.Find(".base-search-card__subtitle > a").Text())
+
+		Jobs = append(Jobs, CrawledJob{
+			Position,
+			CompanyName,
+		})
+	})
+
+	return CrawledJobsPage{
+		Jobs,
+	}
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"testing"
 	"time"
 
@@ -85,11 +86,31 @@ func TestLinkedInURLBuilder(t *testing.T) {
 		})
 	}
 
-	// file := os.File{}
-	// got := CrawlLinkedInPage(file)
+}
 
-	// assert.Equal(t, LinkedInPageData{
-	// 	Position:    "Software Developer",
-	// 	CompanyName: "Google",
-	// }, got)
+func TestLinkedInScraper(t *testing.T) {
+	file, err := os.Open("./tests/li-job-listings.html")
+
+	if err != nil {
+		t.Fatal("could not open file")
+	}
+
+	got := CrawlLinkedInPage(file)
+
+	assert.Equal(t, CrawledJobsPage{
+		Jobs: []CrawledJob{
+			{
+				Position:    "Full Stack Engineer",
+				CompanyName: "Venchr",
+			},
+			{
+				Position:    "Software Engineer II (Frontend) - Seller Experience",
+				CompanyName: "StubHub",
+			},
+			{
+				Position:    "Senior Frontend Developer",
+				CompanyName: "Trilogy International",
+			},
+		},
+	}, got)
 }
