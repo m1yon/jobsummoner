@@ -1,7 +1,6 @@
 package jobsummoner
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -10,39 +9,57 @@ import (
 )
 
 type MockScraper struct {
+	ch    chan bool
 	calls int
 }
 
 func (m *MockScraper) ScrapeJobs() (ScrapedJobsResults, []error) {
-	m.calls++
+	newCallsValue := m.calls + 1
+	m.calls = newCallsValue
+
+	m.ch <- true
+
 	return ScrapedJobsResults{}, []error{}
 }
 
 func NewMockScraper() *MockScraper {
+	ch := make(chan bool)
+
 	return &MockScraper{
+		ch:    ch,
 		calls: 0,
 	}
 }
 
+const callsBetween5pmAnd10pm = 11
+
 func TestScrapeLoop(t *testing.T) {
-	c := clockwork.NewFakeClock()
-	interval := 5 * time.Minute
+	location, err := time.LoadLocation("America/Denver")
+	startTime := time.Date(2024, time.May, 19, 17, 0, 0, 0, location)
+
+	if err != nil {
+		t.Fatal("failed to load location")
+	}
+
+	c := clockwork.NewFakeClockAt(startTime)
 
 	scraper := NewMockScraper()
 
-	go ScrapeLoop(c, scraper, interval)
-
-	fmt.Printf("now %v\n", c.Now())
+	go ScrapeLoop(c, scraper, "TZ=America/Denver */30 7-22 * * *")
 
 	c.BlockUntil(1)
 
-	assert.Equal(t, 0, scraper.calls)
+	// loop one extra time to ensure no extra calls are made
+	for i := 0; i < callsBetween5pmAnd10pm+1; i++ {
+		c.Advance(30 * time.Minute)
 
-	c.Advance(interval + time.Second)
-	c.BlockUntil(1)
-	assert.Equal(t, 1, scraper.calls)
+		select {
+		case <-scraper.ch:
+			assert.Equal(t, i+1, scraper.calls)
+		case <-time.After(50 * time.Millisecond):
+			break
+		}
+	}
 
-	c.Advance(interval)
-	c.BlockUntil(1)
-	assert.Equal(t, 2, scraper.calls)
+	assert.Equal(t, callsBetween5pmAnd10pm, scraper.calls)
 }

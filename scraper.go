@@ -1,9 +1,6 @@
 package jobsummoner
 
 import (
-	"fmt"
-
-	"github.com/benbjohnson/clock"
 	"github.com/go-co-op/gocron/v2"
 	"github.com/jonboulle/clockwork"
 	"github.com/pkg/errors"
@@ -59,7 +56,7 @@ type Scraper interface {
 	ScrapeJobs() (ScrapedJobsResults, []error)
 }
 
-func ScrapeLoop(c clockwork.Clock, scraper Scraper, interval clock.Duration) error {
+func ScrapeLoop(c clockwork.Clock, scraper Scraper, crontab string) error {
 	s, err := gocron.NewScheduler(gocron.WithClock(c))
 
 	if err != nil {
@@ -67,11 +64,8 @@ func ScrapeLoop(c clockwork.Clock, scraper Scraper, interval clock.Duration) err
 	}
 
 	_, err = s.NewJob(
-		gocron.DurationJob(interval),
-		gocron.NewTask(func() {
-			scraper.ScrapeJobs()
-			fmt.Println("ran")
-		}),
+		gocron.CronJob(crontab, false),
+		gocron.NewTask(scraper.ScrapeJobs),
 	)
 
 	if err != nil {
