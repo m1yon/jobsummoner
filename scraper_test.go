@@ -9,21 +9,19 @@ import (
 )
 
 type MockScraper struct {
-	ch    chan bool
+	ch    chan interface{}
 	calls int
 }
 
 func (m *MockScraper) ScrapeJobs() (ScrapedJobsResults, []error) {
-	newCallsValue := m.calls + 1
-	m.calls = newCallsValue
-
-	m.ch <- true
+	m.calls++
+	m.ch <- struct{}{}
 
 	return ScrapedJobsResults{}, []error{}
 }
 
 func NewMockScraper() *MockScraper {
-	ch := make(chan bool)
+	ch := make(chan interface{})
 
 	return &MockScraper{
 		ch:    ch,
