@@ -1,5 +1,7 @@
 package jobsummoner
 
+import "github.com/benbjohnson/clock"
+
 type WorkType string
 
 const (
@@ -48,4 +50,13 @@ type ScrapedJobsResults struct {
 
 type Scraper interface {
 	ScrapeJobs() (ScrapedJobsResults, []error)
+}
+
+func ScrapeLoop(c clock.Clock, scraper Scraper, interval clock.Duration) {
+	ticker := c.Ticker(interval)
+	defer ticker.Stop()
+
+	for range ticker.C {
+		scraper.ScrapeJobs()
+	}
 }
