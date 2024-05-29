@@ -1,11 +1,11 @@
 package jobsummoner
 
 import (
-	"runtime"
+	"fmt"
 	"testing"
 	"time"
 
-	"github.com/benbjohnson/clock"
+	"github.com/jonboulle/clockwork"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,19 +25,24 @@ func NewMockScraper() *MockScraper {
 }
 
 func TestScrapeLoop(t *testing.T) {
-	c := clock.NewMock()
+	c := clockwork.NewFakeClock()
 	interval := 5 * time.Minute
+
 	scraper := NewMockScraper()
 
 	go ScrapeLoop(c, scraper, interval)
 
-	runtime.Gosched()
+	fmt.Printf("now %v\n", c.Now())
 
-	assert.Equal(t, scraper.calls, 0)
+	c.BlockUntil(1)
 
-	c.Add(interval)
-	assert.Equal(t, scraper.calls, 1)
+	assert.Equal(t, 0, scraper.calls)
 
-	c.Add(interval)
-	assert.Equal(t, scraper.calls, 2)
+	c.Advance(interval + time.Second)
+	c.BlockUntil(1)
+	assert.Equal(t, 1, scraper.calls)
+
+	c.Advance(interval)
+	c.BlockUntil(1)
+	assert.Equal(t, 2, scraper.calls)
 }
