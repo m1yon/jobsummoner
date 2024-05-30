@@ -2,7 +2,7 @@ test:
 	gotestsum --watch
 
 test-ci:
-	go test ./.
+	go test ./...
 
 migrate-up:
 	goose -dir "./sql/migrations" sqlite ./db/database.db up
