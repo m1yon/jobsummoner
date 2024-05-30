@@ -35,67 +35,57 @@ const callsBetween7amAnd8am = 3
 
 func TestScrapeLoop(t *testing.T) {
 	t.Run("calls the function correctly on a cron", func(t *testing.T) {
-		location, err := time.LoadLocation("America/Denver")
-		startTime := time.Date(2024, time.May, 19, 20, 0, 0, 0, location)
-
-		if err != nil {
-			t.Fatal("failed to load location")
-		}
-
-		c := clockwork.NewFakeClockAt(startTime)
-
+		c := getFakeClock(t)
 		scraper := NewMockScraper()
 
 		go ScrapeLoop(c, scraper, "TZ=America/Denver */30 7-22 * * *")
-
 		c.BlockUntil(1)
 
-		callNotMade := false
 		// loop one extra time to ensure no extra calls are made
-		for i := 0; i < callsBetween8pmAnd10pm+1; i++ {
-			c.Advance(30 * time.Minute)
-
-			select {
-			case <-scraper.ch:
-				if !assert.Equal(t, i+1, scraper.calls) {
-					t.FailNow()
-				}
-			case <-time.After(50 * time.Millisecond):
-				callNotMade = true
-			}
-		}
-
+		callNotMade := simulateCron(c, scraper, callsBetween8pmAnd10pm+1, 30*time.Minute)
 		assert.Equal(t, callsBetween8pmAnd10pm, scraper.calls)
-		if !assert.Equal(t, true, callNotMade, fmt.Sprintf("should stop making calls when the end of the cron interval is reached\nscraper.calls is %v, expected %v", scraper.calls, callsBetween8pmAnd10pm)) {
-			t.FailNow()
-		}
+		assertCallNotMade(t, callNotMade, scraper.calls)
 
 		// advance to 6:30am
 		c.Advance(7*time.Hour + 30*time.Minute)
 
-		callNotMade = false
-		for i := 0; i < callsBetween7amAnd8am+1; i++ {
-			fmt.Println(c.Now())
-
-			select {
-			case <-scraper.ch:
-				if i == 0 {
-					assert.FailNow(t, "cron triggered at 6:30am")
-				}
-
-				if !assert.Equal(t, callsBetween8pmAnd10pm+i, scraper.calls) {
-					t.FailNow()
-				}
-			case <-time.After(50 * time.Millisecond):
-				callNotMade = true
-			}
-
-			c.Advance(30 * time.Minute)
-		}
-
+		callNotMade = simulateCron(c, scraper, callsBetween7amAnd8am+1, 30*time.Minute)
 		assert.Equal(t, callsBetween8pmAnd10pm+callsBetween7amAnd8am, scraper.calls)
-		if !assert.Equal(t, true, callNotMade, fmt.Sprintf("should stop making calls when the end of the cron interval is reached\nscraper.calls is %v, expected %v", scraper.calls, callsBetween8pmAnd10pm+callsBetween7amAnd8am)) {
-			t.FailNow()
-		}
+		assertCallNotMade(t, callNotMade, scraper.calls)
 	})
+}
+
+func simulateCron(c clockwork.FakeClock, scraper *MockScraper, numberOfCalls int, advanceInterval time.Duration) bool {
+	missed := false
+	for i := 0; i < numberOfCalls; i++ {
+		select {
+		case <-scraper.ch:
+		case <-time.After(50 * time.Millisecond):
+			missed = true
+		}
+
+		c.Advance(advanceInterval)
+	}
+
+	return missed
+}
+
+func getFakeClock(t *testing.T) clockwork.FakeClock {
+	t.Helper()
+	location, err := time.LoadLocation("America/Denver")
+	startTime := time.Date(2024, time.May, 19, 20, 0, 0, 0, location)
+
+	if err != nil {
+		t.Fatal("failed to load location")
+	}
+
+	c := clockwork.NewFakeClockAt(startTime)
+	return c
+}
+
+func assertCallNotMade(t *testing.T, callNotMade bool, calls int) {
+	t.Helper()
+	if !assert.Equal(t, true, callNotMade, fmt.Sprintf("should not make calls outside of cron interval\nscraper.calls is %v, expected %v", calls, callsBetween8pmAnd10pm+callsBetween7amAnd8am)) {
+		t.FailNow()
+	}
 }

@@ -1,6 +1,8 @@
 package jobsummoner
 
 import (
+	"log/slog"
+
 	"github.com/go-co-op/gocron/v2"
 	"github.com/jonboulle/clockwork"
 	"github.com/pkg/errors"
@@ -56,11 +58,12 @@ type Scraper interface {
 	ScrapeJobs() (ScrapedJobsResults, []error)
 }
 
-func ScrapeLoop(c clockwork.Clock, scraper Scraper, crontab string) error {
+func ScrapeLoop(c clockwork.Clock, scraper Scraper, crontab string) {
 	s, err := gocron.NewScheduler(gocron.WithClock(c))
 
 	if err != nil {
-		return errors.Wrap(err, "error scheduling cron")
+		slog.Error(errors.Wrap(err, "error initializing cron scheduler").Error())
+		return
 	}
 
 	_, err = s.NewJob(
@@ -69,10 +72,9 @@ func ScrapeLoop(c clockwork.Clock, scraper Scraper, crontab string) error {
 	)
 
 	if err != nil {
-		return errors.Wrap(err, "error creating new job")
+		slog.Error(errors.Wrap(err, "error creating new job").Error())
+		return
 	}
 
 	s.Start()
-
-	return nil
 }
