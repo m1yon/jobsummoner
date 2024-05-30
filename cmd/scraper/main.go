@@ -1,11 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
 	"time"
 
+	"github.com/jonboulle/clockwork"
+	"github.com/m1yon/jobsummoner"
 	"github.com/m1yon/jobsummoner/pkg/linkedin"
 )
 
@@ -22,13 +24,8 @@ func main() {
 	}
 
 	scraper := linkedin.NewLinkedInJobScraper(resp.Body)
-	results, errs := scraper.ScrapeJobs()
 
-	if len(errs) != 0 {
-		for _, err := range errs {
-			slog.Error(err.Error())
-		}
-	}
-
-	fmt.Println(results)
+	c := clockwork.NewRealClock()
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	jobsummoner.ScrapeLoop(c, scraper, "TZ=America/Denver */30 7-22 * * *", logger)
 }

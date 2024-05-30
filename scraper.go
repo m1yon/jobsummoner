@@ -58,23 +58,44 @@ type Scraper interface {
 	ScrapeJobs() (ScrapedJobsResults, []error)
 }
 
-func ScrapeLoop(c clockwork.Clock, scraper Scraper, crontab string) {
+func ScrapeLoop(c clockwork.Clock, scraper Scraper, crontab string, logger *slog.Logger) {
+	logger.Info("Initializing scrape scheduler...")
 	s, err := gocron.NewScheduler(gocron.WithClock(c))
+	defer (func() {
+		err := s.Shutdown()
+
+		if err != nil {
+			logger.Error("problem shutting scheduler down", slog.String("err", err.Error()))
+			return
+		}
+	})()
 
 	if err != nil {
-		slog.Error(errors.Wrap(err, "error initializing cron scheduler").Error())
+		logger.Error(errors.Wrap(err, "error initializing cron scheduler").Error())
 		return
 	}
 
 	_, err = s.NewJob(
 		gocron.CronJob(crontab, false),
-		gocron.NewTask(scraper.ScrapeJobs),
+		gocron.NewTask(func() {
+			logger.Info("scraping jobs...")
+			results, errs := scraper.ScrapeJobs()
+
+			for _, err := range errs {
+				logger.Error("job scrape failure", slog.String("err", err.Error()))
+			}
+
+			logger.Info("scrape successful", slog.Int("jobs", len(results.Jobs)))
+		}),
 	)
 
 	if err != nil {
-		slog.Error(errors.Wrap(err, "error creating new job").Error())
+		logger.Error(errors.Wrap(err, "error creating new job").Error())
 		return
 	}
 
+	logger.Info("Scrape scheduler initialized")
 	s.Start()
+
+	select {}
 }
