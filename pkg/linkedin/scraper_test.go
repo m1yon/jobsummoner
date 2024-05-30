@@ -22,7 +22,7 @@ func TestLinkedInScraper(t *testing.T) {
 
 		assert.Equal(t, 0, len(errs))
 		assert.Equal(t, jobsummoner.ScrapedJobsResults{
-			Jobs: []jobsummoner.ScrapedJob{
+			Jobs: []jobsummoner.Job{
 				{
 					Position:    "Full Stack Engineer",
 					CompanyID:   "venchrpartners",
@@ -62,7 +62,7 @@ func TestLinkedInScraper(t *testing.T) {
 			fmt.Errorf(ErrMalformedompanyLink, "fda&=+!-//"),
 		})
 		assert.Equal(t, jobsummoner.ScrapedJobsResults{
-			Jobs: []jobsummoner.ScrapedJob{
+			Jobs: []jobsummoner.Job{
 				{
 					Position:    "Software Engineer II (Frontend) - Seller Experience",
 					CompanyID:   "stubhub",

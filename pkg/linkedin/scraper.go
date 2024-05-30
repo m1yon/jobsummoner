@@ -36,7 +36,7 @@ func (l *LinkedInScraper) ScrapeJobs() (jobsummoner.ScrapedJobsResults, []error)
 
 	jobElements := doc.Find("body > li")
 
-	Jobs := make([]jobsummoner.ScrapedJob, 0, jobElements.Length())
+	Jobs := make([]jobsummoner.Job, 0, jobElements.Length())
 
 	jobElements.Each(func(i int, s *goquery.Selection) {
 		Position := strings.TrimSpace(s.Find(".base-search-card__title").Text())
@@ -61,7 +61,7 @@ func (l *LinkedInScraper) ScrapeJobs() (jobsummoner.ScrapedJobsResults, []error)
 		Location := strings.TrimSpace(s.Find(".job-search-card__location").Text())
 		URL, _ := s.Find(".base-card__full-link").Attr("href")
 
-		Jobs = append(Jobs, jobsummoner.ScrapedJob{
+		Jobs = append(Jobs, jobsummoner.Job{
 			Position:    Position,
 			CompanyID:   CompanyID,
 			CompanyName: CompanyName,

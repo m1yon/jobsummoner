@@ -6,7 +6,7 @@ import (
 
 func NewHomepageViewModel(jobs []jobsummoner.Job) (m jobsummoner.HomepageViewModel) {
 	for _, position := range jobs {
-		m.Text += position.Name + ","
+		m.Text += position.Position + ","
 	}
 
 	return m

@@ -11,7 +11,7 @@ func TestGetJobs(t *testing.T) {
 	res := jobService.GetJobs()
 
 	assert.Equal(t, []Job{
-		{"Software Engineer"},
-		{"Manager"},
+		{Position: "Software Engineer"},
+		{Position: "Manager"},
 	}, res)
 }
