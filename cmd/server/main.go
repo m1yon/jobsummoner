@@ -5,6 +5,6 @@ import (
 )
 
 func main() {
-	server := http.DefaultServer{}
+	server := http.NewDefaultServer()
 	server.ListenAndServe(":3000")
 }
