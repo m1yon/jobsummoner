@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/jonboulle/clockwork"
-	"github.com/m1yon/jobsummoner"
+	"github.com/m1yon/jobsummoner/internal/scrapeservice"
 	"github.com/m1yon/jobsummoner/pkg/linkedin"
 )
 
@@ -27,6 +27,6 @@ func main() {
 
 	c := clockwork.NewRealClock()
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	scrapeService := jobsummoner.NewDefaultScrapeService(c, logger)
+	scrapeService := scrapeservice.NewDefaultScrapeService(c, logger)
 	scrapeService.Start(scraper, "TZ=America/Denver */30 7-22 * * *")
 }

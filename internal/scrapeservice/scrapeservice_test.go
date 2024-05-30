@@ -1,4 +1,4 @@
-package jobsummoner
+package scrapeservice
 
 import (
 	"bytes"
@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/jonboulle/clockwork"
+	"github.com/m1yon/jobsummoner"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,9 +17,9 @@ type MockScraper struct {
 	calls int
 }
 
-func (m *MockScraper) ScrapeJobs() (ScrapedJobsResults, []error) {
+func (m *MockScraper) ScrapeJobs() (jobsummoner.ScrapedJobsResults, []error) {
 	m.calls++
-	return ScrapedJobsResults{}, []error{}
+	return jobsummoner.ScrapedJobsResults{}, []error{}
 }
 
 func NewMockScraper() *MockScraper {
@@ -31,9 +32,9 @@ type MockFailingScraper struct {
 	*MockScraper
 }
 
-func (m *MockFailingScraper) ScrapeJobs() (ScrapedJobsResults, []error) {
+func (m *MockFailingScraper) ScrapeJobs() (jobsummoner.ScrapedJobsResults, []error) {
 	m.calls++
-	return ScrapedJobsResults{}, []error{fmt.Errorf("could not scrape heading"), fmt.Errorf("problem scraping paragraph")}
+	return jobsummoner.ScrapedJobsResults{}, []error{fmt.Errorf("could not scrape heading"), fmt.Errorf("problem scraping paragraph")}
 }
 
 func newMockFailingScraper() *MockFailingScraper {

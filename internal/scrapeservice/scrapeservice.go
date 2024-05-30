@@ -1,24 +1,13 @@
-package jobsummoner
+package scrapeservice
 
 import (
 	"log/slog"
 
 	"github.com/go-co-op/gocron/v2"
 	"github.com/jonboulle/clockwork"
+	"github.com/m1yon/jobsummoner"
 	"github.com/pkg/errors"
 )
-
-type ScrapedJobsResults struct {
-	Jobs []Job
-}
-
-type Scraper interface {
-	ScrapeJobs() (ScrapedJobsResults, []error)
-}
-
-type ScrapeService interface {
-	Start(scraper Scraper, crontab string)
-}
 
 type DefaultScrapeService struct {
 	c      clockwork.Clock
@@ -29,7 +18,7 @@ func NewDefaultScrapeService(c clockwork.Clock, logger *slog.Logger) *DefaultScr
 	return &DefaultScrapeService{c, logger}
 }
 
-func (ss *DefaultScrapeService) Start(scraper Scraper, crontab string) {
+func (ss *DefaultScrapeService) Start(scraper jobsummoner.Scraper, crontab string) {
 	ss.logger.Info("Initializing scrape scheduler...")
 	s, err := gocron.NewScheduler(gocron.WithClock(ss.c))
 	defer (func() {
