@@ -58,43 +58,56 @@ type Scraper interface {
 	ScrapeJobs() (ScrapedJobsResults, []error)
 }
 
-func ScrapeLoop(c clockwork.Clock, scraper Scraper, crontab string, logger *slog.Logger) {
-	logger.Info("Initializing scrape scheduler...")
-	s, err := gocron.NewScheduler(gocron.WithClock(c))
+type ScrapeService interface {
+	Start(scraper Scraper, crontab string)
+}
+
+type DefaultScrapeService struct {
+	c      clockwork.Clock
+	logger *slog.Logger
+}
+
+func NewDefaultScrapeService(c clockwork.Clock, logger *slog.Logger) *DefaultScrapeService {
+	return &DefaultScrapeService{c, logger}
+}
+
+func (ss *DefaultScrapeService) Start(scraper Scraper, crontab string) {
+	ss.logger.Info("Initializing scrape scheduler...")
+	s, err := gocron.NewScheduler(gocron.WithClock(ss.c))
 	defer (func() {
 		err := s.Shutdown()
 
 		if err != nil {
-			logger.Error("problem shutting scheduler down", slog.String("err", err.Error()))
+			ss.logger.Error("problem shutting scheduler down", slog.String("err", err.Error()))
 			return
 		}
 	})()
 
 	if err != nil {
-		logger.Error(errors.Wrap(err, "error initializing cron scheduler").Error())
+		ss.logger.Error(errors.Wrap(err, "error initializing cron scheduler").Error())
 		return
 	}
 
 	_, err = s.NewJob(
 		gocron.CronJob(crontab, false),
 		gocron.NewTask(func() {
-			logger.Info("scraping jobs...")
+			ss.logger.Info("scraping jobs...")
 			results, errs := scraper.ScrapeJobs()
 
 			for _, err := range errs {
-				logger.Error("job scrape failure", slog.String("err", err.Error()))
+				ss.logger.Error("job scrape failure", slog.String("err", err.Error()))
 			}
 
-			logger.Info("scrape successful", slog.Int("jobs", len(results.Jobs)))
+			ss.logger.Info("scrape successful", slog.Int("jobs", len(results.Jobs)))
 		}),
 	)
 
 	if err != nil {
-		logger.Error(errors.Wrap(err, "error creating new job").Error())
+		ss.logger.Error(errors.Wrap(err, "error creating new job").Error())
 		return
 	}
 
-	logger.Info("Scrape scheduler initialized")
+	ss.logger.Info("Scrape scheduler initialized")
 	s.Start()
 
 	select {}

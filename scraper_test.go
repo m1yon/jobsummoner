@@ -48,12 +48,12 @@ const callsBetween7amAnd8am = 3
 
 func TestScrapeLoop(t *testing.T) {
 	t.Run("calls the function correctly on a cron", func(t *testing.T) {
-
 		c := getFakeClock(t)
-		scraper := NewMockScraper()
-
 		logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-		go ScrapeLoop(c, scraper, "TZ=America/Denver */30 7-22 * * *", logger)
+		scrapeService := NewDefaultScrapeService(c, logger)
+
+		scraper := NewMockScraper()
+		go scrapeService.Start(scraper, "TZ=America/Denver */30 7-22 * * *")
 		c.BlockUntil(1)
 
 		// loop one extra time to ensure no extra calls are made
@@ -71,12 +71,13 @@ func TestScrapeLoop(t *testing.T) {
 
 	t.Run("logs errors that occur", func(t *testing.T) {
 		c := getFakeClock(t)
+		logBufferSpy := new(bytes.Buffer)
+		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
+		scrapeService := NewDefaultScrapeService(c, logger)
 
 		scraper := newMockFailingScraper()
 
-		logBufferSpy := new(bytes.Buffer)
-		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
-		go ScrapeLoop(c, scraper, "TZ=America/Denver */30 7-22 * * *", logger)
+		go scrapeService.Start(scraper, "TZ=America/Denver */30 7-22 * * *")
 		c.BlockUntil(1)
 
 		simulateCron(c, 2, 30*time.Minute)

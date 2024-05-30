@@ -27,5 +27,6 @@ func main() {
 
 	c := clockwork.NewRealClock()
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	jobsummoner.ScrapeLoop(c, scraper, "TZ=America/Denver */30 7-22 * * *", logger)
+	scrapeService := jobsummoner.NewDefaultScrapeService(c, logger)
+	scrapeService.Start(scraper, "TZ=America/Denver */30 7-22 * * *")
 }
