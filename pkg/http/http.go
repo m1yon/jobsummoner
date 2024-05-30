@@ -9,6 +9,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/m1yon/jobsummoner"
 	"github.com/m1yon/jobsummoner/internal/components"
+	"github.com/m1yon/jobsummoner/internal/jobservice"
 )
 
 type Server interface {
@@ -24,7 +25,7 @@ type DefaultServer struct {
 func NewDefaultServer() *DefaultServer {
 	return &DefaultServer{
 		Render:     components.Render,
-		JobService: jobsummoner.NewDefaultJobService(),
+		JobService: jobservice.NewDefaultJobService(),
 	}
 }
 

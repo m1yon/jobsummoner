@@ -4,12 +4,6 @@ type JobService interface {
 	GetJobs() []Job
 }
 
-type DefaultJobService struct{}
-
-func NewDefaultJobService() *DefaultJobService {
-	return &DefaultJobService{}
-}
-
 type WorkType string
 
 const (
@@ -50,11 +44,4 @@ type Job struct {
 	CompanyName string
 	Location    string
 	URL         string
-}
-
-func (j *DefaultJobService) GetJobs() []Job {
-	return []Job{
-		{Position: "Software Engineer"},
-		{Position: "Manager"},
-	}
 }
