@@ -1,5 +1,7 @@
 package jobsummoner
 
+import "context"
+
 type JobService interface {
 	GetJobs() []Job
 	AddJobs([]Job)
@@ -45,4 +47,17 @@ type Job struct {
 	CompanyName string
 	Location    string
 	URL         string
+}
+
+type AddJobParams struct {
+	ID        string
+	Position  string
+	Url       string
+	CompanyID string
+	Location  string
+	SourceID  int64
+}
+
+type JobServiceStore interface {
+	AddJob(ctx context.Context, arg AddJobParams) error
 }
