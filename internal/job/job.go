@@ -6,7 +6,7 @@ import (
 
 type DefaultJobService struct{}
 
-func NewDefaultJobService(store jobsummoner.JobServiceStore) *DefaultJobService {
+func NewDefaultJobService(store jobsummoner.JobRepository) *DefaultJobService {
 	return &DefaultJobService{}
 }
 

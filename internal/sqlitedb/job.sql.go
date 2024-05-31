@@ -3,7 +3,7 @@
 //   sqlc v1.26.0
 // source: job.sql
 
-package database
+package sqlitedb
 
 import (
 	"context"

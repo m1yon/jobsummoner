@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/jonboulle/clockwork"
-	"github.com/m1yon/jobsummoner/internal/database"
 	"github.com/m1yon/jobsummoner/internal/job"
 	"github.com/m1yon/jobsummoner/internal/scrape"
+	"github.com/m1yon/jobsummoner/internal/sqlitedb"
 	"github.com/m1yon/jobsummoner/pkg/linkedin"
 )
 
@@ -29,8 +29,8 @@ func main() {
 
 	c := clockwork.NewRealClock()
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	jobServiceStore := database.NewSQLCAdapter()
-	jobService := job.NewDefaultJobService(jobServiceStore)
+	jobRepository := sqlitedb.NewSqliteJobRepository()
+	jobService := job.NewDefaultJobService(jobRepository)
 	scrapeService := scrape.NewDefaultScrapeService(c, logger, jobService)
 	scrapeService.Start(scraper, "TZ=America/Denver */30 7-22 * * *")
 }

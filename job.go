@@ -58,6 +58,6 @@ type AddJobParams struct {
 	SourceID  int64
 }
 
-type JobServiceStore interface {
+type JobRepository interface {
 	AddJob(ctx context.Context, arg AddJobParams) error
 }

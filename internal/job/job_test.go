@@ -4,13 +4,13 @@ import (
 	"testing"
 
 	"github.com/m1yon/jobsummoner"
-	"github.com/m1yon/jobsummoner/internal/database"
+	"github.com/m1yon/jobsummoner/internal/sqlitedb"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestGetJobs(t *testing.T) {
-	jobServiceStore := database.NewSQLCAdapter()
-	jobService := NewDefaultJobService(jobServiceStore)
+	jobRepository := sqlitedb.NewSqliteJobRepository()
+	jobService := NewDefaultJobService(jobRepository)
 
 	res := jobService.GetJobs()
 
@@ -21,8 +21,8 @@ func TestGetJobs(t *testing.T) {
 }
 
 func TestAddJobs(t *testing.T) {
-	jobServiceStore := database.NewSQLCAdapter()
-	jobService := NewDefaultJobService(jobServiceStore)
+	jobRepository := sqlitedb.NewSqliteJobRepository()
+	jobService := NewDefaultJobService(jobRepository)
 
 	jobs := []jobsummoner.Job{
 		{Position: "Software Engineer"},

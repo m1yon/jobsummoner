@@ -9,8 +9,8 @@ import (
 	"github.com/a-h/templ"
 	"github.com/m1yon/jobsummoner"
 	"github.com/m1yon/jobsummoner/internal/components"
-	"github.com/m1yon/jobsummoner/internal/database"
 	"github.com/m1yon/jobsummoner/internal/job"
+	"github.com/m1yon/jobsummoner/internal/sqlitedb"
 )
 
 type Server interface {
@@ -24,8 +24,8 @@ type DefaultServer struct {
 }
 
 func NewDefaultServer() *DefaultServer {
-	jobServiceStore := database.NewSQLCAdapter()
-	jobService := job.NewDefaultJobService(jobServiceStore)
+	jobRepository := sqlitedb.NewSqliteJobRepository()
+	jobService := job.NewDefaultJobService(jobRepository)
 
 	return &DefaultServer{
 		Render:     components.Render,
