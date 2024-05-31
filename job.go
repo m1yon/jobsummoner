@@ -47,6 +47,7 @@ type Job struct {
 	CompanyName string
 	Location    string
 	URL         string
+	SourceID    string
 }
 
 type JobRepository interface {

@@ -24,7 +24,9 @@ type DefaultServer struct {
 }
 
 func NewDefaultServer() *DefaultServer {
-	jobRepository := sqlitedb.NewSqliteJobRepository("./db/database.db")
+	db := sqlitedb.NewTestDB()
+	companyRepository := sqlitedb.NewInMemorySqliteCompanyRepository(db)
+	jobRepository := sqlitedb.NewInMemorySqliteJobRepository(db, companyRepository)
 	jobService := job.NewDefaultJobService(jobRepository)
 
 	return &DefaultServer{

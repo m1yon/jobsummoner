@@ -9,15 +9,12 @@ import (
 )
 
 type SqliteCompanyRepository struct {
-	jobRepository jobsummoner.JobRepository
-	queries       *Queries
+	queries *Queries
 }
 
-func NewSqliteCompanyRepository(jobRepository jobsummoner.JobRepository, dataSourceName string) *SqliteCompanyRepository {
-	db, _ := sql.Open("sqlite", dataSourceName)
+func NewSqliteCompanyRepository(db *sql.DB) *SqliteCompanyRepository {
 	queries := New(db)
-
-	return &SqliteCompanyRepository{jobRepository, queries}
+	return &SqliteCompanyRepository{queries}
 }
 
 func (s *SqliteCompanyRepository) DoesCompanyExist(ctx context.Context, id string) (bool, error) {
@@ -48,4 +45,9 @@ func (s *SqliteCompanyRepository) AddCompany(ctx context.Context, company jobsum
 	}
 
 	return company.ID, nil
+}
+
+func NewInMemorySqliteCompanyRepository(db *sql.DB) *SqliteCompanyRepository {
+	queries := New(db)
+	return &SqliteCompanyRepository{queries}
 }

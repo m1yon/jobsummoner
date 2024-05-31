@@ -4,10 +4,12 @@ import (
 	"github.com/m1yon/jobsummoner"
 )
 
-type DefaultJobService struct{}
+type DefaultJobService struct {
+	jobRepository jobsummoner.JobRepository
+}
 
-func NewDefaultJobService(store jobsummoner.JobRepository) *DefaultJobService {
-	return &DefaultJobService{}
+func NewDefaultJobService(repository jobsummoner.JobRepository) *DefaultJobService {
+	return &DefaultJobService{repository}
 }
 
 func (j *DefaultJobService) GetJobs() []jobsummoner.Job {

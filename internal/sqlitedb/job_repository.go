@@ -11,20 +11,42 @@ import (
 )
 
 type SqliteJobRepository struct {
-	queries *Queries
+	queries           *Queries
+	companyRepository jobsummoner.CompanyRepository
 }
 
 func (s *SqliteJobRepository) AddJob(ctx context.Context, arg jobsummoner.Job) (string, error) {
+	doesCompanyExist, err := s.companyRepository.DoesCompanyExist(ctx, arg.CompanyID)
+
+	if err != nil {
+		return "", errors.Wrap(err, "error finding company before adding job")
+	}
+
+	if !doesCompanyExist {
+		companyToAdd := jobsummoner.Company{
+			ID:   arg.CompanyID,
+			Name: arg.CompanyName,
+		}
+
+		_, err = s.companyRepository.AddCompany(ctx, companyToAdd)
+
+		if err != nil {
+			return "", errors.Wrap(err, "error adding new company")
+		}
+	}
+
 	id := generateJobID(arg.CompanyID, arg.Position)
 
-	err := s.queries.AddJob(ctx, AddJobParams{
+	err = s.queries.AddJob(ctx, AddJobParams{
 		ID:       id,
 		Position: arg.Position,
 		Location: sql.NullString{
 			Valid:  arg.Location != "",
 			String: arg.Location,
 		},
-		Url: arg.URL,
+		Url:       arg.URL,
+		CompanyID: arg.CompanyID,
+		SourceID:  arg.SourceID,
 	})
 
 	if err != nil {
@@ -52,11 +74,9 @@ func (s *SqliteJobRepository) GetJob(ctx context.Context, id string) (jobsummone
 	return job, nil
 }
 
-func NewSqliteJobRepository(dataSourceName string) *SqliteJobRepository {
-	db, _ := sql.Open("sqlite", dataSourceName)
+func NewSqliteJobRepository(db *sql.DB, companyRepository jobsummoner.CompanyRepository) *SqliteJobRepository {
 	queries := New(db)
-
-	return &SqliteJobRepository{queries}
+	return &SqliteJobRepository{queries, companyRepository}
 }
 
 func generateJobID(company_id string, position string) string {
@@ -69,4 +89,9 @@ func generateJobID(company_id string, position string) string {
 	hash := hasher.Sum(nil)
 
 	return hex.EncodeToString(hash)
+}
+
+func NewInMemorySqliteJobRepository(db *sql.DB, companyRepository jobsummoner.CompanyRepository) *SqliteJobRepository {
+	queries := New(db)
+	return &SqliteJobRepository{queries, companyRepository}
 }

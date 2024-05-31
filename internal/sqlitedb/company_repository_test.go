@@ -2,24 +2,17 @@ package sqlitedb
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 
 	"github.com/m1yon/jobsummoner"
 	"github.com/stretchr/testify/assert"
 )
 
-func NewInMemorySqliteCompanyRepository(db *sql.DB, jobRepository jobsummoner.JobRepository) *SqliteCompanyRepository {
-	queries := New(db)
-	return &SqliteCompanyRepository{jobRepository, queries}
-}
-
 func TestCompanyRepository(t *testing.T) {
 	t.Run("add company and ensure it exists", func(t *testing.T) {
 		ctx := context.Background()
 		db := NewTestDB()
-		jobRepository := NewInMemorySqliteJobRepository(db)
-		companyRepository := NewInMemorySqliteCompanyRepository(db, jobRepository)
+		companyRepository := NewInMemorySqliteCompanyRepository(db)
 
 		companyToAdd := jobsummoner.Company{
 			ID:       "/google",
