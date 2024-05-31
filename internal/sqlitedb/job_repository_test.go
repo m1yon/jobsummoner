@@ -14,18 +14,18 @@ func TestJobRepository(t *testing.T) {
 		db := NewTestDB()
 		jobRepository := NewInMemorySqliteJobRepository(db)
 
-		jobToAdd := jobsummoner.Job{
+		jobToCreate := jobsummoner.Job{
 			Position: "Software Developer",
 			URL:      "https://linkedin.com/jobs/1",
 			Location: "San Francisco",
 		}
-		id, err := jobRepository.CreateJob(ctx, jobToAdd)
+		id, err := jobRepository.CreateJob(ctx, jobToCreate)
 
 		assert.NoError(t, err)
 
 		job, err := jobRepository.GetJob(ctx, id)
 
 		assert.NoError(t, err)
-		assert.Equal(t, jobToAdd, job)
+		assert.Equal(t, jobToCreate, job)
 	})
 }

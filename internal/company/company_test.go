@@ -28,7 +28,7 @@ func TestSqliteCompanyService(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, false, doesCompanyExist, "company shouldn't exist yet")
 
-		id, err := companyRepository.AddCompany(ctx, companyToCreate)
+		id, err := companyRepository.CreateCompany(ctx, companyToCreate)
 		assert.NoError(t, err)
 		assert.Equal(t, companyToCreate.ID, id)
 

@@ -29,7 +29,7 @@ func (s *SqliteJobRepository) CreateJob(ctx context.Context, arg jobsummoner.Job
 	})
 
 	if err != nil {
-		return "", errors.Wrap(err, "error adding job to db")
+		return "", errors.Wrap(err, "error creating job in db")
 	}
 
 	return id, nil

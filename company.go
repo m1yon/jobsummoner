@@ -16,6 +16,6 @@ type CompanyService interface {
 }
 
 type CompanyRepository interface {
-	AddCompany(ctx context.Context, company Company) (string, error)
+	CreateCompany(ctx context.Context, company Company) (string, error)
 	DoesCompanyExist(ctx context.Context, id string) (bool, error)
 }

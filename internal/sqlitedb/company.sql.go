@@ -10,12 +10,12 @@ import (
 	"database/sql"
 )
 
-const addCompany = `-- name: AddCompany :exec
+const createCompany = `-- name: CreateCompany :exec
 INSERT INTO companies (id, created_at, name, url, avatar, source_id)
 VALUES (?, CURRENT_TIMESTAMP, ?, ?, ?, ?)
 `
 
-type AddCompanyParams struct {
+type CreateCompanyParams struct {
 	ID       string
 	Name     string
 	Url      string
@@ -23,8 +23,8 @@ type AddCompanyParams struct {
 	SourceID string
 }
 
-func (q *Queries) AddCompany(ctx context.Context, arg AddCompanyParams) error {
-	_, err := q.db.ExecContext(ctx, addCompany,
+func (q *Queries) CreateCompany(ctx context.Context, arg CreateCompanyParams) error {
+	_, err := q.db.ExecContext(ctx, createCompany,
 		arg.ID,
 		arg.Name,
 		arg.Url,

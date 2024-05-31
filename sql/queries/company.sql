@@ -2,6 +2,6 @@
 SELECT * FROM companies
 WHERE id = ?;
 
--- name: AddCompany :exec
+-- name: CreateCompany :exec
 INSERT INTO companies (id, created_at, name, url, avatar, source_id)
 VALUES (?, CURRENT_TIMESTAMP, ?, ?, ?, ?);

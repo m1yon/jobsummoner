@@ -31,8 +31,8 @@ func (s *SqliteCompanyRepository) DoesCompanyExist(ctx context.Context, id strin
 	return company.ID != "", nil
 }
 
-func (s *SqliteCompanyRepository) AddCompany(ctx context.Context, company jobsummoner.Company) (string, error) {
-	err := s.queries.AddCompany(ctx, AddCompanyParams{
+func (s *SqliteCompanyRepository) CreateCompany(ctx context.Context, company jobsummoner.Company) (string, error) {
+	err := s.queries.CreateCompany(ctx, CreateCompanyParams{
 		ID:       company.ID,
 		Name:     company.Name,
 		Url:      company.Url,
@@ -41,7 +41,7 @@ func (s *SqliteCompanyRepository) AddCompany(ctx context.Context, company jobsum
 	})
 
 	if err != nil {
-		return "", errors.Wrap(err, "error adding company to DB")
+		return "", errors.Wrap(err, "error creating company in DB")
 	}
 
 	return company.ID, nil

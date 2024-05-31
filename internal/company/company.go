@@ -16,7 +16,7 @@ func NewDefaultCompanyService(repository jobsummoner.CompanyRepository) *Default
 }
 
 func (c *DefaultCompanyService) CreateCompany(ctx context.Context, company jobsummoner.Company) (string, error) {
-	id, err := c.companyRepository.AddCompany(ctx, company)
+	id, err := c.companyRepository.CreateCompany(ctx, company)
 
 	if err != nil {
 		return "", errors.Wrap(err, "error creating company in company service")

@@ -9,12 +9,12 @@ import (
 )
 
 func TestCompanyRepository(t *testing.T) {
-	t.Run("add company and ensure it exists", func(t *testing.T) {
+	t.Run("create company and ensure it exists", func(t *testing.T) {
 		ctx := context.Background()
 		db := NewTestDB()
 		companyRepository := NewInMemorySqliteCompanyRepository(db)
 
-		companyToAdd := jobsummoner.Company{
+		companyToCreate := jobsummoner.Company{
 			ID:       "/google",
 			Name:     "Google",
 			Url:      "https://google.com/",
@@ -22,16 +22,16 @@ func TestCompanyRepository(t *testing.T) {
 			SourceID: "1",
 		}
 
-		doesCompanyExist, err := companyRepository.DoesCompanyExist(ctx, companyToAdd.ID)
+		doesCompanyExist, err := companyRepository.DoesCompanyExist(ctx, companyToCreate.ID)
 		assert.NoError(t, err)
-		assert.Equal(t, false, doesCompanyExist)
+		assert.Equal(t, false, doesCompanyExist, "company shouldn't exist yet")
 
-		id, err := companyRepository.AddCompany(ctx, companyToAdd)
+		id, err := companyRepository.CreateCompany(ctx, companyToCreate)
 		assert.NoError(t, err)
-		assert.Equal(t, companyToAdd.ID, id)
+		assert.Equal(t, companyToCreate.ID, id)
 
 		doesCompanyExist, err = companyRepository.DoesCompanyExist(ctx, id)
 		assert.NoError(t, err)
-		assert.Equal(t, true, doesCompanyExist)
+		assert.Equal(t, true, doesCompanyExist, "company should exist now")
 	})
 }
