@@ -1,4 +1,4 @@
-package scrapeservice
+package scrape
 
 import (
 	"bytes"

@@ -1,4 +1,4 @@
-package jobservice
+package job
 
 import (
 	"github.com/m1yon/jobsummoner"
