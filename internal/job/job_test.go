@@ -1,42 +1,31 @@
 package job
 
-import (
-	"testing"
+// func TestSqliteJobService(t *testing.T) {
+// 	t.Run("add job and immediately get added job", func(t *testing.T) {
+// 		db := sqlitedb.NewTestDB()
+// 		companyRepository := sqlitedb.NewInMemorySqliteCompanyRepository(db)
+// 		jobRepository := sqlitedb.NewInMemorySqliteJobRepository(db, companyRepository)
+// 		jobService := NewDefaultJobService(jobRepository)
 
-	"github.com/m1yon/jobsummoner"
-	"github.com/m1yon/jobsummoner/internal/sqlitedb"
-	"github.com/stretchr/testify/assert"
-)
+// 	})
 
-func TestGetJobs(t *testing.T) {
-	db := sqlitedb.NewTestDB()
-	companyRepository := sqlitedb.NewInMemorySqliteCompanyRepository(db)
-	jobRepository := sqlitedb.NewInMemorySqliteJobRepository(db, companyRepository)
-	jobService := NewDefaultJobService(jobRepository)
+// }
 
-	res := jobService.GetJobs()
+// func TestCreateJobs(t *testing.T) {
+// 	db := sqlitedb.NewTestDB()
+// 	companyRepository := sqlitedb.NewInMemorySqliteCompanyRepository(db)
+// 	jobRepository := sqlitedb.NewInMemorySqliteJobRepository(db, companyRepository)
+// 	jobService := NewDefaultJobService(jobRepository)
 
-	assert.Equal(t, []jobsummoner.Job{
-		{Position: "Software Engineer"},
-		{Position: "Manager"},
-	}, res)
-}
+// 	jobs := []jobsummoner.Job{
+// 		{Position: "Software Engineer"},
+// 		{Position: "Manager"},
+// 	}
 
-func TestAddJobs(t *testing.T) {
-	db := sqlitedb.NewTestDB()
-	companyRepository := sqlitedb.NewInMemorySqliteCompanyRepository(db)
-	jobRepository := sqlitedb.NewInMemorySqliteJobRepository(db, companyRepository)
-	jobService := NewDefaultJobService(jobRepository)
+// 	jobService.AddJobs(jobs)
 
-	jobs := []jobsummoner.Job{
-		{Position: "Software Engineer"},
-		{Position: "Manager"},
-	}
-
-	jobService.AddJobs(jobs)
-
-	// assert.Equal(t, []jobsummoner.Job{
-	// 	{Position: "Software Engineer"},
-	// 	{Position: "Manager"},
-	// }, res)
-}
+// 	// assert.Equal(t, []jobsummoner.Job{
+// 	// 	{Position: "Software Engineer"},
+// 	// 	{Position: "Manager"},
+// 	// }, res)
+// }

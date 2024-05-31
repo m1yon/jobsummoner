@@ -10,12 +10,12 @@ import (
 	"database/sql"
 )
 
-const addJob = `-- name: AddJob :exec
+const createJob = `-- name: CreateJob :exec
 INSERT INTO jobs (id, created_at, last_posted, position, url, company_id, location, source_id)
 VALUES (?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?, ?, ?, ?,  ?)
 `
 
-type AddJobParams struct {
+type CreateJobParams struct {
 	ID        string
 	Position  string
 	Url       string
@@ -24,8 +24,8 @@ type AddJobParams struct {
 	SourceID  string
 }
 
-func (q *Queries) AddJob(ctx context.Context, arg AddJobParams) error {
-	_, err := q.db.ExecContext(ctx, addJob,
+func (q *Queries) CreateJob(ctx context.Context, arg CreateJobParams) error {
+	_, err := q.db.ExecContext(ctx, createJob,
 		arg.ID,
 		arg.Position,
 		arg.Url,

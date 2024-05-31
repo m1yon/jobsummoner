@@ -56,7 +56,7 @@ func (j *jobServiceMock) GetJobs() []jobsummoner.Job {
 	return []jobsummoner.Job{}
 }
 
-func (j *jobServiceMock) AddJobs(jobs []jobsummoner.Job) {
+func (j *jobServiceMock) CreateJobs(jobs []jobsummoner.Job) {
 	j.Called()
 }
 
@@ -109,7 +109,7 @@ func initScrapeServiceMocks(t *testing.T) (clockwork.FakeClock, *bytes.Buffer, *
 	jobServiceMock := new(jobServiceMock)
 	scrapeService := NewDefaultScrapeService(c, logger, jobServiceMock)
 
-	jobServiceMock.On("AddJobs", mock.Anything).Return()
+	jobServiceMock.On("CreateJobs", mock.Anything).Return()
 
 	return c, logBufferSpy, jobServiceMock, scrapeService
 }

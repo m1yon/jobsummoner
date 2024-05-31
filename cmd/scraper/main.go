@@ -29,7 +29,8 @@ func main() {
 
 	c := clockwork.NewRealClock()
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	jobRepository := sqlitedb.NewSqliteJobRepository("./db/database.db")
+	db := sqlitedb.NewTestDB()
+	jobRepository := sqlitedb.NewSqliteJobRepository(db)
 	jobService := job.NewDefaultJobService(jobRepository)
 	scrapeService := scrape.NewDefaultScrapeService(c, logger, jobService)
 	scrapeService.Start(scraper, "TZ=America/Denver */30 7-22 * * *")

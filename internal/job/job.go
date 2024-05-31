@@ -19,6 +19,6 @@ func (j *DefaultJobService) GetJobs() []jobsummoner.Job {
 	}
 }
 
-func (j *DefaultJobService) AddJobs(jobs []jobsummoner.Job) {
+func (j *DefaultJobService) CreateJobs(jobs []jobsummoner.Job) {
 
 }

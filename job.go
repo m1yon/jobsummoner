@@ -4,7 +4,7 @@ import "context"
 
 type JobService interface {
 	GetJobs() []Job
-	AddJobs([]Job)
+	CreateJobs([]Job)
 }
 
 type WorkType string
@@ -52,5 +52,5 @@ type Job struct {
 
 type JobRepository interface {
 	GetJob(ctx context.Context, id string) (Job, error)
-	AddJob(ctx context.Context, job Job) (string, error)
+	CreateJob(ctx context.Context, job Job) (string, error)
 }
