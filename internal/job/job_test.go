@@ -12,7 +12,7 @@ import (
 func TestSqliteJobService(t *testing.T) {
 	// TODO: add company and rest of assertions
 	// TODO: add error case when company does not exist
-	t.Run("add job and immediately get added job", func(t *testing.T) {
+	t.Run("create job and immediately get created job", func(t *testing.T) {
 		ctx := context.Background()
 		db := sqlitedb.NewTestDB()
 		jobRepository := sqlitedb.NewInMemorySqliteJobRepository(db)

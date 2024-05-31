@@ -12,6 +12,7 @@ type Company struct {
 
 type CompanyService interface {
 	CreateCompany(ctx context.Context, company Company) (string, error)
+	DoesCompanyExist(ctx context.Context, id string) (bool, error)
 }
 
 type CompanyRepository interface {
