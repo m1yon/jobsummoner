@@ -49,15 +49,7 @@ type Job struct {
 	URL         string
 }
 
-type AddJobParams struct {
-	ID        string
-	Position  string
-	Url       string
-	CompanyID string
-	Location  string
-	SourceID  int64
-}
-
 type JobRepository interface {
-	AddJob(ctx context.Context, arg AddJobParams) error
+	GetJob(ctx context.Context, id string) (Job, error)
+	AddJob(ctx context.Context, arg Job) (string, error)
 }

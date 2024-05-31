@@ -11,8 +11,8 @@ import (
 )
 
 const addJob = `-- name: AddJob :exec
-INSERT INTO jobs (id, created_at, position, url, company_id, location, source_id)
-VALUES (?, CURRENT_TIMESTAMP, ?, ?, ?, ?,  ?)
+INSERT INTO jobs (id, created_at, last_posted, position, url, company_id, location, source_id)
+VALUES (?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?, ?, ?, ?,  ?)
 `
 
 type AddJobParams struct {
@@ -34,4 +34,26 @@ func (q *Queries) AddJob(ctx context.Context, arg AddJobParams) error {
 		arg.SourceID,
 	)
 	return err
+}
+
+const getJob = `-- name: GetJob :one
+SELECT id, created_at, updated_at, last_posted, position, url, company_id, location, source_id FROM jobs
+WHERE id = ?
+`
+
+func (q *Queries) GetJob(ctx context.Context, id string) (Job, error) {
+	row := q.db.QueryRowContext(ctx, getJob, id)
+	var i Job
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.LastPosted,
+		&i.Position,
+		&i.Url,
+		&i.CompanyID,
+		&i.Location,
+		&i.SourceID,
+	)
+	return i, err
 }
