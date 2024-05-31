@@ -8,7 +8,7 @@ CREATE TABLE jobs(
   url TEXT NOT NULL,
   company_id TEXT NOT NULL,
   location TEXT,
-  source_id INTEGER NOT NULL,
+  source_id TEXT NOT NULL,
   FOREIGN KEY (source_id) REFERENCES scraping_sources(id) ON DELETE CASCADE,
   FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE
 );
@@ -20,7 +20,7 @@ CREATE TABLE companies(
   name TEXT NOT NULL,
   url TEXT NOT NULL,
   avatar TEXT,
-  source_id INTEGER NOT NULL,
+  source_id TEXT NOT NULL,
   FOREIGN KEY (source_id) REFERENCES scraping_sources(id) ON DELETE CASCADE
 );
 

@@ -51,5 +51,5 @@ type Job struct {
 
 type JobRepository interface {
 	GetJob(ctx context.Context, id string) (Job, error)
-	AddJob(ctx context.Context, arg Job) (string, error)
+	AddJob(ctx context.Context, job Job) (string, error)
 }

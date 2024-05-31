@@ -21,7 +21,7 @@ type AddJobParams struct {
 	Url       string
 	CompanyID string
 	Location  sql.NullString
-	SourceID  int64
+	SourceID  string
 }
 
 func (q *Queries) AddJob(ctx context.Context, arg AddJobParams) error {

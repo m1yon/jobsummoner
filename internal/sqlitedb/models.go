@@ -16,7 +16,7 @@ type Company struct {
 	Name      string
 	Url       string
 	Avatar    sql.NullString
-	SourceID  int64
+	SourceID  string
 }
 
 type Job struct {
@@ -28,7 +28,7 @@ type Job struct {
 	Url        string
 	CompanyID  string
 	Location   sql.NullString
-	SourceID   int64
+	SourceID   string
 }
 
 type ScrapingSource struct {
