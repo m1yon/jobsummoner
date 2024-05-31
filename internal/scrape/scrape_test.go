@@ -2,6 +2,7 @@ package scrape
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log/slog"
 	"testing"
@@ -51,13 +52,24 @@ type jobServiceMock struct {
 	mock.Mock
 }
 
-func (j *jobServiceMock) GetJobs() []jobsummoner.Job {
+func (j *jobServiceMock) GetJob(ctx context.Context, id string) (jobsummoner.Job, error) {
 	j.Called()
-	return []jobsummoner.Job{}
+	return jobsummoner.Job{}, nil
 }
 
-func (j *jobServiceMock) CreateJobs(jobs []jobsummoner.Job) {
+func (j *jobServiceMock) GetJobs(ctx context.Context) ([]jobsummoner.Job, []error) {
 	j.Called()
+	return []jobsummoner.Job{}, nil
+}
+
+func (j *jobServiceMock) CreateJobs(ctx context.Context, jobs []jobsummoner.Job) []error {
+	j.Called()
+	return nil
+}
+
+func (j *jobServiceMock) CreateJob(ctx context.Context, jobs jobsummoner.Job) (string, error) {
+	j.Called()
+	return "", nil
 }
 
 func TestScrapeService(t *testing.T) {

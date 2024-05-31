@@ -39,7 +39,7 @@ func (h *DefaultServer) ServerHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *DefaultServer) GetHomepage(w http.ResponseWriter, r *http.Request) {
-	jobs := h.JobService.GetJobs()
+	jobs, _ := h.JobService.GetJobs(r.Context())
 
 	m := components.NewHomepageViewModel(jobs)
 	component := components.Homepage(m)

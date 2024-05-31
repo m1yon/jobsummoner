@@ -1,6 +1,7 @@
 package scrape
 
 import (
+	"context"
 	"log/slog"
 
 	"github.com/go-co-op/gocron/v2"
@@ -20,6 +21,7 @@ func NewDefaultScrapeService(c clockwork.Clock, logger *slog.Logger, jobService 
 }
 
 func (ss *DefaultScrapeService) Start(scraper jobsummoner.Scraper, crontab string) {
+	ctx := context.Background()
 	ss.logger.Info("Initializing scrape scheduler...")
 	s, err := gocron.NewScheduler(gocron.WithClock(ss.c))
 	defer (func() {
@@ -46,7 +48,7 @@ func (ss *DefaultScrapeService) Start(scraper jobsummoner.Scraper, crontab strin
 				ss.logger.Error("job scrape failure", slog.String("err", err.Error()))
 			}
 
-			ss.jobService.CreateJobs(results.Jobs)
+			ss.jobService.CreateJobs(ctx, results.Jobs)
 
 			ss.logger.Info("scrape successful", slog.Int("jobs", len(results.Jobs)))
 		}),

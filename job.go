@@ -3,8 +3,10 @@ package jobsummoner
 import "context"
 
 type JobService interface {
-	GetJobs() []Job
-	CreateJobs([]Job)
+	GetJob(ctx context.Context, id string) (Job, error)
+	GetJobs(ctx context.Context) ([]Job, []error)
+	CreateJob(ctx context.Context, job Job) (string, error)
+	CreateJobs(ctx context.Context, jobs []Job) []error
 }
 
 type WorkType string
