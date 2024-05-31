@@ -15,8 +15,8 @@ func (s *SqliteJobRepository) AddJob(ctx context.Context, arg jobsummoner.AddJob
 	return nil
 }
 
-func NewSqliteJobRepository() *SqliteJobRepository {
-	db, _ := sql.Open("sqlite", "./db/database.db")
+func NewSqliteJobRepository(dataSourceName string) *SqliteJobRepository {
+	db, _ := sql.Open("sqlite", dataSourceName)
 	queries := New(db)
 	return &SqliteJobRepository{queries}
 }

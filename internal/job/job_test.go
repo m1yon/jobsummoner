@@ -9,7 +9,7 @@ import (
 )
 
 func TestGetJobs(t *testing.T) {
-	jobRepository := sqlitedb.NewSqliteJobRepository()
+	jobRepository := sqlitedb.NewSqliteJobRepository("./db/database.db")
 	jobService := NewDefaultJobService(jobRepository)
 
 	res := jobService.GetJobs()
@@ -21,7 +21,7 @@ func TestGetJobs(t *testing.T) {
 }
 
 func TestAddJobs(t *testing.T) {
-	jobRepository := sqlitedb.NewSqliteJobRepository()
+	jobRepository := sqlitedb.NewSqliteJobRepository("./db/database.db")
 	jobService := NewDefaultJobService(jobRepository)
 
 	jobs := []jobsummoner.Job{
