@@ -10,12 +10,13 @@ import (
 )
 
 type DefaultScrapeService struct {
-	c      clockwork.Clock
-	logger *slog.Logger
+	c          clockwork.Clock
+	logger     *slog.Logger
+	jobService jobsummoner.JobService
 }
 
-func NewDefaultScrapeService(c clockwork.Clock, logger *slog.Logger) *DefaultScrapeService {
-	return &DefaultScrapeService{c, logger}
+func NewDefaultScrapeService(c clockwork.Clock, logger *slog.Logger, jobService jobsummoner.JobService) *DefaultScrapeService {
+	return &DefaultScrapeService{c, logger, jobService}
 }
 
 func (ss *DefaultScrapeService) Start(scraper jobsummoner.Scraper, crontab string) {
@@ -44,6 +45,8 @@ func (ss *DefaultScrapeService) Start(scraper jobsummoner.Scraper, crontab strin
 			for _, err := range errs {
 				ss.logger.Error("job scrape failure", slog.String("err", err.Error()))
 			}
+
+			ss.jobService.AddJobs(results.Jobs)
 
 			ss.logger.Info("scrape successful", slog.Int("jobs", len(results.Jobs)))
 		}),

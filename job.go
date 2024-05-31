@@ -2,6 +2,7 @@ package jobsummoner
 
 type JobService interface {
 	GetJobs() []Job
+	AddJobs([]Job)
 }
 
 type WorkType string

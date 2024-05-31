@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"fmt"
 	"log/slog"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/jonboulle/clockwork"
 	"github.com/m1yon/jobsummoner"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 type MockScraper struct {
@@ -47,13 +47,24 @@ func newMockFailingScraper() *MockFailingScraper {
 const callsBetween8pmAnd10pm = 5
 const callsBetween7amAnd8am = 3
 
-func TestScrapeLoop(t *testing.T) {
-	t.Run("calls the function correctly on a cron", func(t *testing.T) {
-		c := getFakeClock(t)
-		logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-		scrapeService := NewDefaultScrapeService(c, logger)
+type jobServiceMock struct {
+	mock.Mock
+}
 
+func (j *jobServiceMock) GetJobs() []jobsummoner.Job {
+	j.Called()
+	return []jobsummoner.Job{}
+}
+
+func (j *jobServiceMock) AddJobs(jobs []jobsummoner.Job) {
+	j.Called()
+}
+
+func TestScrapeService(t *testing.T) {
+	t.Run("calls the function correctly on a cron and sends the results to the Job Service", func(t *testing.T) {
+		c, _, jobServiceMock, scrapeService := initScrapeServiceMocks(t)
 		scraper := NewMockScraper()
+
 		go scrapeService.Start(scraper, "TZ=America/Denver */30 7-22 * * *")
 		c.BlockUntil(1)
 
@@ -68,14 +79,13 @@ func TestScrapeLoop(t *testing.T) {
 		callNotMade = simulateCron(c, callsBetween7amAnd8am+1, 30*time.Minute)
 		assert.Equal(t, callsBetween8pmAnd10pm+callsBetween7amAnd8am, scraper.calls)
 		assertCallNotMade(t, callNotMade, scraper.calls)
+
+		jobServiceMock.AssertExpectations(t)
+		assert.Equal(t, scraper.calls, len(jobServiceMock.Calls))
 	})
 
 	t.Run("logs errors that occur", func(t *testing.T) {
-		c := getFakeClock(t)
-		logBufferSpy := new(bytes.Buffer)
-		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
-		scrapeService := NewDefaultScrapeService(c, logger)
-
+		c, logBufferSpy, jobServiceMock, scrapeService := initScrapeServiceMocks(t)
 		scraper := newMockFailingScraper()
 
 		go scrapeService.Start(scraper, "TZ=America/Denver */30 7-22 * * *")
@@ -85,7 +95,23 @@ func TestScrapeLoop(t *testing.T) {
 
 		assert.Contains(t, logBufferSpy.String(), "could not scrape heading")
 		assert.Contains(t, logBufferSpy.String(), "problem scraping paragraph")
+
+		jobServiceMock.AssertExpectations(t)
+		assert.Equal(t, scraper.calls, len(jobServiceMock.Calls))
 	})
+}
+
+func initScrapeServiceMocks(t *testing.T) (clockwork.FakeClock, *bytes.Buffer, *jobServiceMock, *DefaultScrapeService) {
+	t.Helper()
+	c := getFakeClock(t)
+	logBufferSpy := new(bytes.Buffer)
+	logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
+	jobServiceMock := new(jobServiceMock)
+	scrapeService := NewDefaultScrapeService(c, logger, jobServiceMock)
+
+	jobServiceMock.On("AddJobs", mock.Anything).Return()
+
+	return c, logBufferSpy, jobServiceMock, scrapeService
 }
 
 func simulateCron(c clockwork.FakeClock, numberOfCalls int, advanceInterval time.Duration) bool {
