@@ -2,7 +2,9 @@ package sqlitedb
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 
 	"github.com/m1yon/jobsummoner"
 	"github.com/pkg/errors"
@@ -13,7 +15,7 @@ type SqliteJobRepository struct {
 }
 
 func (s *SqliteJobRepository) AddJob(ctx context.Context, arg jobsummoner.Job) (string, error) {
-	id := "1"
+	id := generateJobID(arg.CompanyID, arg.Position)
 
 	err := s.queries.AddJob(ctx, AddJobParams{
 		ID:       id,
@@ -55,4 +57,16 @@ func NewSqliteJobRepository(dataSourceName string) *SqliteJobRepository {
 	queries := New(db)
 
 	return &SqliteJobRepository{queries}
+}
+
+func generateJobID(company_id string, position string) string {
+	data := company_id + "|" + position
+
+	hasher := sha256.New()
+
+	hasher.Write([]byte(data))
+
+	hash := hasher.Sum(nil)
+
+	return hex.EncodeToString(hash)
 }
