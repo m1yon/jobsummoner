@@ -2,16 +2,23 @@ package sqlitedb
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 
 	"github.com/m1yon/jobsummoner"
 	"github.com/stretchr/testify/assert"
 )
 
+func NewInMemorySqliteJobRepository(db *sql.DB) *SqliteJobRepository {
+	queries := New(db)
+	return &SqliteJobRepository{queries}
+}
+
 func TestJobRepository(t *testing.T) {
 	t.Run("add job and immediately get added job", func(t *testing.T) {
 		ctx := context.Background()
-		jobRepository := NewInMemorySqliteJobRepository()
+		db := NewTestDB()
+		jobRepository := NewInMemorySqliteJobRepository(db)
 
 		jobToAdd := jobsummoner.Job{
 			Position: "Software Developer",

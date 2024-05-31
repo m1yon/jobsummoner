@@ -33,10 +33,3 @@ func NewTestDB() *sql.DB {
 
 	return db
 }
-
-func NewInMemorySqliteJobRepository() *SqliteJobRepository {
-	db := NewTestDB()
-	queries := New(db)
-
-	return &SqliteJobRepository{queries}
-}
