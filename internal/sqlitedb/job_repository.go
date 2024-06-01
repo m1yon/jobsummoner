@@ -45,9 +45,10 @@ func (s *SqliteJobRepository) GetJob(ctx context.Context, id string) (jobsummone
 	job := jobsummoner.Job{
 		Position:    dbJob.Position,
 		CompanyID:   dbJob.CompanyID,
-		CompanyName: "",
+		CompanyName: dbJob.CompanyName,
 		Location:    dbJob.Location.String,
-		URL:         dbJob.Url,
+		URL:         dbJob.JobUrl,
+		SourceID:    dbJob.SourceID,
 	}
 
 	return job, nil

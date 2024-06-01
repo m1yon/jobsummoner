@@ -14,68 +14,68 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type MockScraper struct {
+type SpyScraper struct {
 	calls int
 }
 
-func (m *MockScraper) ScrapeJobs() (jobsummoner.ScrapedJobsResults, []error) {
+func (m *SpyScraper) ScrapeJobs() (jobsummoner.ScrapedJobsResults, []error) {
 	m.calls++
 	return jobsummoner.ScrapedJobsResults{}, []error{}
 }
 
-func NewMockScraper() *MockScraper {
-	return &MockScraper{
+func NewSpyScraper() *SpyScraper {
+	return &SpyScraper{
 		calls: 0,
 	}
 }
 
-type MockFailingScraper struct {
-	*MockScraper
+type SpyFailingScraper struct {
+	*SpyScraper
 }
 
-func (m *MockFailingScraper) ScrapeJobs() (jobsummoner.ScrapedJobsResults, []error) {
+func (m *SpyFailingScraper) ScrapeJobs() (jobsummoner.ScrapedJobsResults, []error) {
 	m.calls++
 	return jobsummoner.ScrapedJobsResults{}, []error{fmt.Errorf("could not scrape heading"), fmt.Errorf("problem scraping paragraph")}
 }
 
-func newMockFailingScraper() *MockFailingScraper {
-	ms := NewMockScraper()
-	return &MockFailingScraper{
-		MockScraper: ms,
+func newSpyFailingScraper() *SpyFailingScraper {
+	ms := NewSpyScraper()
+	return &SpyFailingScraper{
+		SpyScraper: ms,
 	}
 }
 
 const callsBetween8pmAnd10pm = 5
 const callsBetween7amAnd8am = 3
 
-type jobServiceMock struct {
+type mockJobService struct {
 	mock.Mock
 }
 
-func (j *jobServiceMock) GetJob(ctx context.Context, id string) (jobsummoner.Job, error) {
+func (j *mockJobService) GetJob(ctx context.Context, id string) (jobsummoner.Job, error) {
 	j.Called()
 	return jobsummoner.Job{}, nil
 }
 
-func (j *jobServiceMock) GetJobs(ctx context.Context) ([]jobsummoner.Job, []error) {
+func (j *mockJobService) GetJobs(ctx context.Context) ([]jobsummoner.Job, []error) {
 	j.Called()
 	return []jobsummoner.Job{}, nil
 }
 
-func (j *jobServiceMock) CreateJobs(ctx context.Context, jobs []jobsummoner.Job) []error {
+func (j *mockJobService) CreateJobs(ctx context.Context, jobs []jobsummoner.Job) []error {
 	j.Called()
 	return nil
 }
 
-func (j *jobServiceMock) CreateJob(ctx context.Context, jobs jobsummoner.Job) (string, error) {
+func (j *mockJobService) CreateJob(ctx context.Context, jobs jobsummoner.Job) (string, error) {
 	j.Called()
 	return "", nil
 }
 
 func TestScrapeService(t *testing.T) {
 	t.Run("calls the function correctly on a cron and sends the results to the Job Service", func(t *testing.T) {
-		c, _, jobServiceMock, scrapeService := initScrapeServiceMocks(t)
-		scraper := NewMockScraper()
+		c, _, jobServiceMock, scrapeService := initScrapeServiceSpies(t)
+		scraper := NewSpyScraper()
 
 		go scrapeService.Start(scraper, "TZ=America/Denver */30 7-22 * * *")
 		c.BlockUntil(1)
@@ -97,8 +97,8 @@ func TestScrapeService(t *testing.T) {
 	})
 
 	t.Run("logs errors that occur", func(t *testing.T) {
-		c, logBufferSpy, jobServiceMock, scrapeService := initScrapeServiceMocks(t)
-		scraper := newMockFailingScraper()
+		c, logBufferSpy, jobServiceMock, scrapeService := initScrapeServiceSpies(t)
+		scraper := newSpyFailingScraper()
 
 		go scrapeService.Start(scraper, "TZ=America/Denver */30 7-22 * * *")
 		c.BlockUntil(1)
@@ -113,12 +113,12 @@ func TestScrapeService(t *testing.T) {
 	})
 }
 
-func initScrapeServiceMocks(t *testing.T) (clockwork.FakeClock, *bytes.Buffer, *jobServiceMock, *DefaultScrapeService) {
+func initScrapeServiceSpies(t *testing.T) (clockwork.FakeClock, *bytes.Buffer, *mockJobService, *DefaultScrapeService) {
 	t.Helper()
 	c := getFakeClock(t)
 	logBufferSpy := new(bytes.Buffer)
 	logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
-	jobServiceMock := new(jobServiceMock)
+	jobServiceMock := new(mockJobService)
 	scrapeService := NewDefaultScrapeService(c, logger, jobServiceMock)
 
 	jobServiceMock.On("CreateJobs", mock.Anything).Return()

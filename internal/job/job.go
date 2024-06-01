@@ -8,11 +8,12 @@ import (
 )
 
 type DefaultJobService struct {
-	jobRepository jobsummoner.JobRepository
+	jobRepository  jobsummoner.JobRepository
+	companyService jobsummoner.CompanyService
 }
 
-func NewDefaultJobService(repository jobsummoner.JobRepository) *DefaultJobService {
-	return &DefaultJobService{repository}
+func NewDefaultJobService(repository jobsummoner.JobRepository, companyService jobsummoner.CompanyService) *DefaultJobService {
+	return &DefaultJobService{repository, companyService}
 }
 
 func (j *DefaultJobService) GetJob(ctx context.Context, id string) (jobsummoner.Job, error) {
@@ -37,6 +38,20 @@ func (j *DefaultJobService) CreateJobs(ctx context.Context, jobs []jobsummoner.J
 }
 
 func (j *DefaultJobService) CreateJob(ctx context.Context, job jobsummoner.Job) (string, error) {
+	doesCompanyExist, err := j.companyService.DoesCompanyExist(ctx, job.CompanyID)
+
+	if err != nil {
+		return "", errors.Wrap(err, "error fetching company in job service")
+	}
+
+	if !doesCompanyExist {
+		_, err := j.companyService.CreateCompany(ctx, jobsummoner.Company{ID: job.CompanyID, Name: job.CompanyName})
+
+		if err != nil {
+			return "", errors.Wrap(err, "error creating company in job service")
+		}
+	}
+
 	id, err := j.jobRepository.CreateJob(ctx, job)
 
 	if err != nil {

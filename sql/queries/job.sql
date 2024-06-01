@@ -3,6 +3,7 @@ INSERT INTO jobs (id, created_at, last_posted, position, url, company_id, locati
 VALUES (?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?, ?, ?, ?, ?);
 
 -- name: GetJob :one
-SELECT * FROM jobs
-WHERE id = ?;
+SELECT jobs.position, jobs.location, jobs.url AS job_url, companies.url AS company_url, companies.name AS company_name, companies.id AS company_id, jobs.source_id FROM jobs
+JOIN companies ON jobs.company_id = companies.id
+WHERE jobs.id = ?;
 

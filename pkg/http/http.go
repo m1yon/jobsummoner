@@ -8,6 +8,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/m1yon/jobsummoner"
+	"github.com/m1yon/jobsummoner/internal/company"
 	"github.com/m1yon/jobsummoner/internal/components"
 	"github.com/m1yon/jobsummoner/internal/job"
 	"github.com/m1yon/jobsummoner/internal/sqlitedb"
@@ -25,8 +26,10 @@ type DefaultServer struct {
 
 func NewDefaultServer() *DefaultServer {
 	db := sqlitedb.NewTestDB()
+	companyRepository := sqlitedb.NewInMemorySqliteCompanyRepository(db)
+	companyService := company.NewDefaultCompanyService(companyRepository)
 	jobRepository := sqlitedb.NewInMemorySqliteJobRepository(db)
-	jobService := job.NewDefaultJobService(jobRepository)
+	jobService := job.NewDefaultJobService(jobRepository, companyService)
 
 	return &DefaultServer{
 		Render:     components.Render,

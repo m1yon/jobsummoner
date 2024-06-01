@@ -37,22 +37,31 @@ func (q *Queries) CreateJob(ctx context.Context, arg CreateJobParams) error {
 }
 
 const getJob = `-- name: GetJob :one
-SELECT id, created_at, updated_at, last_posted, position, url, company_id, location, source_id FROM jobs
-WHERE id = ?
+SELECT jobs.position, jobs.location, jobs.url AS job_url, companies.url AS company_url, companies.name AS company_name, companies.id AS company_id, jobs.source_id FROM jobs
+JOIN companies ON jobs.company_id = companies.id
+WHERE jobs.id = ?
 `
 
-func (q *Queries) GetJob(ctx context.Context, id string) (Job, error) {
+type GetJobRow struct {
+	Position    string
+	Location    sql.NullString
+	JobUrl      string
+	CompanyUrl  string
+	CompanyName string
+	CompanyID   string
+	SourceID    string
+}
+
+func (q *Queries) GetJob(ctx context.Context, id string) (GetJobRow, error) {
 	row := q.db.QueryRowContext(ctx, getJob, id)
-	var i Job
+	var i GetJobRow
 	err := row.Scan(
-		&i.ID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.LastPosted,
 		&i.Position,
-		&i.Url,
-		&i.CompanyID,
 		&i.Location,
+		&i.JobUrl,
+		&i.CompanyUrl,
+		&i.CompanyName,
+		&i.CompanyID,
 		&i.SourceID,
 	)
 	return i, err

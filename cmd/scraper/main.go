@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/jonboulle/clockwork"
+	"github.com/m1yon/jobsummoner/internal/company"
 	"github.com/m1yon/jobsummoner/internal/job"
 	"github.com/m1yon/jobsummoner/internal/scrape"
 	"github.com/m1yon/jobsummoner/internal/sqlitedb"
@@ -30,8 +31,10 @@ func main() {
 	c := clockwork.NewRealClock()
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	db := sqlitedb.NewTestDB()
+	companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
+	companyService := company.NewDefaultCompanyService(companyRepository)
 	jobRepository := sqlitedb.NewSqliteJobRepository(db)
-	jobService := job.NewDefaultJobService(jobRepository)
+	jobService := job.NewDefaultJobService(jobRepository, companyService)
 	scrapeService := scrape.NewDefaultScrapeService(c, logger, jobService)
 	scrapeService.Start(scraper, "TZ=America/Denver */30 7-22 * * *")
 }
