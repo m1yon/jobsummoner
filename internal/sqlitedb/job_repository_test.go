@@ -2,7 +2,6 @@ package sqlitedb
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/m1yon/jobsummoner"
@@ -13,22 +12,35 @@ func TestJobRepository(t *testing.T) {
 	t.Run("create job and immediately get created job", func(t *testing.T) {
 		ctx := context.Background()
 		db := NewTestDB()
+		companyRepository := NewInMemorySqliteCompanyRepository(db)
 		jobRepository := NewInMemorySqliteJobRepository(db)
 
-		jobToCreate := jobsummoner.Job{
-			Position: "Software Developer",
-			URL:      "https://linkedin.com/jobs/1",
-			Location: "San Francisco",
+		companyToCreate := jobsummoner.Company{
+			ID:       "/google",
+			Name:     "Google",
+			Url:      "https://google.com/",
+			Avatar:   "https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg",
+			SourceID: "1",
 		}
-		id, err := jobRepository.CreateJob(ctx, jobToCreate)
-		fmt.Println(id)
 
+		id, err := companyRepository.CreateCompany(ctx, companyToCreate)
+		assert.NoError(t, err)
+		assert.Equal(t, companyToCreate.ID, id)
+
+		jobToCreate := jobsummoner.Job{
+			Position:    "Software Developer",
+			URL:         "https://linkedin.com/jobs/1",
+			Location:    "San Francisco",
+			CompanyID:   companyToCreate.ID,
+			CompanyName: companyToCreate.Name,
+			SourceID:    companyToCreate.SourceID,
+		}
+
+		createdJobID, err := jobRepository.CreateJob(ctx, jobToCreate)
 		assert.NoError(t, err)
 
-		// TODO: assert the rest
-		// _, err = jobRepository.GetJob(ctx, id)
-
-		// assert.NoError(t, err)
-		// assert.Equal(t, jobToCreate, job)
+		job, err := jobRepository.GetJob(ctx, createdJobID)
+		assert.NoError(t, err)
+		assert.Equal(t, jobToCreate, job)
 	})
 }
