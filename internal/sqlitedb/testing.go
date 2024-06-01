@@ -15,7 +15,6 @@ const (
 
 func init() {
 	sql.Register("sqlite3", &sqlite.Driver{})
-
 }
 
 func NewTestDB() *sql.DB {

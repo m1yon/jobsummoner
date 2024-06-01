@@ -52,6 +52,7 @@ func (ss *DefaultScrapeService) Start(scraper jobsummoner.Scraper, crontab strin
 
 			ss.logger.Info("scrape successful", slog.Int("jobs", len(results.Jobs)))
 		}),
+		gocron.WithStartAt(gocron.WithStartImmediately()),
 	)
 
 	if err != nil {
