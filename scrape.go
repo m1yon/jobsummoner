@@ -1,11 +1,7 @@
 package jobsummoner
 
-type ScrapedJobsResults struct {
-	Jobs []Job
-}
-
 type Scraper interface {
-	ScrapeJobs() (ScrapedJobsResults, []error)
+	ScrapeJobs() ([]Job, []error)
 }
 
 type ScrapeService interface {

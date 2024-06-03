@@ -1,12 +1,60 @@
 package linkedin
 
 import (
+	"fmt"
+	"io"
+	"os"
 	"testing"
 	"time"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/m1yon/jobsummoner"
 	"github.com/stretchr/testify/assert"
 )
+
+type MockFileOpener struct{}
+
+func (m *MockFileOpener) Open(name string) (*os.File, error) {
+	return os.Open(name)
+}
+
+func (m *MockFileOpener) Copy(dst io.Writer, src io.Reader) (int64, error) {
+	return 0, fmt.Errorf("simulated copy failure")
+}
+
+func TestReader(t *testing.T) {
+	t.Run("reads the file", func(t *testing.T) {
+		fileReader := NewFileLinkedInReader("./test-helpers/li-job-listings-%v.html", &StandardFileOpener{})
+
+		buffer, isLastPage, err := fileReader.GetNextJobListingPage()
+		assert.NoError(t, err)
+		assert.Equal(t, false, isLastPage)
+
+		doc, err := goquery.NewDocumentFromReader(buffer)
+		assert.NoError(t, err)
+
+		numberOfJobElements := doc.Find("body > li").Length()
+		assert.Equal(t, 10, numberOfJobElements)
+	})
+
+	t.Run("handles failed opening file", func(t *testing.T) {
+		fileReader := NewFileLinkedInReader("./bad-file.html", &StandardFileOpener{})
+
+		_, _, err := fileReader.GetNextJobListingPage()
+		if assert.Error(t, err) {
+			assert.Contains(t, err.Error(), ErrOpeningFile)
+		}
+	})
+
+	t.Run("handles failed writing file contents to buffer", func(t *testing.T) {
+		fileReader := NewFileLinkedInReader("./test-helpers/li-job-listings-%v.html", &MockFileOpener{})
+
+		_, _, err := fileReader.GetNextJobListingPage()
+		if assert.Error(t, err) {
+			assert.Contains(t, err.Error(), ErrWritingFileContentsToBuffer)
+		}
+	})
+}
 
 func TestBuilderJobListingURL(t *testing.T) {
 	tests := []struct {

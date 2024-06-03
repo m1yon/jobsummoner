@@ -21,10 +21,10 @@ func main() {
 		Location: "United States",
 		MaxAge:   time.Hour * 12,
 	})
-	scraper := linkedin.NewLinkedInJobScraper(reader)
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	scraper := linkedin.NewLinkedInJobScraper(reader, logger)
 
 	c := clockwork.NewRealClock()
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
 	db, err := sql.Open("sqlite", "./db/database.db")
 

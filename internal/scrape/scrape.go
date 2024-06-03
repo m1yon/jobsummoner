@@ -48,9 +48,9 @@ func (ss *DefaultScrapeService) Start(scraper jobsummoner.Scraper, crontab strin
 				ss.logger.Error("job scrape failure", slog.String("err", err.Error()))
 			}
 
-			ss.jobService.CreateJobs(ctx, results.Jobs)
+			ss.jobService.CreateJobs(ctx, results)
 
-			ss.logger.Info("scrape successful", slog.Int("jobs", len(results.Jobs)))
+			ss.logger.Info("scrape successful", slog.Int("jobs", len(results)))
 		}),
 		gocron.WithStartAt(gocron.WithStartImmediately()),
 	)

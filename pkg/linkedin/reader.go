@@ -1,6 +1,7 @@
 package linkedin
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,8 +10,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/m1yon/jobsummoner"
 	"github.com/pkg/errors"
+)
+
+const (
+	ErrOpeningFile                 = "failed opening file"
+	ErrWritingFileContentsToBuffer = "failed writing file contents to buffer"
 )
 
 type LinkedInReaderConfig struct {
@@ -25,7 +32,7 @@ type LinkedInReaderConfig struct {
 const linkedInBaseSearchURL = "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search"
 
 type LinkedInReader interface {
-	GetNextJobListingPage() (io.Reader, error)
+	GetNextJobListingPage() (io.Reader, bool, error)
 }
 
 type HttpLinkedInReader struct {
@@ -33,15 +40,41 @@ type HttpLinkedInReader struct {
 	page   int
 }
 
-func (m *HttpLinkedInReader) GetNextJobListingPage() (io.Reader, error) {
+func (m *HttpLinkedInReader) GetNextJobListingPage() (io.Reader, bool, error) {
 	url := m.buildJobListingURL()
 	resp, err := http.Get(url)
 
 	if err != nil {
-		return nil, errors.Wrap(err, "error fetching job listing page")
+		return nil, false, errors.Wrap(err, "error fetching job listing page")
 	}
 
-	return resp.Body, nil
+	if isLastPage, err := isLastJobListingPage(resp.Body); isLastPage {
+		if err != nil {
+			return nil, false, errors.Wrap(err, "error determining if job listing page is last")
+		}
+
+		return resp.Body, true, nil
+	}
+
+	m.page++
+
+	return resp.Body, false, nil
+}
+
+func isLastJobListingPage(reader io.Reader) (bool, error) {
+	doc, err := goquery.NewDocumentFromReader(reader)
+
+	if err != nil {
+		return true, errors.Wrap(err, ErrInvalidHTML)
+	}
+
+	jobElements := doc.Find("body > li")
+
+	if jobElements.Length() < 10 {
+		return true, nil
+	}
+
+	return false, nil
 }
 
 func NewHttpLinkedInReader(config LinkedInReaderConfig) *HttpLinkedInReader {
@@ -87,20 +120,52 @@ func join[T ~string](input []T, sep string) string {
 	return result
 }
 
-type FileLinkedInReader struct {
-	path string
+type FileOpener interface {
+	Open(name string) (*os.File, error)
+	Copy(dst io.Writer, src io.Reader) (int64, error)
 }
 
-func (m *FileLinkedInReader) GetNextJobListingPage() (io.Reader, error) {
-	file, err := os.Open(m.path)
+type StandardFileOpener struct{}
+
+func (fo *StandardFileOpener) Open(name string) (*os.File, error) {
+	return os.Open(name)
+}
+
+func (fo *StandardFileOpener) Copy(dst io.Writer, src io.Reader) (int64, error) {
+	return io.Copy(dst, src)
+}
+
+type FileLinkedInReader struct {
+	fileOpener FileOpener
+	pathf      string
+	page       int
+}
+
+func (m *FileLinkedInReader) GetNextJobListingPage() (io.Reader, bool, error) {
+	file, err := os.Open(fmt.Sprintf(m.pathf, m.page))
 
 	if err != nil {
-		return nil, errors.Wrap(err, "error opening file")
+		return &bytes.Buffer{}, false, errors.Wrap(err, ErrOpeningFile)
 	}
 
-	return file, nil
+	var buffer bytes.Buffer
+	if _, err := m.fileOpener.Copy(&buffer, file); err != nil {
+		return &bytes.Buffer{}, false, errors.Wrap(err, ErrWritingFileContentsToBuffer)
+	}
+
+	if isLastPage, err := isLastJobListingPage(bytes.NewBuffer(buffer.Bytes())); isLastPage {
+		if err != nil {
+			return &bytes.Buffer{}, false, errors.Wrap(err, "error determining if job listing page is last")
+		}
+
+		return &buffer, true, nil
+	}
+
+	m.page++
+
+	return &buffer, false, nil
 }
 
-func NewFileLinkedInReader(path string) *FileLinkedInReader {
-	return &FileLinkedInReader{path}
+func NewFileLinkedInReader(pathf string, fileOpener FileOpener) *FileLinkedInReader {
+	return &FileLinkedInReader{fileOpener: fileOpener, pathf: pathf, page: 1}
 }

@@ -18,9 +18,9 @@ type SpyScraper struct {
 	calls int
 }
 
-func (m *SpyScraper) ScrapeJobs() (jobsummoner.ScrapedJobsResults, []error) {
+func (m *SpyScraper) ScrapeJobs() ([]jobsummoner.Job, []error) {
 	m.calls++
-	return jobsummoner.ScrapedJobsResults{}, []error{}
+	return []jobsummoner.Job{}, []error{}
 }
 
 func NewSpyScraper() *SpyScraper {
@@ -33,9 +33,9 @@ type SpyFailingScraper struct {
 	*SpyScraper
 }
 
-func (m *SpyFailingScraper) ScrapeJobs() (jobsummoner.ScrapedJobsResults, []error) {
+func (m *SpyFailingScraper) ScrapeJobs() ([]jobsummoner.Job, []error) {
 	m.calls++
-	return jobsummoner.ScrapedJobsResults{}, []error{fmt.Errorf("could not scrape heading"), fmt.Errorf("problem scraping paragraph")}
+	return []jobsummoner.Job{}, []error{fmt.Errorf("could not scrape heading"), fmt.Errorf("problem scraping paragraph")}
 }
 
 func newSpyFailingScraper() *SpyFailingScraper {

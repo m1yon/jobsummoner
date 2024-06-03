@@ -3,6 +3,7 @@ package linkedin
 import (
 	"fmt"
 	"io"
+	"log/slog"
 	"net/url"
 	"strings"
 
@@ -12,36 +13,54 @@ import (
 )
 
 const (
-	ErrInvalidHTML         = "HTML could not be parsed"
-	ErrParsingCompanyLink  = "problem parsing company link url"
-	ErrMalformedompanyLink = "malformed company link url for parsed company link url: %v"
+	ErrInvalidHTML          = "HTML could not be parsed"
+	ErrParsingCompanyLink   = "problem parsing company link url"
+	ErrMalformedCompanyLink = "malformed company link url for parsed company link url: %v"
 )
 
 type LinkedInScraper struct {
-	r LinkedInReader
+	r      LinkedInReader
+	logger *slog.Logger
 }
 
-func NewLinkedInJobScraper(r LinkedInReader) *LinkedInScraper {
-	return &LinkedInScraper{r: r}
+func NewLinkedInJobScraper(r LinkedInReader, logger *slog.Logger) *LinkedInScraper {
+	return &LinkedInScraper{r, logger}
 }
 
-func (l *LinkedInScraper) ScrapeJobs() (jobsummoner.ScrapedJobsResults, []error) {
-	reader, err := l.r.GetNextJobListingPage()
+func (l *LinkedInScraper) ScrapeJobs() ([]jobsummoner.Job, []error) {
+	results := make([]jobsummoner.Job, 0)
+	errs := make([]error, 0)
 
-	if err != nil {
-		return jobsummoner.ScrapedJobsResults{}, []error{errors.Wrap(err, "failed getting page")}
+	for {
+		reader, isLastPage, err := l.r.GetNextJobListingPage()
+
+		if err != nil {
+			errs = append(errs, errors.Wrap(err, "failed getting page"))
+			break
+		}
+
+		pageResults, err := l.scrapePage(reader)
+
+		if err != nil {
+			errs = append(errs, errors.Wrap(err, "failed scraping page"))
+			break
+		}
+
+		results = append(results, pageResults...)
+
+		if isLastPage {
+			break
+		}
 	}
 
-	return l.scrapePage(reader)
+	return results, errs
 }
 
-func (l *LinkedInScraper) scrapePage(reader io.Reader) (jobsummoner.ScrapedJobsResults, []error) {
-	errs := make([]error, 0, 1)
+func (l *LinkedInScraper) scrapePage(reader io.Reader) ([]jobsummoner.Job, error) {
 	doc, err := goquery.NewDocumentFromReader(reader)
 
 	if err != nil {
-		errs = append(errs, errors.Wrap(err, ErrInvalidHTML))
-		return jobsummoner.ScrapedJobsResults{}, errs
+		return []jobsummoner.Job{}, errors.Wrap(err, ErrInvalidHTML)
 	}
 
 	jobElements := doc.Find("body > li")
@@ -55,7 +74,7 @@ func (l *LinkedInScraper) scrapePage(reader io.Reader) (jobsummoner.ScrapedJobsR
 		parsedCompanyLinkURL, err := url.Parse(companyLinkURL)
 
 		if err != nil {
-			errs = append(errs, errors.Wrap(err, ErrParsingCompanyLink))
+			l.logger.Error(errors.Wrap(err, ErrParsingCompanyLink).Error())
 			return
 		}
 
@@ -63,7 +82,7 @@ func (l *LinkedInScraper) scrapePage(reader io.Reader) (jobsummoner.ScrapedJobsR
 		CompanyID := segments[len(segments)-1]
 
 		if CompanyID == "" {
-			errs = append(errs, fmt.Errorf(ErrMalformedompanyLink, parsedCompanyLinkURL))
+			l.logger.Error(fmt.Errorf(ErrMalformedCompanyLink, parsedCompanyLinkURL).Error())
 			return
 		}
 
@@ -80,7 +99,5 @@ func (l *LinkedInScraper) scrapePage(reader io.Reader) (jobsummoner.ScrapedJobsR
 		})
 	})
 
-	return jobsummoner.ScrapedJobsResults{
-		Jobs: Jobs,
-	}, errs
+	return Jobs, err
 }
