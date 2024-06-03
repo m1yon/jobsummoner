@@ -2,33 +2,11 @@ package linkedin
 
 import (
 	"fmt"
-	"io"
-	"os"
 	"testing"
-
-	"github.com/pkg/errors"
 
 	"github.com/m1yon/jobsummoner"
 	"github.com/stretchr/testify/assert"
 )
-
-type MockLinkedInReader struct {
-	path string
-}
-
-func (m *MockLinkedInReader) GetJobListingPage(itemOffset int) (io.Reader, error) {
-	file, err := os.Open(m.path)
-
-	if err != nil {
-		return nil, errors.Wrap(err, "error opening file")
-	}
-
-	return file, nil
-}
-
-func NewMockLinkedInReader(path string) *MockLinkedInReader {
-	return &MockLinkedInReader{path}
-}
 
 func TestLinkedInScraper(t *testing.T) {
 	t.Run("scrapes the jobs correctly", func(t *testing.T) {
