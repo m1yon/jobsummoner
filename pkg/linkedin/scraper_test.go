@@ -2,22 +2,38 @@ package linkedin
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"testing"
+
+	"github.com/pkg/errors"
 
 	"github.com/m1yon/jobsummoner"
 	"github.com/stretchr/testify/assert"
 )
 
+type MockLinkedInReader struct {
+	path string
+}
+
+func (m *MockLinkedInReader) GetJobListingPage(itemOffset int) (io.Reader, error) {
+	file, err := os.Open(m.path)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "error opening file")
+	}
+
+	return file, nil
+}
+
+func NewMockLinkedInReader(path string) *MockLinkedInReader {
+	return &MockLinkedInReader{path}
+}
+
 func TestLinkedInScraper(t *testing.T) {
 	t.Run("scrapes the jobs correctly", func(t *testing.T) {
-		file, err := os.Open("./test-helpers/li-job-listings.html")
-
-		if err != nil {
-			t.Fatal("could not open file")
-		}
-
-		scraper := NewLinkedInJobScraper(file)
+		mockReader := NewMockLinkedInReader("./test-helpers/li-job-listings.html")
+		scraper := NewLinkedInJobScraper(mockReader)
 		got, errs := scraper.ScrapeJobs()
 
 		assert.Equal(t, 0, len(errs))
@@ -49,13 +65,8 @@ func TestLinkedInScraper(t *testing.T) {
 	})
 
 	t.Run("handles invalid company URLs", func(t *testing.T) {
-		file, err := os.Open("./test-helpers/li-job-listings_bad-company-url.html")
-
-		if err != nil {
-			t.Fatal("could not open file")
-		}
-
-		scraper := NewLinkedInJobScraper(file)
+		mockReader := NewMockLinkedInReader("./test-helpers/li-job-listings_bad-company-url.html")
+		scraper := NewLinkedInJobScraper(mockReader)
 		got, errs := scraper.ScrapeJobs()
 
 		assert.Equal(t, errs, []error{

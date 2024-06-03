@@ -18,20 +18,26 @@ const (
 )
 
 type LinkedInScraper struct {
-	r io.Reader
+	r LinkedInReader
 }
 
-func NewLinkedInJobScraper(r io.Reader) *LinkedInScraper {
+func NewLinkedInJobScraper(r LinkedInReader) *LinkedInScraper {
 	return &LinkedInScraper{r: r}
 }
 
 func (l *LinkedInScraper) ScrapeJobs() (jobsummoner.ScrapedJobsResults, []error) {
-	return l.scrapePage()
+	reader, err := l.r.GetJobListingPage(0)
+
+	if err != nil {
+		return jobsummoner.ScrapedJobsResults{}, []error{errors.Wrap(err, "failed getting page")}
+	}
+
+	return l.scrapePage(reader)
 }
 
-func (l *LinkedInScraper) scrapePage() (jobsummoner.ScrapedJobsResults, []error) {
+func (l *LinkedInScraper) scrapePage(reader io.Reader) (jobsummoner.ScrapedJobsResults, []error) {
 	errs := make([]error, 0, 1)
-	doc, err := goquery.NewDocumentFromReader(l.r)
+	doc, err := goquery.NewDocumentFromReader(reader)
 
 	if err != nil {
 		errs = append(errs, errors.Wrap(err, ErrInvalidHTML))

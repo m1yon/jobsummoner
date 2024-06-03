@@ -3,9 +3,7 @@ package main
 import (
 	"database/sql"
 	"log/slog"
-	"net/http"
 	"os"
-	"time"
 
 	"github.com/jonboulle/clockwork"
 	"github.com/m1yon/jobsummoner/internal/company"
@@ -17,18 +15,8 @@ import (
 )
 
 func main() {
-	url := linkedin.BuildLinkedInJobsURL(linkedin.BuildLinkedInJobsURLArgs{
-		Keywords: []string{"go"},
-		Location: "United States",
-		MaxAge:   time.Hour * 12,
-	})
-	resp, err := http.Get(url)
-
-	if err != nil {
-		slog.Error(err.Error())
-	}
-
-	scraper := linkedin.NewLinkedInJobScraper(resp.Body)
+	reader := linkedin.NewHttpLinkedInReader()
+	scraper := linkedin.NewLinkedInJobScraper(reader)
 
 	c := clockwork.NewRealClock()
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))

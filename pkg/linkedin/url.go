@@ -2,14 +2,43 @@ package linkedin
 
 import (
 	"fmt"
+	"io"
+	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
 	"github.com/m1yon/jobsummoner"
+	"github.com/pkg/errors"
 )
 
 const linkedInBaseSearchURL = "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search"
+
+type LinkedInReader interface {
+	GetJobListingPage(itemOffset int) (io.Reader, error)
+}
+
+type HttpLinkedInReader struct {
+}
+
+func (m *HttpLinkedInReader) GetJobListingPage(itemOffset int) (io.Reader, error) {
+	url := BuildLinkedInJobsURL(BuildLinkedInJobsURLArgs{
+		Keywords: []string{"go"},
+		Location: "United States",
+		MaxAge:   time.Hour * 12,
+	})
+	resp, err := http.Get(url)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "error fetching job listing page")
+	}
+
+	return resp.Body, nil
+}
+
+func NewHttpLinkedInReader() *HttpLinkedInReader {
+	return &HttpLinkedInReader{}
+}
 
 type BuildLinkedInJobsURLArgs struct {
 	Keywords    []string
