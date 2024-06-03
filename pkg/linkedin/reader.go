@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -24,15 +25,16 @@ type LinkedInReaderConfig struct {
 const linkedInBaseSearchURL = "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search"
 
 type LinkedInReader interface {
-	GetJobListingPage(itemOffset int) (io.Reader, error)
+	GetNextJobListingPage() (io.Reader, error)
 }
 
 type HttpLinkedInReader struct {
 	config LinkedInReaderConfig
+	page   int
 }
 
-func (m *HttpLinkedInReader) GetJobListingPage(itemOffset int) (io.Reader, error) {
-	url := m.buildLinkedInJobsURL()
+func (m *HttpLinkedInReader) GetNextJobListingPage() (io.Reader, error) {
+	url := m.buildJobListingURL()
 	resp, err := http.Get(url)
 
 	if err != nil {
@@ -43,10 +45,10 @@ func (m *HttpLinkedInReader) GetJobListingPage(itemOffset int) (io.Reader, error
 }
 
 func NewHttpLinkedInReader(config LinkedInReaderConfig) *HttpLinkedInReader {
-	return &HttpLinkedInReader{config}
+	return &HttpLinkedInReader{config, 0}
 }
 
-func (m *HttpLinkedInReader) buildLinkedInJobsURL() string {
+func (m *HttpLinkedInReader) buildJobListingURL() string {
 	url, _ := url.Parse(linkedInBaseSearchURL)
 
 	q := url.Query()
@@ -83,4 +85,22 @@ func join[T ~string](input []T, sep string) string {
 	result := strings.Join(slice, sep)
 
 	return result
+}
+
+type FileLinkedInReader struct {
+	path string
+}
+
+func (m *FileLinkedInReader) GetNextJobListingPage() (io.Reader, error) {
+	file, err := os.Open(m.path)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "error opening file")
+	}
+
+	return file, nil
+}
+
+func NewFileLinkedInReader(path string) *FileLinkedInReader {
+	return &FileLinkedInReader{path}
 }

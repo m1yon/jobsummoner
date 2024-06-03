@@ -26,7 +26,7 @@ func NewLinkedInJobScraper(r LinkedInReader) *LinkedInScraper {
 }
 
 func (l *LinkedInScraper) ScrapeJobs() (jobsummoner.ScrapedJobsResults, []error) {
-	reader, err := l.r.GetJobListingPage(0)
+	reader, err := l.r.GetNextJobListingPage()
 
 	if err != nil {
 		return jobsummoner.ScrapedJobsResults{}, []error{errors.Wrap(err, "failed getting page")}

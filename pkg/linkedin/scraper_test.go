@@ -10,7 +10,7 @@ import (
 
 func TestLinkedInScraper(t *testing.T) {
 	t.Run("scrapes the jobs correctly", func(t *testing.T) {
-		mockReader := NewMockLinkedInReader("./test-helpers/li-job-listings.html")
+		mockReader := NewFileLinkedInReader("./test-helpers/li-job-listings.html")
 		scraper := NewLinkedInJobScraper(mockReader)
 		got, errs := scraper.ScrapeJobs()
 
@@ -43,7 +43,7 @@ func TestLinkedInScraper(t *testing.T) {
 	})
 
 	t.Run("handles invalid company URLs", func(t *testing.T) {
-		mockReader := NewMockLinkedInReader("./test-helpers/li-job-listings_bad-company-url.html")
+		mockReader := NewFileLinkedInReader("./test-helpers/li-job-listings_bad-company-url.html")
 		scraper := NewLinkedInJobScraper(mockReader)
 		got, errs := scraper.ScrapeJobs()
 
