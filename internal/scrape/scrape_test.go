@@ -62,9 +62,9 @@ func (j *mockJobService) GetJobs(ctx context.Context) ([]jobsummoner.Job, []erro
 	return []jobsummoner.Job{}, nil
 }
 
-func (j *mockJobService) CreateJobs(ctx context.Context, jobs []jobsummoner.Job) []error {
+func (j *mockJobService) CreateJobs(ctx context.Context, jobs []jobsummoner.Job) ([]string, []error) {
 	j.Called()
-	return nil
+	return nil, nil
 }
 
 func (j *mockJobService) CreateJob(ctx context.Context, jobs jobsummoner.Job) (string, error) {

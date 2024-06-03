@@ -6,7 +6,7 @@ type JobService interface {
 	GetJob(ctx context.Context, id string) (Job, error)
 	GetJobs(ctx context.Context) ([]Job, []error)
 	CreateJob(ctx context.Context, job Job) (string, error)
-	CreateJobs(ctx context.Context, jobs []Job) []error
+	CreateJobs(ctx context.Context, jobs []Job) ([]string, []error)
 }
 
 type WorkType string

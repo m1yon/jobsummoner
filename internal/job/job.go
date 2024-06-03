@@ -33,8 +33,21 @@ func (j *DefaultJobService) GetJobs(ctx context.Context) ([]jobsummoner.Job, []e
 	}, nil
 }
 
-func (j *DefaultJobService) CreateJobs(ctx context.Context, jobs []jobsummoner.Job) []error {
-	return nil
+func (j *DefaultJobService) CreateJobs(ctx context.Context, jobs []jobsummoner.Job) ([]string, []error) {
+	ids := make([]string, 0, len(jobs))
+	errs := make([]error, 0)
+
+	for _, job := range jobs {
+		id, err := j.CreateJob(ctx, job)
+
+		if err != nil {
+			errs = append(errs, err)
+		}
+
+		ids = append(ids, id)
+	}
+
+	return ids, errs
 }
 
 func (j *DefaultJobService) CreateJob(ctx context.Context, job jobsummoner.Job) (string, error) {
