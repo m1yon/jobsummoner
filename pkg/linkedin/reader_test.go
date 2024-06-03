@@ -11,61 +11,61 @@ import (
 func TestLinkedInURLBuilder(t *testing.T) {
 	tests := []struct {
 		name      string
-		getConfig func() BuildLinkedInJobsURLArgs
+		getConfig func() LinkedInReaderConfig
 		want      string
 	}{
 		{
 			"Keywords field",
-			func() BuildLinkedInJobsURLArgs {
-				config := BuildLinkedInJobsURLArgs{Keywords: []string{"react", "typescript"}}
+			func() LinkedInReaderConfig {
+				config := LinkedInReaderConfig{Keywords: []string{"react", "typescript"}}
 				return config
 			},
 			"?keywords=react+OR+typescript",
 		},
 		{
 			"Location field",
-			func() BuildLinkedInJobsURLArgs {
-				config := BuildLinkedInJobsURLArgs{Location: "United States"}
+			func() LinkedInReaderConfig {
+				config := LinkedInReaderConfig{Location: "United States"}
 				return config
 			},
 			"?location=United+States",
 		},
 		{
 			"WorkTypes field",
-			func() BuildLinkedInJobsURLArgs {
-				config := BuildLinkedInJobsURLArgs{WorkTypes: []jobsummoner.WorkType{jobsummoner.WorkTypeRemote, jobsummoner.WorkTypeOnSite}}
+			func() LinkedInReaderConfig {
+				config := LinkedInReaderConfig{WorkTypes: []jobsummoner.WorkType{jobsummoner.WorkTypeRemote, jobsummoner.WorkTypeOnSite}}
 				return config
 			},
 			"?f_WT=2%2C1",
 		},
 		{
 			"JobTypes field",
-			func() BuildLinkedInJobsURLArgs {
-				config := BuildLinkedInJobsURLArgs{JobTypes: []jobsummoner.JobType{jobsummoner.JobTypeFullTime, jobsummoner.JobTypeOther}}
+			func() LinkedInReaderConfig {
+				config := LinkedInReaderConfig{JobTypes: []jobsummoner.JobType{jobsummoner.JobTypeFullTime, jobsummoner.JobTypeOther}}
 				return config
 			},
 			"?f_JT=F%2CO",
 		},
 		{
 			"SalaryRange field",
-			func() BuildLinkedInJobsURLArgs {
-				config := BuildLinkedInJobsURLArgs{SalaryRange: jobsummoner.SalaryRange160kPlus}
+			func() LinkedInReaderConfig {
+				config := LinkedInReaderConfig{SalaryRange: jobsummoner.SalaryRange160kPlus}
 				return config
 			},
 			"?f_SB2=7",
 		},
 		{
 			"MaxAge field",
-			func() BuildLinkedInJobsURLArgs {
-				config := BuildLinkedInJobsURLArgs{MaxAge: time.Hour * 24}
+			func() LinkedInReaderConfig {
+				config := LinkedInReaderConfig{MaxAge: time.Hour * 24}
 				return config
 			},
 			"?f_TPR=r86400",
 		},
 		{
 			"All fields",
-			func() BuildLinkedInJobsURLArgs {
-				config := BuildLinkedInJobsURLArgs{
+			func() LinkedInReaderConfig {
+				config := LinkedInReaderConfig{
 					Keywords:    []string{"go", "templ"},
 					Location:    "Africa",
 					WorkTypes:   []jobsummoner.WorkType{jobsummoner.WorkTypeHybrid},
@@ -81,7 +81,8 @@ func TestLinkedInURLBuilder(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := BuildLinkedInJobsURL(tt.getConfig())
+			reader := NewHttpLinkedInReader(tt.getConfig())
+			got := reader.buildLinkedInJobsURL()
 			assert.Equal(t, linkedInBaseSearchURL+tt.want, got)
 		})
 	}

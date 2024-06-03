@@ -12,6 +12,15 @@ import (
 	"github.com/pkg/errors"
 )
 
+type LinkedInReaderConfig struct {
+	Keywords    []string
+	Location    string
+	WorkTypes   []jobsummoner.WorkType
+	JobTypes    []jobsummoner.JobType
+	SalaryRange jobsummoner.SalaryRange
+	MaxAge      time.Duration
+}
+
 const linkedInBaseSearchURL = "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search"
 
 type LinkedInReader interface {
@@ -19,14 +28,11 @@ type LinkedInReader interface {
 }
 
 type HttpLinkedInReader struct {
+	config LinkedInReaderConfig
 }
 
 func (m *HttpLinkedInReader) GetJobListingPage(itemOffset int) (io.Reader, error) {
-	url := BuildLinkedInJobsURL(BuildLinkedInJobsURLArgs{
-		Keywords: []string{"go"},
-		Location: "United States",
-		MaxAge:   time.Hour * 12,
-	})
+	url := m.buildLinkedInJobsURL()
 	resp, err := http.Get(url)
 
 	if err != nil {
@@ -36,40 +42,31 @@ func (m *HttpLinkedInReader) GetJobListingPage(itemOffset int) (io.Reader, error
 	return resp.Body, nil
 }
 
-func NewHttpLinkedInReader() *HttpLinkedInReader {
-	return &HttpLinkedInReader{}
+func NewHttpLinkedInReader(config LinkedInReaderConfig) *HttpLinkedInReader {
+	return &HttpLinkedInReader{config}
 }
 
-type BuildLinkedInJobsURLArgs struct {
-	Keywords    []string
-	Location    string
-	WorkTypes   []jobsummoner.WorkType
-	JobTypes    []jobsummoner.JobType
-	SalaryRange jobsummoner.SalaryRange
-	MaxAge      time.Duration
-}
-
-func BuildLinkedInJobsURL(args BuildLinkedInJobsURLArgs) string {
+func (m *HttpLinkedInReader) buildLinkedInJobsURL() string {
 	url, _ := url.Parse(linkedInBaseSearchURL)
 
 	q := url.Query()
-	if len(args.Keywords) > 0 {
-		q.Set("keywords", strings.Join(args.Keywords, " OR "))
+	if len(m.config.Keywords) > 0 {
+		q.Set("keywords", strings.Join(m.config.Keywords, " OR "))
 	}
-	if args.Location != "" {
-		q.Set("location", args.Location)
+	if m.config.Location != "" {
+		q.Set("location", m.config.Location)
 	}
-	if len(args.WorkTypes) > 0 {
-		q.Set("f_WT", join(args.WorkTypes, ","))
+	if len(m.config.WorkTypes) > 0 {
+		q.Set("f_WT", join(m.config.WorkTypes, ","))
 	}
-	if len(args.JobTypes) > 0 {
-		q.Set("f_JT", join(args.JobTypes, ","))
+	if len(m.config.JobTypes) > 0 {
+		q.Set("f_JT", join(m.config.JobTypes, ","))
 	}
-	if args.SalaryRange != "" {
-		q.Set("f_SB2", string(args.SalaryRange))
+	if m.config.SalaryRange != "" {
+		q.Set("f_SB2", string(m.config.SalaryRange))
 	}
-	if args.MaxAge != 0.0 {
-		q.Set("f_TPR", fmt.Sprintf("r%v", args.MaxAge.Seconds()))
+	if m.config.MaxAge != 0.0 {
+		q.Set("f_TPR", fmt.Sprintf("r%v", m.config.MaxAge.Seconds()))
 	}
 
 	url.RawQuery = q.Encode()

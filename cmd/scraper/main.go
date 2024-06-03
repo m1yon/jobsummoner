@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log/slog"
 	"os"
+	"time"
 
 	"github.com/jonboulle/clockwork"
 	"github.com/m1yon/jobsummoner/internal/company"
@@ -15,7 +16,11 @@ import (
 )
 
 func main() {
-	reader := linkedin.NewHttpLinkedInReader()
+	reader := linkedin.NewHttpLinkedInReader(linkedin.LinkedInReaderConfig{
+		Keywords: []string{"go"},
+		Location: "United States",
+		MaxAge:   time.Hour * 12,
+	})
 	scraper := linkedin.NewLinkedInJobScraper(reader)
 
 	c := clockwork.NewRealClock()
