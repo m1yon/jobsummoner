@@ -26,6 +26,10 @@ func NewLinkedInJobScraper(r io.Reader) *LinkedInScraper {
 }
 
 func (l *LinkedInScraper) ScrapeJobs() (jobsummoner.ScrapedJobsResults, []error) {
+	return l.scrapePage()
+}
+
+func (l *LinkedInScraper) scrapePage() (jobsummoner.ScrapedJobsResults, []error) {
 	errs := make([]error, 0, 1)
 	doc, err := goquery.NewDocumentFromReader(l.r)
 
