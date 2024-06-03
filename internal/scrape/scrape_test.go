@@ -82,14 +82,16 @@ func TestScrapeService(t *testing.T) {
 
 		// loop one extra time to ensure no extra calls are made
 		callNotMade := simulateCron(c, callsBetween8pmAnd10pm+1, 30*time.Minute)
-		assert.Equal(t, callsBetween8pmAnd10pm, scraper.calls)
+		// expect an additional startup call
+		assert.Equal(t, callsBetween8pmAnd10pm+1, scraper.calls)
 		assertCallNotMade(t, callNotMade, scraper.calls)
 
 		// advance to 6:30am
 		c.Advance(7*time.Hour + 30*time.Minute)
 
 		callNotMade = simulateCron(c, callsBetween7amAnd8am+1, 30*time.Minute)
-		assert.Equal(t, callsBetween8pmAnd10pm+callsBetween7amAnd8am, scraper.calls)
+		// expect an additional startup call
+		assert.Equal(t, callsBetween8pmAnd10pm+callsBetween7amAnd8am+1, scraper.calls)
 		assertCallNotMade(t, callNotMade, scraper.calls)
 
 		jobServiceMock.AssertExpectations(t)
