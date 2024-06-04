@@ -3,6 +3,7 @@ package sqlitedb
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/m1yon/jobsummoner"
 	"github.com/pkg/errors"
@@ -12,8 +13,8 @@ type SqliteScrapeRepository struct {
 	queries *Queries
 }
 
-func (s *SqliteScrapeRepository) CreateScrape(ctx context.Context, sourceID string) error {
-	err := s.queries.CreateScrape(ctx, sourceID)
+func (s *SqliteScrapeRepository) CreateScrape(ctx context.Context, sourceID string, createdAt time.Time) error {
+	err := s.queries.CreateScrape(ctx, CreateScrapeParams{SourceID: sourceID, CreatedAt: createdAt})
 
 	if err != nil {
 		return errors.Wrap(err, "problem creating scrape")

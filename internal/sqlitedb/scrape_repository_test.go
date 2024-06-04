@@ -14,7 +14,7 @@ func TestScrapeRepository(t *testing.T) {
 		db := NewTestDB()
 		scrapeRepository := NewSqliteScrapeRepository(db)
 
-		err := scrapeRepository.CreateScrape(ctx, "linkedin")
+		err := scrapeRepository.CreateScrape(ctx, "linkedin", time.Now())
 		assert.NoError(t, err)
 
 		scrape, err := scrapeRepository.GetLastScrape(ctx, "linkedin")
@@ -27,13 +27,11 @@ func TestScrapeRepository(t *testing.T) {
 		db := NewTestDB()
 		scrapeRepository := NewSqliteScrapeRepository(db)
 
-		err := scrapeRepository.CreateScrape(ctx, "linkedin")
+		err := scrapeRepository.CreateScrape(ctx, "linkedin", time.Now())
 		assert.NoError(t, err)
-		time.Sleep(1 * time.Second)
-		err = scrapeRepository.CreateScrape(ctx, "linkedin")
+		err = scrapeRepository.CreateScrape(ctx, "linkedin", time.Now().Add(time.Hour*1))
 		assert.NoError(t, err)
-		time.Sleep(1 * time.Second)
-		err = scrapeRepository.CreateScrape(ctx, "linkedin")
+		err = scrapeRepository.CreateScrape(ctx, "linkedin", time.Now().Add(time.Hour*2))
 		assert.NoError(t, err)
 
 		scrape, err := scrapeRepository.GetLastScrape(ctx, "linkedin")

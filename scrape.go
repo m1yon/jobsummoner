@@ -21,6 +21,6 @@ type Scrape struct {
 }
 
 type ScrapeRepository interface {
-	CreateScrape(ctx context.Context, sourceID string) error
+	CreateScrape(ctx context.Context, sourceID string, createdAt time.Time) error
 	GetLastScrape(ctx context.Context, sourceID string) (Scrape, error)
 }

@@ -123,6 +123,33 @@ func TestScrapeService(t *testing.T) {
 		assert.Equal(t, scraper1.calls+scraper2.calls, len(jobServiceMock.Calls))
 	})
 
+	t.Run("gets the latest scrape", func(t *testing.T) {
+		ctx := context.Background()
+		c := getFakeClock(t)
+		logBufferSpy := new(bytes.Buffer)
+		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
+		jobServiceMock := new(mockJobService)
+
+		db := sqlitedb.NewTestDB()
+		scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db)
+		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobServiceMock)
+
+		jobServiceMock.On("CreateJobs", mock.Anything).Return()
+
+		scraper1 := NewSpyScraper()
+		scrapers := []jobsummoner.Scraper{scraper1}
+
+		go scrapeService.Start(scrapers, "TZ=America/Denver */30 7-22 * * *")
+		c.BlockUntil(1)
+
+		simulateCron(c, callsBetween8pmAnd10pm+1, 30*time.Minute)
+
+		scrape, err := scrapeRepository.GetLastScrape(ctx, "linkedin")
+		assert.NoError(t, err)
+		// expect an additional startup call
+		assert.Equal(t, callsBetween8pmAnd10pm+1, scrape.ID)
+	})
+
 	t.Run("logs errors that occur", func(t *testing.T) {
 		c := getFakeClock(t)
 		logBufferSpy := new(bytes.Buffer)

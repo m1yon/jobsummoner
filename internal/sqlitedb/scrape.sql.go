@@ -7,15 +7,21 @@ package sqlitedb
 
 import (
 	"context"
+	"time"
 )
 
 const createScrape = `-- name: CreateScrape :exec
 INSERT INTO scrapes (source_id, created_at)
-VALUES (?, CURRENT_TIMESTAMP)
+VALUES (?, ?)
 `
 
-func (q *Queries) CreateScrape(ctx context.Context, sourceID string) error {
-	_, err := q.db.ExecContext(ctx, createScrape, sourceID)
+type CreateScrapeParams struct {
+	SourceID  string
+	CreatedAt time.Time
+}
+
+func (q *Queries) CreateScrape(ctx context.Context, arg CreateScrapeParams) error {
+	_, err := q.db.ExecContext(ctx, createScrape, arg.SourceID, arg.CreatedAt)
 	return err
 }
 
