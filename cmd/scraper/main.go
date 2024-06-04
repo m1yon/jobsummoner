@@ -18,9 +18,9 @@ import (
 func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	scraper := linkedin.NewLinkedInJobScraper(linkedin.LinkedInReaderConfig{
-		Keywords: []string{"go"},
+		Keywords: []string{"typescript"},
 		Location: "United States",
-		MaxAge:   time.Hour * 12,
+		MaxAge:   time.Minute * 30,
 	}, logger)
 
 	c := clockwork.NewRealClock()
