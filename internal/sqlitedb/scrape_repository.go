@@ -14,7 +14,7 @@ type SqliteScrapeRepository struct {
 }
 
 func (s *SqliteScrapeRepository) CreateScrape(ctx context.Context, sourceID string, createdAt time.Time) error {
-	err := s.queries.CreateScrape(ctx, CreateScrapeParams{SourceID: sourceID, CreatedAt: createdAt})
+	err := s.queries.CreateScrape(ctx, CreateScrapeParams{SourceID: sourceID, CreatedAt: createdAt.UTC()})
 
 	if err != nil {
 		return errors.Wrap(err, "problem creating scrape")
