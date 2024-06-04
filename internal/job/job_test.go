@@ -41,7 +41,81 @@ func TestSqliteJobService(t *testing.T) {
 		assert.Equal(t, jobToCreate, job)
 	})
 
-	t.Run("create jobs and immediately get created jobs", func(t *testing.T) {
+	t.Run("CreateJobs returns a list of job IDs", func(t *testing.T) {
+		ctx := context.Background()
+		db := sqlitedb.NewTestDB()
+		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
+		companyService := company.NewDefaultCompanyService(companyRepository)
+		jobRepository := sqlitedb.NewSqliteJobRepository(db)
+		jobService := NewDefaultJobService(jobRepository, companyService)
+
+		jobsToCreate := []jobsummoner.Job{
+			{
+				Position:    "Software Developer",
+				URL:         "https://linkedin.com/jobs/1",
+				Location:    "San Francisco",
+				CompanyID:   "/google",
+				CompanyName: "Google",
+				SourceID:    "linkedin",
+			},
+			{
+				Position:    "Manager",
+				URL:         "https://linkedin.com/jobs/2",
+				Location:    "Seattle",
+				CompanyID:   "/microsoft",
+				CompanyName: "Microsoft",
+				SourceID:    "linkedin",
+			},
+		}
+
+		ids, errs := jobService.CreateJobs(ctx, jobsToCreate)
+		assert.Equal(t, 0, len(errs))
+
+		for i := range jobsToCreate {
+			id := ids[i]
+			assert.NotEmpty(t, id)
+		}
+	})
+
+	t.Run("new companies exist after jobs created", func(t *testing.T) {
+		ctx := context.Background()
+		db := sqlitedb.NewTestDB()
+		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
+		companyService := company.NewDefaultCompanyService(companyRepository)
+		jobRepository := sqlitedb.NewSqliteJobRepository(db)
+		jobService := NewDefaultJobService(jobRepository, companyService)
+
+		jobsToCreate := []jobsummoner.Job{
+			{
+				Position:    "Software Developer",
+				URL:         "https://linkedin.com/jobs/1",
+				Location:    "San Francisco",
+				CompanyID:   "/google",
+				CompanyName: "Google",
+				SourceID:    "linkedin",
+			},
+			{
+				Position:    "Manager",
+				URL:         "https://linkedin.com/jobs/2",
+				Location:    "Seattle",
+				CompanyID:   "/microsoft",
+				CompanyName: "Microsoft",
+				SourceID:    "linkedin",
+			},
+		}
+
+		ids, errs := jobService.CreateJobs(ctx, jobsToCreate)
+		assert.Equal(t, len(jobsToCreate), len(ids))
+		assert.Equal(t, 0, len(errs))
+
+		for _, jobToCreate := range jobsToCreate {
+			doesCompanyExist, err := companyService.DoesCompanyExist(ctx, jobToCreate.CompanyID)
+			assert.NoError(t, err)
+			assert.Equal(t, true, doesCompanyExist)
+		}
+	})
+
+	t.Run("can get jobs after jobs created", func(t *testing.T) {
 		ctx := context.Background()
 		db := sqlitedb.NewTestDB()
 		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
@@ -74,12 +148,6 @@ func TestSqliteJobService(t *testing.T) {
 
 		for i, jobToCreate := range jobsToCreate {
 			id := ids[i]
-			assert.NotEmpty(t, id)
-
-			doesCompanyExist, err := companyService.DoesCompanyExist(ctx, jobToCreate.CompanyID)
-			assert.NoError(t, err)
-			assert.Equal(t, true, doesCompanyExist)
-
 			job, err := jobService.GetJob(ctx, id)
 			assert.NoError(t, err)
 			assert.Equal(t, jobToCreate, job)
