@@ -59,7 +59,7 @@ const callsBetween8pmAnd10pm = 5
 const callsBetween7amAnd8am = 3
 
 func TestScrapeService(t *testing.T) {
-	t.Run("calls multiple scrapers correctly on a cron and sends the results to the Job Service", func(t *testing.T) {
+	t.Run("calls the scrapers the correct amount of times given a cron", func(t *testing.T) {
 		c := getFakeClock(t)
 		logBufferSpy := new(bytes.Buffer)
 		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
