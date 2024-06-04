@@ -28,6 +28,7 @@ type LinkedInReaderConfig struct {
 	JobTypes    []jobsummoner.JobType
 	SalaryRange jobsummoner.SalaryRange
 	MaxAge      time.Duration
+	InitialPage int
 }
 
 const linkedInBaseSearchURL = "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search"
@@ -89,7 +90,7 @@ type httpGetter interface {
 }
 
 func NewHttpLinkedInReader(config LinkedInReaderConfig, client httpGetter) *HttpLinkedInReader {
-	return &HttpLinkedInReader{config, 0, client}
+	return &HttpLinkedInReader{config, config.InitialPage, client}
 }
 
 func (m *HttpLinkedInReader) buildJobListingURL() string {
@@ -114,8 +115,8 @@ func (m *HttpLinkedInReader) buildJobListingURL() string {
 	if m.config.MaxAge != 0.0 {
 		q.Set("f_TPR", fmt.Sprintf("r%v", m.config.MaxAge.Seconds()))
 	}
-	if m.page > 0 {
-		q.Set("start", fmt.Sprintf("%v", m.page*10))
+	if (m.page - 1) > 0 {
+		q.Set("start", fmt.Sprintf("%v", (m.page-1)*10))
 	}
 
 	url.RawQuery = q.Encode()

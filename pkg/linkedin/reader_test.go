@@ -141,6 +141,16 @@ func TestBuilderJobListingURL(t *testing.T) {
 			"?f_TPR=r86400",
 		},
 		{
+			"Initial Page",
+			func() LinkedInReaderConfig {
+				config := LinkedInReaderConfig{
+					InitialPage: 2,
+				}
+				return config
+			},
+			"?start=10",
+		},
+		{
 			"All fields",
 			func() LinkedInReaderConfig {
 				config := LinkedInReaderConfig{
@@ -150,10 +160,11 @@ func TestBuilderJobListingURL(t *testing.T) {
 					JobTypes:    []jobsummoner.JobType{jobsummoner.JobTypeFullTime, jobsummoner.JobTypeOther},
 					SalaryRange: jobsummoner.SalaryRange200kPlus,
 					MaxAge:      time.Hour * 12,
+					InitialPage: 4,
 				}
 				return config
 			},
-			"?f_JT=F%2CO&f_SB2=9&f_TPR=r43200&f_WT=3&keywords=go+OR+templ&location=Africa",
+			"?f_JT=F%2CO&f_SB2=9&f_TPR=r43200&f_WT=3&keywords=go+OR+templ&location=Africa&start=30",
 		},
 	}
 
