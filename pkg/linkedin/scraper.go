@@ -99,16 +99,19 @@ func (l *LinkedInScraper) scrapePage(reader io.Reader) ([]jobsummoner.Job, error
 		}
 
 		CompanyName := strings.TrimSpace(s.Find(".base-search-card__subtitle").Text())
+		CompanyAvatar, _ := s.Find("img").Attr("data-delayed-url")
 		Location := strings.TrimSpace(s.Find(".job-search-card__location").Text())
 		URL, _ := s.Find(".base-card__full-link").Attr("href")
 
 		Jobs = append(Jobs, jobsummoner.Job{
-			Position:    Position,
-			CompanyID:   CompanyID,
-			CompanyName: CompanyName,
-			Location:    Location,
-			URL:         URL,
-			SourceID:    "linkedin",
+			Position:      Position,
+			CompanyID:     CompanyID,
+			CompanyName:   CompanyName,
+			CompanyURL:    companyLinkURL,
+			CompanyAvatar: CompanyAvatar,
+			Location:      Location,
+			URL:           URL,
+			SourceID:      "linkedin",
 		})
 	})
 
