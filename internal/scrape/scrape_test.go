@@ -26,7 +26,7 @@ func NewSpyScraper() *SpyScraper {
 	}
 }
 
-func (m *SpyScraper) ScrapeJobs() ([]jobsummoner.Job, []error) {
+func (m *SpyScraper) ScrapeJobs(lastScraped time.Time) ([]jobsummoner.Job, []error) {
 	m.calls++
 	return []jobsummoner.Job{}, []error{}
 }
@@ -39,7 +39,7 @@ type SpyFailingScraper struct {
 	*SpyScraper
 }
 
-func (m *SpyFailingScraper) ScrapeJobs() ([]jobsummoner.Job, []error) {
+func (m *SpyFailingScraper) ScrapeJobs(lastScraped time.Time) ([]jobsummoner.Job, []error) {
 	m.calls++
 	return []jobsummoner.Job{}, []error{fmt.Errorf("could not scrape heading"), fmt.Errorf("problem scraping paragraph")}
 }

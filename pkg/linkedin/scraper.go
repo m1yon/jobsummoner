@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/m1yon/jobsummoner"
@@ -35,7 +36,7 @@ func NewCustomLinkedInJobScraper(r LinkedInReader, logger *slog.Logger) *LinkedI
 	return &LinkedInScraper{r, logger}
 }
 
-func (l *LinkedInScraper) ScrapeJobs() ([]jobsummoner.Job, []error) {
+func (l *LinkedInScraper) ScrapeJobs(lastScraped time.Time) ([]jobsummoner.Job, []error) {
 	results := make([]jobsummoner.Job, 0)
 	errs := make([]error, 0)
 

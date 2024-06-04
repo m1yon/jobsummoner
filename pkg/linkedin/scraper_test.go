@@ -17,7 +17,7 @@ func TestLinkedInScraper(t *testing.T) {
 		logger := slog.New(slog.NewTextHandler(nil, nil))
 		scraper := NewCustomLinkedInJobScraper(fileReader, logger)
 
-		got, errs := scraper.ScrapeJobs()
+		got, errs := scraper.ScrapeJobs(time.Now().Add(-30 * time.Minute))
 		want := []jobsummoner.Job{
 			{Position: "Senior Software Engineer", Location: "New York City Metropolitan Area", URL: "https://www.linkedin.com/jobs/view/senior-software-engineer-at-goliath-partners-3941197019?position=1&pageNum=0&refId=QN9Xe6fr3eBaRYE4EMYCIg%3D%3D&trackingId=TtFssv3yCaLnbvL4n7pGqw%3D%3D&trk=public_jobs_jserp-result_search-card", SourceID: "linkedin", CompanyID: "goliath-partners-inc", CompanyName: "Goliath Partners", CompanyAvatar: "https://media.licdn.com/dms/image/C4E0BAQEGxoU_V_HCSw/company-logo_100_100/0/1675096738538/goliath_partners_inc_logo?e=1725494400&v=beta&t=510KsQO8Mz1Sj_F3qxetiyblMOlbQobQENe8gkxvBk0", CompanyURL: "https://www.linkedin.com/company/goliath-partners-inc?trk=public_jobs_jserp-result_job-search-card-subtitle"},
 			{Position: "Full Stack Engineer", Location: "New York City Metropolitan Area", URL: "https://www.linkedin.com/jobs/view/full-stack-engineer-at-goliath-partners-3941199093?position=2&pageNum=0&refId=QN9Xe6fr3eBaRYE4EMYCIg%3D%3D&trackingId=qbBBmbaU%2FGecHsilZU6rPg%3D%3D&trk=public_jobs_jserp-result_search-card", SourceID: "linkedin", CompanyID: "goliath-partners-inc", CompanyName: "Goliath Partners", CompanyAvatar: "https://media.licdn.com/dms/image/C4E0BAQEGxoU_V_HCSw/company-logo_100_100/0/1675096738538/goliath_partners_inc_logo?e=1725494400&v=beta&t=510KsQO8Mz1Sj_F3qxetiyblMOlbQobQENe8gkxvBk0", CompanyURL: "https://www.linkedin.com/company/goliath-partners-inc?trk=public_jobs_jserp-result_job-search-card-subtitle"},
@@ -54,7 +54,7 @@ func TestLinkedInScraper(t *testing.T) {
 		logger := slog.New(slog.NewTextHandler(nil, nil))
 		scraper := NewCustomLinkedInJobScraper(httpReader, logger)
 
-		got, errs := scraper.ScrapeJobs()
+		got, errs := scraper.ScrapeJobs(time.Now().Add(-30 * time.Minute))
 		want := []jobsummoner.Job{
 			{Position: "Senior Software Engineer", Location: "New York City Metropolitan Area", URL: "https://www.linkedin.com/jobs/view/senior-software-engineer-at-goliath-partners-3941197019?position=1&pageNum=0&refId=QN9Xe6fr3eBaRYE4EMYCIg%3D%3D&trackingId=TtFssv3yCaLnbvL4n7pGqw%3D%3D&trk=public_jobs_jserp-result_search-card", SourceID: "linkedin", CompanyID: "goliath-partners-inc", CompanyName: "Goliath Partners", CompanyAvatar: "https://media.licdn.com/dms/image/C4E0BAQEGxoU_V_HCSw/company-logo_100_100/0/1675096738538/goliath_partners_inc_logo?e=1725494400&v=beta&t=510KsQO8Mz1Sj_F3qxetiyblMOlbQobQENe8gkxvBk0", CompanyURL: "https://www.linkedin.com/company/goliath-partners-inc?trk=public_jobs_jserp-result_job-search-card-subtitle"},
 			{Position: "Full Stack Engineer", Location: "New York City Metropolitan Area", URL: "https://www.linkedin.com/jobs/view/full-stack-engineer-at-goliath-partners-3941199093?position=2&pageNum=0&refId=QN9Xe6fr3eBaRYE4EMYCIg%3D%3D&trackingId=qbBBmbaU%2FGecHsilZU6rPg%3D%3D&trk=public_jobs_jserp-result_search-card", SourceID: "linkedin", CompanyID: "goliath-partners-inc", CompanyName: "Goliath Partners", CompanyAvatar: "https://media.licdn.com/dms/image/C4E0BAQEGxoU_V_HCSw/company-logo_100_100/0/1675096738538/goliath_partners_inc_logo?e=1725494400&v=beta&t=510KsQO8Mz1Sj_F3qxetiyblMOlbQobQENe8gkxvBk0", CompanyURL: "https://www.linkedin.com/company/goliath-partners-inc?trk=public_jobs_jserp-result_job-search-card-subtitle"},
@@ -87,7 +87,7 @@ func TestLinkedInScraper(t *testing.T) {
 		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
 		scraper := NewCustomLinkedInJobScraper(mockReader, logger)
 
-		got, errs := scraper.ScrapeJobs()
+		got, errs := scraper.ScrapeJobs(time.Now().Add(-30 * time.Minute))
 		want := []jobsummoner.Job{
 			{Position: "Software Engineer II (Frontend) - Seller Experience", Location: "Los Angeles, CA", URL: "https://www.linkedin.com/jobs/view/software-engineer-ii-frontend-seller-experience-at-stubhub-3916280897?position=2&pageNum=0&refId=fsDMYm%2BoJB2zdtWm%2FhnZ3g%3D%3D&trackingId=dbosG%2Ftu2ZxD8zDrXnrTWw%3D%3D&trk=public_jobs_jserp-result_search-card", SourceID: "linkedin", CompanyID: "stubhub", CompanyName: "StubHub", CompanyAvatar: "https://media.licdn.com/dms/image/C560BAQEeUqY1MzhaLw/company-logo_100_100/0/1655126776940/stubhub_logo?e=1724889600&v=beta&t=DiahoEBnLyp-sHgVPKEWZv2-ANhZzr9bGzkqibzYtSY", CompanyURL: "https://www.linkedin.com/company/stubhub?trk=public_jobs_jserp-result_job-search-card-subtitle"},
 			{Position: "Senior Frontend Developer", Location: "South San Francisco, CA", URL: "https://www.linkedin.com/jobs/view/senior-frontend-developer-at-trilogy-international-3936896077?position=3&pageNum=0&refId=fsDMYm%2BoJB2zdtWm%2FhnZ3g%3D%3D&trackingId=YzFScrnDUB9kJlZ%2FHtqdiQ%3D%3D&trk=public_jobs_jserp-result_search-card", SourceID: "linkedin", CompanyID: "trilogy-international-ltd", CompanyName: "Trilogy International", CompanyAvatar: "https://media.licdn.com/dms/image/C4E0BAQHTr9nVUzrwhA/company-logo_100_100/0/1656664781720/trilogy_international_ltd_logo?e=1724889600&v=beta&t=krum0mLymbeGqVQxNjVuYSQ8qss8irSE1vEwODfX5BE", CompanyURL: "https://www.linkedin.com/company/trilogy-international-ltd?trk=public_jobs_jserp-result_job-search-card-subtitle"},

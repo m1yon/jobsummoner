@@ -6,7 +6,7 @@ import (
 )
 
 type Scraper interface {
-	ScrapeJobs() ([]Job, []error)
+	ScrapeJobs(lastScraped time.Time) ([]Job, []error)
 	GetSourceID() string
 }
 
