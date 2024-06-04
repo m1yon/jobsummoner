@@ -10,6 +10,7 @@ import (
 
 	"github.com/jonboulle/clockwork"
 	"github.com/m1yon/jobsummoner"
+	"github.com/m1yon/jobsummoner/internal/sqlitedb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -79,7 +80,9 @@ func TestScrapeService(t *testing.T) {
 		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
 		jobServiceMock := new(mockJobService)
 
-		scrapeService := NewDefaultScrapeService(c, logger, jobServiceMock)
+		db := sqlitedb.NewTestDB()
+		scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db)
+		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobServiceMock)
 
 		jobServiceMock.On("CreateJobs", mock.Anything).Return()
 
@@ -117,7 +120,10 @@ func TestScrapeService(t *testing.T) {
 		logBufferSpy := new(bytes.Buffer)
 		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
 		jobServiceMock := new(mockJobService)
-		scrapeService := NewDefaultScrapeService(c, logger, jobServiceMock)
+
+		db := sqlitedb.NewTestDB()
+		scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db)
+		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobServiceMock)
 
 		jobServiceMock.On("CreateJobs", mock.Anything).Return()
 		scraper := newSpyFailingScraper()

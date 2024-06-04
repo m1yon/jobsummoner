@@ -11,13 +11,14 @@ import (
 )
 
 type DefaultScrapeService struct {
-	c          clockwork.Clock
-	logger     *slog.Logger
-	jobService jobsummoner.JobService
+	c                clockwork.Clock
+	logger           *slog.Logger
+	scrapeRepository jobsummoner.ScrapeRepository
+	jobService       jobsummoner.JobService
 }
 
-func NewDefaultScrapeService(c clockwork.Clock, logger *slog.Logger, jobService jobsummoner.JobService) *DefaultScrapeService {
-	return &DefaultScrapeService{c, logger, jobService}
+func NewDefaultScrapeService(c clockwork.Clock, logger *slog.Logger, repository jobsummoner.ScrapeRepository, jobService jobsummoner.JobService) *DefaultScrapeService {
+	return &DefaultScrapeService{c, logger, repository, jobService}
 }
 
 func (ss *DefaultScrapeService) Start(scrapers []jobsummoner.Scraper, crontab string) {

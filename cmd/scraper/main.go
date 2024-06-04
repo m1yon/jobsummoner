@@ -44,7 +44,9 @@ func main() {
 	companyService := company.NewDefaultCompanyService(companyRepository)
 	jobRepository := sqlitedb.NewSqliteJobRepository(db)
 	jobService := job.NewDefaultJobService(jobRepository, companyService)
-	scrapeService := scrape.NewDefaultScrapeService(c, logger, jobService)
+
+	scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db)
+	scrapeService := scrape.NewDefaultScrapeService(c, logger, scrapeRepository, jobService)
 
 	scrapeService.Start(scrapers, "TZ=America/Denver */30 7-22 * * *")
 }
