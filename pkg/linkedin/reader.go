@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"net/url"
 	"os"
@@ -27,14 +28,13 @@ type LinkedInReaderConfig struct {
 	WorkTypes   []jobsummoner.WorkType
 	JobTypes    []jobsummoner.JobType
 	SalaryRange jobsummoner.SalaryRange
-	MaxAge      time.Duration
 	InitialPage int
 }
 
 const linkedInBaseSearchURL = "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search"
 
 type LinkedInReader interface {
-	GetNextJobListingPage() (io.Reader, bool, error)
+	GetNextJobListingPage(lastScraped time.Time) (io.Reader, bool, error)
 }
 
 type HttpLinkedInReader struct {
@@ -43,8 +43,8 @@ type HttpLinkedInReader struct {
 	client httpGetter
 }
 
-func (m *HttpLinkedInReader) GetNextJobListingPage() (io.Reader, bool, error) {
-	url := m.buildJobListingURL()
+func (m *HttpLinkedInReader) GetNextJobListingPage(lastScraped time.Time) (io.Reader, bool, error) {
+	url := m.buildJobListingURL(lastScraped)
 	resp, err := m.client.Get(url)
 
 	if err != nil {
@@ -93,10 +93,11 @@ func NewHttpLinkedInReader(config LinkedInReaderConfig, client httpGetter) *Http
 	return &HttpLinkedInReader{config, config.InitialPage, client}
 }
 
-func (m *HttpLinkedInReader) buildJobListingURL() string {
+func (m *HttpLinkedInReader) buildJobListingURL(timeSinceLastScrape time.Time) string {
 	url, _ := url.Parse(linkedInBaseSearchURL)
 
 	q := url.Query()
+	q.Set("f_TPR", fmt.Sprintf("r%v", math.Floor(time.Since(timeSinceLastScrape).Seconds())))
 	if len(m.config.Keywords) > 0 {
 		q.Set("keywords", strings.Join(m.config.Keywords, " OR "))
 	}
@@ -111,9 +112,6 @@ func (m *HttpLinkedInReader) buildJobListingURL() string {
 	}
 	if m.config.SalaryRange != "" {
 		q.Set("f_SB2", string(m.config.SalaryRange))
-	}
-	if m.config.MaxAge != 0.0 {
-		q.Set("f_TPR", fmt.Sprintf("r%v", m.config.MaxAge.Seconds()))
 	}
 	if (m.page - 1) > 0 {
 		q.Set("start", fmt.Sprintf("%v", (m.page-1)*10))
@@ -140,7 +138,7 @@ type FileLinkedInReader struct {
 	page  int
 }
 
-func (m *FileLinkedInReader) GetNextJobListingPage() (io.Reader, bool, error) {
+func (m *FileLinkedInReader) GetNextJobListingPage(lastScraped time.Time) (io.Reader, bool, error) {
 	file, err := os.Open(fmt.Sprintf(m.pathf, m.page))
 
 	if err != nil {

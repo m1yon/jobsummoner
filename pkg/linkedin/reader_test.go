@@ -17,7 +17,7 @@ func TestFileReader(t *testing.T) {
 	t.Run("reads the file and parses the results", func(t *testing.T) {
 		fileReader := NewFileLinkedInReader("./test-helpers/li-job-listings-%v.html")
 
-		buffer, isLastPage, err := fileReader.GetNextJobListingPage()
+		buffer, isLastPage, err := fileReader.GetNextJobListingPage(time.Now().Add(-30 * time.Minute))
 		assert.NoError(t, err)
 		assert.Equal(t, false, isLastPage)
 
@@ -31,7 +31,7 @@ func TestFileReader(t *testing.T) {
 	t.Run("handles failed opening file", func(t *testing.T) {
 		fileReader := NewFileLinkedInReader("./bad-file.html")
 
-		_, _, err := fileReader.GetNextJobListingPage()
+		_, _, err := fileReader.GetNextJobListingPage(time.Now().Add(-30 * time.Minute))
 		if assert.Error(t, err) {
 			assert.Contains(t, err.Error(), errOpeningFile)
 		}
@@ -43,8 +43,8 @@ type stubClient struct {
 }
 
 func (m *stubClient) Get(url string) (resp *http.Response, err error) {
-	if strings.Contains(url, "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?f_TPR=r14400&keywords=Software+Engineer+OR+Manager&location=United+States") {
-		buffer, _, err := m.fileReader.GetNextJobListingPage()
+	if strings.Contains(url, "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?f_TPR=r1800&keywords=Software+Engineer+OR+Manager&location=United+States") {
+		buffer, _, err := m.fileReader.GetNextJobListingPage(time.Now().Add(-30 * time.Minute))
 
 		if err != nil {
 			return &http.Response{}, err
@@ -71,10 +71,9 @@ func TestHttpReader(t *testing.T) {
 		httpReader := NewHttpLinkedInReader(LinkedInReaderConfig{
 			Keywords: []string{"Software Engineer", "Manager"},
 			Location: "United States",
-			MaxAge:   time.Hour * 4,
 		}, stubClient)
 
-		buffer, isLastPage, err := httpReader.GetNextJobListingPage()
+		buffer, isLastPage, err := httpReader.GetNextJobListingPage(time.Now().Add(-30 * time.Minute))
 		assert.NoError(t, err)
 		assert.Equal(t, false, isLastPage)
 
@@ -98,7 +97,7 @@ func TestBuilderJobListingURL(t *testing.T) {
 				config := LinkedInReaderConfig{Keywords: []string{"react", "typescript"}}
 				return config
 			},
-			"?keywords=react+OR+typescript",
+			"?f_TPR=r1800&keywords=react+OR+typescript",
 		},
 		{
 			"Location field",
@@ -106,7 +105,7 @@ func TestBuilderJobListingURL(t *testing.T) {
 				config := LinkedInReaderConfig{Location: "United States"}
 				return config
 			},
-			"?location=United+States",
+			"?f_TPR=r1800&location=United+States",
 		},
 		{
 			"WorkTypes field",
@@ -114,7 +113,7 @@ func TestBuilderJobListingURL(t *testing.T) {
 				config := LinkedInReaderConfig{WorkTypes: []jobsummoner.WorkType{jobsummoner.WorkTypeRemote, jobsummoner.WorkTypeOnSite}}
 				return config
 			},
-			"?f_WT=2%2C1",
+			"?f_TPR=r1800&f_WT=2%2C1",
 		},
 		{
 			"JobTypes field",
@@ -122,7 +121,7 @@ func TestBuilderJobListingURL(t *testing.T) {
 				config := LinkedInReaderConfig{JobTypes: []jobsummoner.JobType{jobsummoner.JobTypeFullTime, jobsummoner.JobTypeOther}}
 				return config
 			},
-			"?f_JT=F%2CO",
+			"?f_JT=F%2CO&f_TPR=r1800",
 		},
 		{
 			"SalaryRange field",
@@ -130,15 +129,7 @@ func TestBuilderJobListingURL(t *testing.T) {
 				config := LinkedInReaderConfig{SalaryRange: jobsummoner.SalaryRange160kPlus}
 				return config
 			},
-			"?f_SB2=7",
-		},
-		{
-			"MaxAge field",
-			func() LinkedInReaderConfig {
-				config := LinkedInReaderConfig{MaxAge: time.Hour * 24}
-				return config
-			},
-			"?f_TPR=r86400",
+			"?f_SB2=7&f_TPR=r1800",
 		},
 		{
 			"Initial Page",
@@ -148,7 +139,7 @@ func TestBuilderJobListingURL(t *testing.T) {
 				}
 				return config
 			},
-			"?start=10",
+			"?f_TPR=r1800&start=10",
 		},
 		{
 			"All fields",
@@ -159,19 +150,18 @@ func TestBuilderJobListingURL(t *testing.T) {
 					WorkTypes:   []jobsummoner.WorkType{jobsummoner.WorkTypeHybrid},
 					JobTypes:    []jobsummoner.JobType{jobsummoner.JobTypeFullTime, jobsummoner.JobTypeOther},
 					SalaryRange: jobsummoner.SalaryRange200kPlus,
-					MaxAge:      time.Hour * 12,
 					InitialPage: 4,
 				}
 				return config
 			},
-			"?f_JT=F%2CO&f_SB2=9&f_TPR=r43200&f_WT=3&keywords=go+OR+templ&location=Africa&start=30",
+			"?f_JT=F%2CO&f_SB2=9&f_TPR=r1800&f_WT=3&keywords=go+OR+templ&location=Africa&start=30",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			reader := NewHttpLinkedInReader(tt.getConfig(), http.DefaultClient)
-			got := reader.buildJobListingURL()
+			got := reader.buildJobListingURL(time.Now().Add(-30 * time.Minute))
 			assert.Equal(t, linkedInBaseSearchURL+tt.want, got)
 		})
 	}

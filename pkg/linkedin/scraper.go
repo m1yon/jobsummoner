@@ -41,7 +41,7 @@ func (l *LinkedInScraper) ScrapeJobs(lastScraped time.Time) ([]jobsummoner.Job, 
 	errs := make([]error, 0)
 
 	for {
-		reader, isLastPage, err := l.r.GetNextJobListingPage()
+		reader, isLastPage, err := l.r.GetNextJobListingPage(time.Now().Add(-30 * time.Minute))
 
 		if err != nil {
 			errs = append(errs, errors.Wrap(err, "failed getting page"))

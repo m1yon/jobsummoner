@@ -49,7 +49,6 @@ func TestLinkedInScraper(t *testing.T) {
 		httpReader := NewHttpLinkedInReader(LinkedInReaderConfig{
 			Keywords: []string{"Software Engineer", "Manager"},
 			Location: "United States",
-			MaxAge:   time.Hour * 4,
 		}, stubClient)
 		logger := slog.New(slog.NewTextHandler(nil, nil))
 		scraper := NewCustomLinkedInJobScraper(httpReader, logger)

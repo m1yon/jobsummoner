@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"log/slog"
 	"os"
-	"time"
 
 	"github.com/jonboulle/clockwork"
 	"github.com/m1yon/jobsummoner"
@@ -22,7 +21,6 @@ func main() {
 		linkedin.NewLinkedInJobScraper(linkedin.LinkedInReaderConfig{
 			Keywords: []string{"typescript"},
 			Location: "United States",
-			MaxAge:   time.Minute * 30,
 		}, logger),
 	}
 
