@@ -31,8 +31,8 @@ type Job struct {
 	SourceID   string
 }
 
-type ScrapingSource struct {
-	ID     int64
-	Name   string
-	Config interface{}
+type Scrape struct {
+	ID        int64
+	SourceID  string
+	CreatedAt time.Time
 }
