@@ -18,6 +18,7 @@ import (
 const (
 	ErrOpeningFile                 = "failed opening file"
 	ErrWritingFileContentsToBuffer = "failed writing file contents to buffer"
+	ErrDeterminingIfLastPage       = "failed to determine if last page"
 )
 
 type LinkedInReaderConfig struct {
@@ -50,7 +51,7 @@ func (m *HttpLinkedInReader) GetNextJobListingPage() (io.Reader, bool, error) {
 
 	if isLastPage, err := isLastJobListingPage(resp.Body); isLastPage {
 		if err != nil {
-			return nil, false, errors.Wrap(err, "error determining if job listing page is last")
+			return nil, false, errors.Wrap(err, ErrDeterminingIfLastPage)
 		}
 
 		return resp.Body, true, nil
