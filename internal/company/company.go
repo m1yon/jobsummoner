@@ -34,3 +34,13 @@ func (c *DefaultCompanyService) DoesCompanyExist(ctx context.Context, id string)
 
 	return doesCompanyExist, nil
 }
+
+func (c *DefaultCompanyService) GetCompany(ctx context.Context, id string) (jobsummoner.Company, error) {
+	company, err := c.companyRepository.GetCompany(ctx, id)
+
+	if err != nil {
+		return jobsummoner.Company{}, errors.Wrap(err, "error finding company in company service")
+	}
+
+	return company, nil
+}

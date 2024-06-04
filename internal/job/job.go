@@ -58,7 +58,7 @@ func (j *DefaultJobService) CreateJob(ctx context.Context, job jobsummoner.Job) 
 	}
 
 	if !doesCompanyExist {
-		_, err := j.companyService.CreateCompany(ctx, jobsummoner.Company{ID: job.CompanyID, Name: job.CompanyName})
+		_, err := j.companyService.CreateCompany(ctx, jobsummoner.Company{ID: job.CompanyID, Name: job.CompanyName, SourceID: job.SourceID, Url: job.CompanyURL, Avatar: job.CompanyAvatar})
 
 		if err != nil {
 			return "", errors.Wrap(err, "error creating company in job service")

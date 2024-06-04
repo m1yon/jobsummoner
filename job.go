@@ -44,12 +44,14 @@ const (
 )
 
 type Job struct {
-	Position    string
-	CompanyID   string
-	CompanyName string
-	Location    string
-	URL         string
-	SourceID    string
+	Position      string
+	Location      string
+	URL           string
+	SourceID      string
+	CompanyID     string
+	CompanyName   string
+	CompanyAvatar string
+	CompanyURL    string
 }
 
 type JobRepository interface {
