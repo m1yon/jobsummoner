@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"log/slog"
-	"net/http"
 	"os"
 	"time"
 
@@ -17,13 +16,12 @@ import (
 )
 
 func main() {
-	reader := linkedin.NewHttpLinkedInReader(linkedin.LinkedInReaderConfig{
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	scraper := linkedin.NewLinkedInJobScraper(linkedin.LinkedInReaderConfig{
 		Keywords: []string{"go"},
 		Location: "United States",
 		MaxAge:   time.Hour * 12,
-	}, http.DefaultClient)
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	scraper := linkedin.NewLinkedInJobScraper(reader, logger)
+	}, logger)
 
 	c := clockwork.NewRealClock()
 

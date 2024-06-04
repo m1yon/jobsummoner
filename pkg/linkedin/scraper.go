@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -13,9 +14,9 @@ import (
 )
 
 const (
-	ErrInvalidHTML          = "HTML could not be parsed"
-	ErrParsingCompanyLink   = "problem parsing company link url"
-	ErrMalformedCompanyLink = "malformed company link url for parsed company link url: %v"
+	errInvalidHTML          = "HTML could not be parsed"
+	errParsingCompanyLink   = "problem parsing company link url"
+	errMalformedCompanyLink = "malformed company link url for parsed company link url: %v"
 )
 
 type LinkedInScraper struct {
@@ -23,7 +24,14 @@ type LinkedInScraper struct {
 	logger *slog.Logger
 }
 
-func NewLinkedInJobScraper(r LinkedInReader, logger *slog.Logger) *LinkedInScraper {
+// Initialize a new scraper that uses the default http client.
+func NewLinkedInJobScraper(config LinkedInReaderConfig, logger *slog.Logger) *LinkedInScraper {
+	reader := NewHttpLinkedInReader(config, http.DefaultClient)
+
+	return NewCustomLinkedInJobScraper(reader, logger)
+}
+
+func NewCustomLinkedInJobScraper(r LinkedInReader, logger *slog.Logger) *LinkedInScraper {
 	return &LinkedInScraper{r, logger}
 }
 
@@ -60,7 +68,7 @@ func (l *LinkedInScraper) scrapePage(reader io.Reader) ([]jobsummoner.Job, error
 	doc, err := goquery.NewDocumentFromReader(reader)
 
 	if err != nil {
-		return []jobsummoner.Job{}, errors.Wrap(err, ErrInvalidHTML)
+		return []jobsummoner.Job{}, errors.Wrap(err, errInvalidHTML)
 	}
 
 	jobElements := doc.Find("body > li")
@@ -74,7 +82,7 @@ func (l *LinkedInScraper) scrapePage(reader io.Reader) ([]jobsummoner.Job, error
 		parsedCompanyLinkURL, err := url.Parse(companyLinkURL)
 
 		if err != nil {
-			l.logger.Error(errors.Wrap(err, ErrParsingCompanyLink).Error())
+			l.logger.Error(errors.Wrap(err, errParsingCompanyLink).Error())
 			return
 		}
 
@@ -82,7 +90,7 @@ func (l *LinkedInScraper) scrapePage(reader io.Reader) ([]jobsummoner.Job, error
 		CompanyID := segments[len(segments)-1]
 
 		if CompanyID == "" {
-			l.logger.Error(fmt.Errorf(ErrMalformedCompanyLink, parsedCompanyLinkURL).Error())
+			l.logger.Error(fmt.Errorf(errMalformedCompanyLink, parsedCompanyLinkURL).Error())
 			return
 		}
 

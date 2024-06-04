@@ -16,9 +16,9 @@ import (
 )
 
 const (
-	ErrOpeningFile                 = "failed opening file"
-	ErrWritingFileContentsToBuffer = "failed writing file contents to buffer"
-	ErrDeterminingIfLastPage       = "failed to determine if last page"
+	errOpeningFile                 = "failed opening file"
+	errWritingFileContentsToBuffer = "failed writing file contents to buffer"
+	errDeterminingIfLastPage       = "failed to determine if last page"
 )
 
 type LinkedInReaderConfig struct {
@@ -39,7 +39,7 @@ type LinkedInReader interface {
 type HttpLinkedInReader struct {
 	config LinkedInReaderConfig
 	page   int
-	client HttpGetter
+	client httpGetter
 }
 
 func (m *HttpLinkedInReader) GetNextJobListingPage() (io.Reader, bool, error) {
@@ -72,7 +72,7 @@ func isLastJobListingPage(reader io.Reader) (bool, error) {
 	doc, err := goquery.NewDocumentFromReader(reader)
 
 	if err != nil {
-		return true, errors.Wrap(err, ErrInvalidHTML)
+		return true, errors.Wrap(err, errInvalidHTML)
 	}
 
 	jobElements := doc.Find("body > li")
@@ -84,11 +84,11 @@ func isLastJobListingPage(reader io.Reader) (bool, error) {
 	return false, nil
 }
 
-type HttpGetter interface {
+type httpGetter interface {
 	Get(url string) (resp *http.Response, err error)
 }
 
-func NewHttpLinkedInReader(config LinkedInReaderConfig, client HttpGetter) *HttpLinkedInReader {
+func NewHttpLinkedInReader(config LinkedInReaderConfig, client httpGetter) *HttpLinkedInReader {
 	return &HttpLinkedInReader{config, 0, client}
 }
 
@@ -143,12 +143,12 @@ func (m *FileLinkedInReader) GetNextJobListingPage() (io.Reader, bool, error) {
 	file, err := os.Open(fmt.Sprintf(m.pathf, m.page))
 
 	if err != nil {
-		return &bytes.Buffer{}, false, errors.Wrap(err, ErrOpeningFile)
+		return &bytes.Buffer{}, false, errors.Wrap(err, errOpeningFile)
 	}
 
 	var buffer bytes.Buffer
 	if _, err := io.Copy(&buffer, file); err != nil {
-		return &bytes.Buffer{}, false, errors.Wrap(err, ErrWritingFileContentsToBuffer)
+		return &bytes.Buffer{}, false, errors.Wrap(err, errWritingFileContentsToBuffer)
 	}
 
 	if isLastPage, err := isLastJobListingPage(bytes.NewBuffer(buffer.Bytes())); isLastPage {

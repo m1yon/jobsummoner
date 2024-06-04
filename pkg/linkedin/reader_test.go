@@ -33,7 +33,7 @@ func TestFileReader(t *testing.T) {
 
 		_, _, err := fileReader.GetNextJobListingPage()
 		if assert.Error(t, err) {
-			assert.Contains(t, err.Error(), ErrOpeningFile)
+			assert.Contains(t, err.Error(), errOpeningFile)
 		}
 	})
 }

@@ -15,7 +15,7 @@ func TestLinkedInScraper(t *testing.T) {
 	t.Run("file reader - scrape and paginates job listings correctly with 2 pages", func(t *testing.T) {
 		fileReader := NewFileLinkedInReader("./test-helpers/li-job-listings-%v.html")
 		logger := slog.New(slog.NewTextHandler(nil, nil))
-		scraper := NewLinkedInJobScraper(fileReader, logger)
+		scraper := NewCustomLinkedInJobScraper(fileReader, logger)
 
 		got, errs := scraper.ScrapeJobs()
 		want := []jobsummoner.Job{
@@ -52,7 +52,7 @@ func TestLinkedInScraper(t *testing.T) {
 			MaxAge:   time.Hour * 4,
 		}, stubClient)
 		logger := slog.New(slog.NewTextHandler(nil, nil))
-		scraper := NewLinkedInJobScraper(httpReader, logger)
+		scraper := NewCustomLinkedInJobScraper(httpReader, logger)
 
 		got, errs := scraper.ScrapeJobs()
 		want := []jobsummoner.Job{
@@ -85,7 +85,7 @@ func TestLinkedInScraper(t *testing.T) {
 		mockReader := NewFileLinkedInReader("./test-helpers/li-job-listings_bad-company-url-%v.html")
 		logBufferSpy := new(bytes.Buffer)
 		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
-		scraper := NewLinkedInJobScraper(mockReader, logger)
+		scraper := NewCustomLinkedInJobScraper(mockReader, logger)
 
 		got, errs := scraper.ScrapeJobs()
 		want := []jobsummoner.Job{
@@ -95,6 +95,6 @@ func TestLinkedInScraper(t *testing.T) {
 
 		assert.Equal(t, want, got)
 		assert.Equal(t, 0, len(errs))
-		assert.Contains(t, logBufferSpy.String(), fmt.Sprintf(ErrMalformedCompanyLink, "fda&=+!-//"))
+		assert.Contains(t, logBufferSpy.String(), fmt.Sprintf(errMalformedCompanyLink, "fda&=+!-//"))
 	})
 }
