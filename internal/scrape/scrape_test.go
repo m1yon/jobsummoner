@@ -73,36 +73,43 @@ func (j *mockJobService) CreateJob(ctx context.Context, jobs jobsummoner.Job) (s
 }
 
 func TestScrapeService(t *testing.T) {
-	t.Run("calls the function correctly on a cron and sends the results to the Job Service", func(t *testing.T) {
+	t.Run("calls multiple scrapers correctly on a cron and sends the results to the Job Service", func(t *testing.T) {
 		c, _, jobServiceMock, scrapeService := initScrapeServiceSpies(t)
-		scraper := NewSpyScraper()
+		scraper1 := NewSpyScraper()
+		scraper2 := NewSpyScraper()
+		scrapers := []jobsummoner.Scraper{scraper1, scraper2}
 
-		go scrapeService.Start(scraper, "TZ=America/Denver */30 7-22 * * *")
+		go scrapeService.Start(scrapers, "TZ=America/Denver */30 7-22 * * *")
 		c.BlockUntil(1)
 
 		// loop one extra time to ensure no extra calls are made
 		callNotMade := simulateCron(c, callsBetween8pmAnd10pm+1, 30*time.Minute)
 		// expect an additional startup call
-		assert.Equal(t, callsBetween8pmAnd10pm+1, scraper.calls)
-		assertCallNotMade(t, callNotMade, scraper.calls)
+		assert.Equal(t, callsBetween8pmAnd10pm+1, scraper1.calls)
+		assertCallNotMade(t, callNotMade, scraper1.calls)
+		assert.Equal(t, callsBetween8pmAnd10pm+1, scraper2.calls)
+		assertCallNotMade(t, callNotMade, scraper2.calls)
 
 		// advance to 6:30am
 		c.Advance(7*time.Hour + 30*time.Minute)
 
 		callNotMade = simulateCron(c, callsBetween7amAnd8am+1, 30*time.Minute)
 		// expect an additional startup call
-		assert.Equal(t, callsBetween8pmAnd10pm+callsBetween7amAnd8am+1, scraper.calls)
-		assertCallNotMade(t, callNotMade, scraper.calls)
+		assert.Equal(t, callsBetween8pmAnd10pm+callsBetween7amAnd8am+1, scraper1.calls)
+		assertCallNotMade(t, callNotMade, scraper1.calls)
+		assert.Equal(t, callsBetween8pmAnd10pm+callsBetween7amAnd8am+1, scraper2.calls)
+		assertCallNotMade(t, callNotMade, scraper2.calls)
 
 		jobServiceMock.AssertExpectations(t)
-		assert.Equal(t, scraper.calls, len(jobServiceMock.Calls))
+		assert.Equal(t, scraper1.calls+scraper2.calls, len(jobServiceMock.Calls))
 	})
 
 	t.Run("logs errors that occur", func(t *testing.T) {
 		c, logBufferSpy, jobServiceMock, scrapeService := initScrapeServiceSpies(t)
 		scraper := newSpyFailingScraper()
+		scrapers := []jobsummoner.Scraper{scraper}
 
-		go scrapeService.Start(scraper, "TZ=America/Denver */30 7-22 * * *")
+		go scrapeService.Start(scrapers, "TZ=America/Denver */30 7-22 * * *")
 		c.BlockUntil(1)
 
 		simulateCron(c, 2, 30*time.Minute)

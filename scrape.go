@@ -5,5 +5,5 @@ type Scraper interface {
 }
 
 type ScrapeService interface {
-	Start(scraper Scraper, crontab string)
+	Start(scraper []Scraper, crontab string)
 }

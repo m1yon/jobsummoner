@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/jonboulle/clockwork"
+	"github.com/m1yon/jobsummoner"
 	"github.com/m1yon/jobsummoner/internal/company"
 	"github.com/m1yon/jobsummoner/internal/job"
 	"github.com/m1yon/jobsummoner/internal/scrape"
@@ -17,11 +18,13 @@ import (
 
 func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	scraper := linkedin.NewLinkedInJobScraper(linkedin.LinkedInReaderConfig{
-		Keywords: []string{"typescript"},
-		Location: "United States",
-		MaxAge:   time.Minute * 30,
-	}, logger)
+	scrapers := []jobsummoner.Scraper{
+		linkedin.NewLinkedInJobScraper(linkedin.LinkedInReaderConfig{
+			Keywords: []string{"typescript"},
+			Location: "United States",
+			MaxAge:   time.Minute * 30,
+		}, logger),
+	}
 
 	c := clockwork.NewRealClock()
 
@@ -43,5 +46,5 @@ func main() {
 	jobService := job.NewDefaultJobService(jobRepository, companyService)
 	scrapeService := scrape.NewDefaultScrapeService(c, logger, jobService)
 
-	scrapeService.Start(scraper, "TZ=America/Denver */30 7-22 * * *")
+	scrapeService.Start(scrapers, "TZ=America/Denver */30 7-22 * * *")
 }

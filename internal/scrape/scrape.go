@@ -20,7 +20,7 @@ func NewDefaultScrapeService(c clockwork.Clock, logger *slog.Logger, jobService 
 	return &DefaultScrapeService{c, logger, jobService}
 }
 
-func (ss *DefaultScrapeService) Start(scraper jobsummoner.Scraper, crontab string) {
+func (ss *DefaultScrapeService) Start(scrapers []jobsummoner.Scraper, crontab string) {
 	ctx := context.Background()
 	ss.logger.Info("Initializing scrape scheduler...")
 	s, err := gocron.NewScheduler(gocron.WithClock(ss.c))
@@ -42,15 +42,21 @@ func (ss *DefaultScrapeService) Start(scraper jobsummoner.Scraper, crontab strin
 		gocron.CronJob(crontab, false),
 		gocron.NewTask(func() {
 			ss.logger.Info("scraping jobs...")
-			results, errs := scraper.ScrapeJobs()
 
-			for _, err := range errs {
-				ss.logger.Error("job scrape failure", slog.String("err", err.Error()))
+			numberOfJobsScraped := 0
+
+			for _, scraper := range scrapers {
+				results, errs := scraper.ScrapeJobs()
+
+				for _, err := range errs {
+					ss.logger.Error("job scrape failure", slog.String("err", err.Error()))
+				}
+
+				ss.jobService.CreateJobs(ctx, results)
+				numberOfJobsScraped++
 			}
 
-			ss.jobService.CreateJobs(ctx, results)
-
-			ss.logger.Info("scrape successful", slog.Int("jobs", len(results)))
+			ss.logger.Info("scrape successful", slog.Int("jobs", numberOfJobsScraped))
 		}),
 		gocron.WithStartAt(gocron.WithStartImmediately()),
 	)
