@@ -74,7 +74,15 @@ func (j *mockJobService) CreateJob(ctx context.Context, jobs jobsummoner.Job) (s
 
 func TestScrapeService(t *testing.T) {
 	t.Run("calls multiple scrapers correctly on a cron and sends the results to the Job Service", func(t *testing.T) {
-		c, _, jobServiceMock, scrapeService := initScrapeServiceSpies(t)
+		c := getFakeClock(t)
+		logBufferSpy := new(bytes.Buffer)
+		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
+		jobServiceMock := new(mockJobService)
+
+		scrapeService := NewDefaultScrapeService(c, logger, jobServiceMock)
+
+		jobServiceMock.On("CreateJobs", mock.Anything).Return()
+
 		scraper1 := NewSpyScraper()
 		scraper2 := NewSpyScraper()
 		scrapers := []jobsummoner.Scraper{scraper1, scraper2}
@@ -105,7 +113,13 @@ func TestScrapeService(t *testing.T) {
 	})
 
 	t.Run("logs errors that occur", func(t *testing.T) {
-		c, logBufferSpy, jobServiceMock, scrapeService := initScrapeServiceSpies(t)
+		c := getFakeClock(t)
+		logBufferSpy := new(bytes.Buffer)
+		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
+		jobServiceMock := new(mockJobService)
+		scrapeService := NewDefaultScrapeService(c, logger, jobServiceMock)
+
+		jobServiceMock.On("CreateJobs", mock.Anything).Return()
 		scraper := newSpyFailingScraper()
 		scrapers := []jobsummoner.Scraper{scraper}
 
@@ -120,19 +134,6 @@ func TestScrapeService(t *testing.T) {
 		jobServiceMock.AssertExpectations(t)
 		assert.Equal(t, scraper.calls, len(jobServiceMock.Calls))
 	})
-}
-
-func initScrapeServiceSpies(t *testing.T) (clockwork.FakeClock, *bytes.Buffer, *mockJobService, *DefaultScrapeService) {
-	t.Helper()
-	c := getFakeClock(t)
-	logBufferSpy := new(bytes.Buffer)
-	logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
-	jobServiceMock := new(mockJobService)
-	scrapeService := NewDefaultScrapeService(c, logger, jobServiceMock)
-
-	jobServiceMock.On("CreateJobs", mock.Anything).Return()
-
-	return c, logBufferSpy, jobServiceMock, scrapeService
 }
 
 func simulateCron(c clockwork.FakeClock, numberOfCalls int, advanceInterval time.Duration) bool {

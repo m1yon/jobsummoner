@@ -46,8 +46,3 @@ func (s *SqliteCompanyRepository) CreateCompany(ctx context.Context, company job
 
 	return company.ID, nil
 }
-
-func NewInMemorySqliteCompanyRepository(db *sql.DB) *SqliteCompanyRepository {
-	queries := New(db)
-	return &SqliteCompanyRepository{queries}
-}

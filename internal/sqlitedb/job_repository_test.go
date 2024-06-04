@@ -12,8 +12,8 @@ func TestJobRepository(t *testing.T) {
 	t.Run("create job and immediately get created job", func(t *testing.T) {
 		ctx := context.Background()
 		db := NewTestDB()
-		companyRepository := NewInMemorySqliteCompanyRepository(db)
-		jobRepository := NewInMemorySqliteJobRepository(db)
+		companyRepository := NewSqliteCompanyRepository(db)
+		jobRepository := NewSqliteJobRepository(db)
 
 		companyToCreate := jobsummoner.Company{
 			ID:       "/google",

@@ -12,7 +12,7 @@ func TestCompanyRepository(t *testing.T) {
 	t.Run("create company and ensure it exists", func(t *testing.T) {
 		ctx := context.Background()
 		db := NewTestDB()
-		companyRepository := NewInMemorySqliteCompanyRepository(db)
+		companyRepository := NewSqliteCompanyRepository(db)
 
 		companyToCreate := jobsummoner.Company{
 			ID:       "/google",

@@ -70,8 +70,3 @@ func generateJobID(company_id string, position string) string {
 
 	return hex.EncodeToString(hash)
 }
-
-func NewInMemorySqliteJobRepository(db *sql.DB) *SqliteJobRepository {
-	queries := New(db)
-	return &SqliteJobRepository{queries}
-}
