@@ -1,6 +1,10 @@
 package linkedin
 
 import (
+	"errors"
+	"io"
+	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -9,8 +13,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestReader(t *testing.T) {
-	t.Run("reads the file", func(t *testing.T) {
+func TestFileReader(t *testing.T) {
+	t.Run("reads the file and parses the results", func(t *testing.T) {
 		fileReader := NewFileLinkedInReader("./test-helpers/li-job-listings-%v.html")
 
 		buffer, isLastPage, err := fileReader.GetNextJobListingPage()
@@ -31,6 +35,54 @@ func TestReader(t *testing.T) {
 		if assert.Error(t, err) {
 			assert.Contains(t, err.Error(), ErrOpeningFile)
 		}
+	})
+}
+
+type stubClient struct {
+	fileReader *FileLinkedInReader
+}
+
+func (m *stubClient) Get(url string) (resp *http.Response, err error) {
+	if strings.Contains(url, "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?f_TPR=r14400&keywords=Software+Engineer+OR+Manager&location=United+States") {
+		buffer, _, err := m.fileReader.GetNextJobListingPage()
+
+		if err != nil {
+			return &http.Response{}, err
+		}
+
+		Body := io.NopCloser(buffer)
+
+		return &http.Response{
+			Body: Body,
+		}, nil
+	}
+
+	return &http.Response{}, errors.New("bad request")
+}
+
+func NewStubClient() *stubClient {
+	fileReader := NewFileLinkedInReader("./test-helpers/li-job-listings-%v.html")
+	return &stubClient{fileReader}
+}
+
+func TestHttpReader(t *testing.T) {
+	t.Run("hits the LinkedIn API and parses the results", func(t *testing.T) {
+		stubClient := NewStubClient()
+		httpReader := NewHttpLinkedInReader(LinkedInReaderConfig{
+			Keywords: []string{"Software Engineer", "Manager"},
+			Location: "United States",
+			MaxAge:   time.Hour * 4,
+		}, stubClient)
+
+		buffer, isLastPage, err := httpReader.GetNextJobListingPage()
+		assert.NoError(t, err)
+		assert.Equal(t, false, isLastPage)
+
+		doc, err := goquery.NewDocumentFromReader(buffer)
+		assert.NoError(t, err)
+
+		numberOfJobElements := doc.Find("body > li").Length()
+		assert.Equal(t, 10, numberOfJobElements)
 	})
 }
 
@@ -107,7 +159,7 @@ func TestBuilderJobListingURL(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			reader := NewHttpLinkedInReader(tt.getConfig())
+			reader := NewHttpLinkedInReader(tt.getConfig(), http.DefaultClient)
 			got := reader.buildJobListingURL()
 			assert.Equal(t, linkedInBaseSearchURL+tt.want, got)
 		})

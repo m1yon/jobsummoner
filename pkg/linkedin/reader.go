@@ -39,27 +39,33 @@ type LinkedInReader interface {
 type HttpLinkedInReader struct {
 	config LinkedInReaderConfig
 	page   int
+	client HttpGetter
 }
 
 func (m *HttpLinkedInReader) GetNextJobListingPage() (io.Reader, bool, error) {
 	url := m.buildJobListingURL()
-	resp, err := http.Get(url)
+	resp, err := m.client.Get(url)
 
 	if err != nil {
-		return nil, false, errors.Wrap(err, "error fetching job listing page")
+		return &bytes.Buffer{}, false, errors.Wrap(err, "failed fetching job listings page")
 	}
 
-	if isLastPage, err := isLastJobListingPage(resp.Body); isLastPage {
+	var buffer bytes.Buffer
+	if _, err := io.Copy(&buffer, resp.Body); err != nil {
+		return &bytes.Buffer{}, false, errors.Wrap(err, "failed writing response body contents to buffer")
+	}
+
+	if isLastPage, err := isLastJobListingPage(bytes.NewBuffer(buffer.Bytes())); isLastPage {
 		if err != nil {
-			return nil, false, errors.Wrap(err, ErrDeterminingIfLastPage)
+			return &bytes.Buffer{}, false, errors.Wrap(err, "error determining if job listing page is last")
 		}
 
-		return resp.Body, true, nil
+		return &buffer, true, nil
 	}
 
 	m.page++
 
-	return resp.Body, false, nil
+	return &buffer, false, nil
 }
 
 func isLastJobListingPage(reader io.Reader) (bool, error) {
@@ -78,8 +84,12 @@ func isLastJobListingPage(reader io.Reader) (bool, error) {
 	return false, nil
 }
 
-func NewHttpLinkedInReader(config LinkedInReaderConfig) *HttpLinkedInReader {
-	return &HttpLinkedInReader{config, 0}
+type HttpGetter interface {
+	Get(url string) (resp *http.Response, err error)
+}
+
+func NewHttpLinkedInReader(config LinkedInReaderConfig, client HttpGetter) *HttpLinkedInReader {
+	return &HttpLinkedInReader{config, 0, client}
 }
 
 func (m *HttpLinkedInReader) buildJobListingURL() string {
@@ -103,6 +113,9 @@ func (m *HttpLinkedInReader) buildJobListingURL() string {
 	}
 	if m.config.MaxAge != 0.0 {
 		q.Set("f_TPR", fmt.Sprintf("r%v", m.config.MaxAge.Seconds()))
+	}
+	if m.page > 0 {
+		q.Set("start", fmt.Sprintf("%v", m.page*10))
 	}
 
 	url.RawQuery = q.Encode()

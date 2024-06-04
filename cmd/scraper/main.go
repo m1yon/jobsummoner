@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"log/slog"
+	"net/http"
 	"os"
 	"time"
 
@@ -20,7 +21,7 @@ func main() {
 		Keywords: []string{"go"},
 		Location: "United States",
 		MaxAge:   time.Hour * 12,
-	})
+	}, http.DefaultClient)
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	scraper := linkedin.NewLinkedInJobScraper(reader, logger)
 
