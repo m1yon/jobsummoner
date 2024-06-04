@@ -18,14 +18,10 @@ func NewSqliteCompanyRepository(db *sql.DB) *SqliteCompanyRepository {
 }
 
 func (s *SqliteCompanyRepository) DoesCompanyExist(ctx context.Context, id string) (bool, error) {
-	company, err := s.queries.GetCompany(ctx, id)
+	company, err := s.GetCompany(ctx, id)
 
 	if err != nil {
-		if err.Error() == "sql: no rows in result set" {
-			return false, nil
-		}
-
-		return false, errors.Wrap(err, "error getting company from DB")
+		return false, err
 	}
 
 	return company.ID != "", nil
@@ -45,4 +41,24 @@ func (s *SqliteCompanyRepository) CreateCompany(ctx context.Context, company job
 	}
 
 	return company.ID, nil
+}
+
+func (s *SqliteCompanyRepository) GetCompany(ctx context.Context, id string) (jobsummoner.Company, error) {
+	company, err := s.queries.GetCompany(ctx, id)
+
+	if err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			return jobsummoner.Company{}, nil
+		}
+
+		return jobsummoner.Company{}, errors.Wrap(err, "error getting company from DB")
+	}
+
+	return jobsummoner.Company{
+		ID:       company.ID,
+		Name:     company.Name,
+		Url:      company.Url,
+		Avatar:   company.Avatar.String,
+		SourceID: company.SourceID,
+	}, nil
 }

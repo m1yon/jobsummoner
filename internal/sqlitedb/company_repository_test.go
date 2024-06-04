@@ -34,4 +34,26 @@ func TestCompanyRepository(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, true, doesCompanyExist, "company should exist now")
 	})
+
+	t.Run("create company and immediately get company", func(t *testing.T) {
+		ctx := context.Background()
+		db := NewTestDB()
+		companyRepository := NewSqliteCompanyRepository(db)
+
+		companyToCreate := jobsummoner.Company{
+			ID:       "/google",
+			Name:     "Google",
+			Url:      "https://google.com/",
+			Avatar:   "https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg",
+			SourceID: "linkedin",
+		}
+
+		id, err := companyRepository.CreateCompany(ctx, companyToCreate)
+		assert.NoError(t, err)
+		assert.Equal(t, companyToCreate.ID, id)
+
+		company, err := companyRepository.GetCompany(ctx, id)
+		assert.NoError(t, err)
+		assert.Equal(t, companyToCreate, company, "company should exist now")
+	})
 }
