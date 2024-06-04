@@ -121,25 +121,9 @@ func join[T ~string](input []T, sep string) string {
 	return result
 }
 
-type FileOpener interface {
-	Open(name string) (*os.File, error)
-	Copy(dst io.Writer, src io.Reader) (int64, error)
-}
-
-type StandardFileOpener struct{}
-
-func (fo *StandardFileOpener) Open(name string) (*os.File, error) {
-	return os.Open(name)
-}
-
-func (fo *StandardFileOpener) Copy(dst io.Writer, src io.Reader) (int64, error) {
-	return io.Copy(dst, src)
-}
-
 type FileLinkedInReader struct {
-	fileOpener FileOpener
-	pathf      string
-	page       int
+	pathf string
+	page  int
 }
 
 func (m *FileLinkedInReader) GetNextJobListingPage() (io.Reader, bool, error) {
@@ -150,7 +134,7 @@ func (m *FileLinkedInReader) GetNextJobListingPage() (io.Reader, bool, error) {
 	}
 
 	var buffer bytes.Buffer
-	if _, err := m.fileOpener.Copy(&buffer, file); err != nil {
+	if _, err := io.Copy(&buffer, file); err != nil {
 		return &bytes.Buffer{}, false, errors.Wrap(err, ErrWritingFileContentsToBuffer)
 	}
 
@@ -167,6 +151,6 @@ func (m *FileLinkedInReader) GetNextJobListingPage() (io.Reader, bool, error) {
 	return &buffer, false, nil
 }
 
-func NewFileLinkedInReader(pathf string, fileOpener FileOpener) *FileLinkedInReader {
-	return &FileLinkedInReader{fileOpener: fileOpener, pathf: pathf, page: 1}
+func NewFileLinkedInReader(pathf string) *FileLinkedInReader {
+	return &FileLinkedInReader{pathf: pathf, page: 1}
 }

@@ -12,7 +12,7 @@ import (
 
 func TestLinkedInScraper(t *testing.T) {
 	t.Run("scrape and paginates job listings correctly with 2 pages", func(t *testing.T) {
-		fileReader := NewFileLinkedInReader("./test-helpers/li-job-listings-%v.html", &StandardFileOpener{})
+		fileReader := NewFileLinkedInReader("./test-helpers/li-job-listings-%v.html")
 		logger := slog.New(slog.NewTextHandler(nil, nil))
 		scraper := NewLinkedInJobScraper(fileReader, logger)
 
@@ -44,7 +44,7 @@ func TestLinkedInScraper(t *testing.T) {
 	})
 
 	t.Run("handles invalid company URLs", func(t *testing.T) {
-		mockReader := NewFileLinkedInReader("./test-helpers/li-job-listings_bad-company-url-%v.html", &StandardFileOpener{})
+		mockReader := NewFileLinkedInReader("./test-helpers/li-job-listings_bad-company-url-%v.html")
 		logBufferSpy := new(bytes.Buffer)
 		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
 		scraper := NewLinkedInJobScraper(mockReader, logger)

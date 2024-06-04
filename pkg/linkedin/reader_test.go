@@ -1,9 +1,6 @@
 package linkedin
 
 import (
-	"fmt"
-	"io"
-	"os"
 	"testing"
 	"time"
 
@@ -12,19 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type MockFileOpener struct{}
-
-func (m *MockFileOpener) Open(name string) (*os.File, error) {
-	return os.Open(name)
-}
-
-func (m *MockFileOpener) Copy(dst io.Writer, src io.Reader) (int64, error) {
-	return 0, fmt.Errorf("simulated copy failure")
-}
-
 func TestReader(t *testing.T) {
 	t.Run("reads the file", func(t *testing.T) {
-		fileReader := NewFileLinkedInReader("./test-helpers/li-job-listings-%v.html", &StandardFileOpener{})
+		fileReader := NewFileLinkedInReader("./test-helpers/li-job-listings-%v.html")
 
 		buffer, isLastPage, err := fileReader.GetNextJobListingPage()
 		assert.NoError(t, err)
@@ -38,20 +25,11 @@ func TestReader(t *testing.T) {
 	})
 
 	t.Run("handles failed opening file", func(t *testing.T) {
-		fileReader := NewFileLinkedInReader("./bad-file.html", &StandardFileOpener{})
+		fileReader := NewFileLinkedInReader("./bad-file.html")
 
 		_, _, err := fileReader.GetNextJobListingPage()
 		if assert.Error(t, err) {
 			assert.Contains(t, err.Error(), ErrOpeningFile)
-		}
-	})
-
-	t.Run("handles failed writing file contents to buffer", func(t *testing.T) {
-		fileReader := NewFileLinkedInReader("./test-helpers/li-job-listings-%v.html", &MockFileOpener{})
-
-		_, _, err := fileReader.GetNextJobListingPage()
-		if assert.Error(t, err) {
-			assert.Contains(t, err.Error(), ErrWritingFileContentsToBuffer)
 		}
 	})
 }
