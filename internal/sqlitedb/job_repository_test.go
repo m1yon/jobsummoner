@@ -20,7 +20,7 @@ func TestJobRepository(t *testing.T) {
 			Name:     "Google",
 			Url:      "https://google.com/",
 			Avatar:   "https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg",
-			SourceID: "1",
+			SourceID: "linkedin",
 		}
 
 		id, err := companyRepository.CreateCompany(ctx, companyToCreate)

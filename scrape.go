@@ -7,6 +7,7 @@ import (
 
 type Scraper interface {
 	ScrapeJobs() ([]Job, []error)
+	GetSourceID() string
 }
 
 type ScrapeService interface {

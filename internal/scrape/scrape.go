@@ -54,7 +54,14 @@ func (ss *DefaultScrapeService) Start(scrapers []jobsummoner.Scraper, crontab st
 				}
 
 				ss.jobService.CreateJobs(ctx, results)
-				numberOfJobsScraped++
+
+				err := ss.scrapeRepository.CreateScrape(ctx, scraper.GetSourceID())
+
+				if err != nil {
+					ss.logger.Error("failed creating scrape")
+				}
+
+				numberOfJobsScraped += len(results)
 			}
 
 			ss.logger.Info("scrape successful", slog.Int("jobs", numberOfJobsScraped))

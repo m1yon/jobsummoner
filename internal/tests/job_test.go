@@ -26,7 +26,7 @@ func TestSqliteJobService(t *testing.T) {
 			Location:    "San Francisco",
 			CompanyID:   "/google",
 			CompanyName: "Google",
-			SourceID:    "1",
+			SourceID:    "linkedin",
 		}
 
 		id, err := jobService.CreateJob(ctx, jobToCreate)
@@ -57,7 +57,7 @@ func TestSqliteJobService(t *testing.T) {
 				Location:    "San Francisco",
 				CompanyID:   "/google",
 				CompanyName: "Google",
-				SourceID:    "1",
+				SourceID:    "linkedin",
 			},
 			{
 				Position:    "Manager",
@@ -65,7 +65,7 @@ func TestSqliteJobService(t *testing.T) {
 				Location:    "Seattle",
 				CompanyID:   "/microsoft",
 				CompanyName: "Microsoft",
-				SourceID:    "1",
+				SourceID:    "linkedin",
 			},
 		}
 

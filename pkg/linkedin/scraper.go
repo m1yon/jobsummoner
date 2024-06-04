@@ -64,6 +64,10 @@ func (l *LinkedInScraper) ScrapeJobs() ([]jobsummoner.Job, []error) {
 	return results, errs
 }
 
+func (m *LinkedInScraper) GetSourceID() string {
+	return "linkedin"
+}
+
 func (l *LinkedInScraper) scrapePage(reader io.Reader) ([]jobsummoner.Job, error) {
 	doc, err := goquery.NewDocumentFromReader(reader)
 
@@ -104,6 +108,7 @@ func (l *LinkedInScraper) scrapePage(reader io.Reader) ([]jobsummoner.Job, error
 			CompanyName: CompanyName,
 			Location:    Location,
 			URL:         URL,
+			SourceID:    "linkedin",
 		})
 	})
 

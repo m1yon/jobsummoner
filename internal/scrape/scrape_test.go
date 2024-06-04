@@ -19,15 +19,19 @@ type SpyScraper struct {
 	calls int
 }
 
+func NewSpyScraper() *SpyScraper {
+	return &SpyScraper{
+		calls: 0,
+	}
+}
+
 func (m *SpyScraper) ScrapeJobs() ([]jobsummoner.Job, []error) {
 	m.calls++
 	return []jobsummoner.Job{}, []error{}
 }
 
-func NewSpyScraper() *SpyScraper {
-	return &SpyScraper{
-		calls: 0,
-	}
+func (m *SpyScraper) GetSourceID() string {
+	return "linkedin"
 }
 
 type SpyFailingScraper struct {
@@ -37,6 +41,10 @@ type SpyFailingScraper struct {
 func (m *SpyFailingScraper) ScrapeJobs() ([]jobsummoner.Job, []error) {
 	m.calls++
 	return []jobsummoner.Job{}, []error{fmt.Errorf("could not scrape heading"), fmt.Errorf("problem scraping paragraph")}
+}
+
+func (m *SpyFailingScraper) GetSourceID() string {
+	return "linkedin"
 }
 
 func newSpyFailingScraper() *SpyFailingScraper {
