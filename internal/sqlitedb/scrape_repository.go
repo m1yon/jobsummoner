@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/m1yon/jobsummoner"
 	"github.com/pkg/errors"
 )
 
@@ -19,6 +20,20 @@ func (s *SqliteScrapeRepository) CreateScrape(ctx context.Context, sourceID stri
 	}
 
 	return nil
+}
+
+func (s *SqliteScrapeRepository) GetLastScrape(ctx context.Context, sourceID string) (jobsummoner.Scrape, error) {
+	scrape, err := s.queries.GetLastScrape(ctx, sourceID)
+
+	if err != nil {
+		return jobsummoner.Scrape{}, errors.Wrap(err, "problem getting scrape")
+	}
+
+	return jobsummoner.Scrape{
+		ID:        int(scrape.ID),
+		SourceID:  scrape.SourceID,
+		CreatedAt: scrape.CreatedAt,
+	}, nil
 }
 
 func NewSqliteScrapeRepository(db *sql.DB) *SqliteScrapeRepository {
