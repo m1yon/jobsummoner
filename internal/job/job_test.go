@@ -1,4 +1,4 @@
-package tests
+package job
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/m1yon/jobsummoner"
 	"github.com/m1yon/jobsummoner/internal/company"
-	"github.com/m1yon/jobsummoner/internal/job"
 	"github.com/m1yon/jobsummoner/internal/sqlitedb"
 	"github.com/stretchr/testify/assert"
 )
@@ -18,7 +17,7 @@ func TestSqliteJobService(t *testing.T) {
 		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
 		companyService := company.NewDefaultCompanyService(companyRepository)
 		jobRepository := sqlitedb.NewSqliteJobRepository(db)
-		jobService := job.NewDefaultJobService(jobRepository, companyService)
+		jobService := NewDefaultJobService(jobRepository, companyService)
 
 		jobToCreate := jobsummoner.Job{
 			Position:    "Software Developer",
@@ -48,7 +47,7 @@ func TestSqliteJobService(t *testing.T) {
 		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
 		companyService := company.NewDefaultCompanyService(companyRepository)
 		jobRepository := sqlitedb.NewSqliteJobRepository(db)
-		jobService := job.NewDefaultJobService(jobRepository, companyService)
+		jobService := NewDefaultJobService(jobRepository, companyService)
 
 		jobsToCreate := []jobsummoner.Job{
 			{
