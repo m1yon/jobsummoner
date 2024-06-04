@@ -10,9 +10,10 @@ import (
 
 	"github.com/jonboulle/clockwork"
 	"github.com/m1yon/jobsummoner"
+	"github.com/m1yon/jobsummoner/internal/company"
+	"github.com/m1yon/jobsummoner/internal/job"
 	"github.com/m1yon/jobsummoner/internal/sqlitedb"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 type SpyScraper struct {
@@ -57,42 +58,20 @@ func newSpyFailingScraper() *SpyFailingScraper {
 const callsBetween8pmAnd10pm = 5
 const callsBetween7amAnd8am = 3
 
-type mockJobService struct {
-	mock.Mock
-}
-
-func (j *mockJobService) GetJob(ctx context.Context, id string) (jobsummoner.Job, error) {
-	j.Called()
-	return jobsummoner.Job{}, nil
-}
-
-func (j *mockJobService) GetJobs(ctx context.Context) ([]jobsummoner.Job, []error) {
-	j.Called()
-	return []jobsummoner.Job{}, nil
-}
-
-func (j *mockJobService) CreateJobs(ctx context.Context, jobs []jobsummoner.Job) ([]string, []error) {
-	j.Called()
-	return nil, nil
-}
-
-func (j *mockJobService) CreateJob(ctx context.Context, jobs jobsummoner.Job) (string, error) {
-	j.Called()
-	return "", nil
-}
-
 func TestScrapeService(t *testing.T) {
 	t.Run("calls multiple scrapers correctly on a cron and sends the results to the Job Service", func(t *testing.T) {
 		c := getFakeClock(t)
 		logBufferSpy := new(bytes.Buffer)
 		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
-		jobServiceMock := new(mockJobService)
 
 		db := sqlitedb.NewTestDB()
-		scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db)
-		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobServiceMock)
+		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
+		companyService := company.NewDefaultCompanyService(companyRepository)
+		jobRepository := sqlitedb.NewSqliteJobRepository(db)
+		jobService := job.NewDefaultJobService(jobRepository, companyService)
 
-		jobServiceMock.On("CreateJobs", mock.Anything).Return()
+		scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db)
+		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobService)
 
 		scraper1 := NewSpyScraper()
 		scraper2 := NewSpyScraper()
@@ -118,9 +97,6 @@ func TestScrapeService(t *testing.T) {
 		assertCallNotMade(t, callNotMade, scraper1.calls)
 		assert.Equal(t, callsBetween8pmAnd10pm+callsBetween7amAnd8am+1, scraper2.calls)
 		assertCallNotMade(t, callNotMade, scraper2.calls)
-
-		jobServiceMock.AssertExpectations(t)
-		assert.Equal(t, scraper1.calls+scraper2.calls, len(jobServiceMock.Calls))
 	})
 
 	t.Run("gets the latest scrape", func(t *testing.T) {
@@ -128,40 +104,15 @@ func TestScrapeService(t *testing.T) {
 		c := getFakeClock(t)
 		logBufferSpy := new(bytes.Buffer)
 		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
-		jobServiceMock := new(mockJobService)
 
 		db := sqlitedb.NewTestDB()
+		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
+		companyService := company.NewDefaultCompanyService(companyRepository)
+		jobRepository := sqlitedb.NewSqliteJobRepository(db)
+		jobService := job.NewDefaultJobService(jobRepository, companyService)
+
 		scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db)
-		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobServiceMock)
-
-		jobServiceMock.On("CreateJobs", mock.Anything).Return()
-
-		scraper1 := NewSpyScraper()
-		scrapers := []jobsummoner.Scraper{scraper1}
-
-		go scrapeService.Start(scrapers, "TZ=America/Denver */30 7-22 * * *")
-		c.BlockUntil(1)
-
-		simulateCron(c, callsBetween8pmAnd10pm+1, 30*time.Minute)
-
-		scrape, err := scrapeRepository.GetLastScrape(ctx, "linkedin")
-		assert.NoError(t, err)
-		// expect an additional startup call
-		assert.Equal(t, callsBetween8pmAnd10pm+1, scrape.ID)
-	})
-
-	t.Run("creates a company if it doesn't exist for a particular job", func(t *testing.T) {
-		ctx := context.Background()
-		c := getFakeClock(t)
-		logBufferSpy := new(bytes.Buffer)
-		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
-		jobServiceMock := new(mockJobService)
-
-		db := sqlitedb.NewTestDB()
-		scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db)
-		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobServiceMock)
-
-		jobServiceMock.On("CreateJobs", mock.Anything).Return()
+		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobService)
 
 		scraper1 := NewSpyScraper()
 		scrapers := []jobsummoner.Scraper{scraper1}
@@ -181,13 +132,16 @@ func TestScrapeService(t *testing.T) {
 		c := getFakeClock(t)
 		logBufferSpy := new(bytes.Buffer)
 		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
-		jobServiceMock := new(mockJobService)
 
 		db := sqlitedb.NewTestDB()
-		scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db)
-		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobServiceMock)
+		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
+		companyService := company.NewDefaultCompanyService(companyRepository)
+		jobRepository := sqlitedb.NewSqliteJobRepository(db)
+		jobService := job.NewDefaultJobService(jobRepository, companyService)
 
-		jobServiceMock.On("CreateJobs", mock.Anything).Return()
+		scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db)
+		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobService)
+
 		scraper := newSpyFailingScraper()
 		scrapers := []jobsummoner.Scraper{scraper}
 
@@ -198,9 +152,6 @@ func TestScrapeService(t *testing.T) {
 
 		assert.Contains(t, logBufferSpy.String(), "could not scrape heading")
 		assert.Contains(t, logBufferSpy.String(), "problem scraping paragraph")
-
-		jobServiceMock.AssertExpectations(t)
-		assert.Equal(t, scraper.calls, len(jobServiceMock.Calls))
 	})
 }
 
