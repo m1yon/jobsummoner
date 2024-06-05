@@ -3,8 +3,6 @@ package scrape
 import (
 	"context"
 	"log/slog"
-	"strings"
-	"time"
 
 	"github.com/go-co-op/gocron/v2"
 	"github.com/jonboulle/clockwork"
@@ -49,7 +47,12 @@ func (ss *DefaultScrapeService) Start(scrapers []jobsummoner.Scraper, crontab st
 			numberOfJobsScraped := 0
 
 			for _, scraper := range scrapers {
-				lastScrapedTime := ss.getLastScrapedTime(ctx, scraper.GetSourceID())
+				lastScrapedTime, err := ss.scrapeRepository.GetLastScrapeTime(ctx, scraper.GetSourceID())
+
+				if err != nil {
+					ss.logger.Error("failed getting last scraped time", slog.String("err", err.Error()))
+				}
+
 				results, errs := scraper.ScrapeJobs(lastScrapedTime)
 
 				for _, err := range errs {
@@ -81,20 +84,4 @@ func (ss *DefaultScrapeService) Start(scrapers []jobsummoner.Scraper, crontab st
 	s.Start()
 
 	select {}
-}
-
-func (ss *DefaultScrapeService) getLastScrapedTime(ctx context.Context, sourceID string) time.Time {
-	defaultLastScrapedTime := time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC)
-	lastScrape, err := ss.scrapeRepository.GetLastScrape(ctx, sourceID)
-
-	if err != nil {
-		if strings.Contains(err.Error(), "no rows in result set") {
-			return lastScrape.CreatedAt
-		}
-
-		ss.logger.Error("failed fetching last scraped time")
-		return defaultLastScrapedTime
-	}
-
-	return defaultLastScrapedTime
 }

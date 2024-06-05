@@ -70,7 +70,7 @@ func TestScrapeService(t *testing.T) {
 		jobRepository := sqlitedb.NewSqliteJobRepository(db)
 		jobService := job.NewDefaultJobService(jobRepository, companyService)
 
-		scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db)
+		scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db, c)
 		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobService)
 
 		scraper1 := NewSpyScraper()
@@ -111,7 +111,7 @@ func TestScrapeService(t *testing.T) {
 		jobRepository := sqlitedb.NewSqliteJobRepository(db)
 		jobService := job.NewDefaultJobService(jobRepository, companyService)
 
-		scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db)
+		scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db, c)
 		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobService)
 
 		scraper1 := NewSpyScraper()
@@ -139,7 +139,7 @@ func TestScrapeService(t *testing.T) {
 		jobRepository := sqlitedb.NewSqliteJobRepository(db)
 		jobService := job.NewDefaultJobService(jobRepository, companyService)
 
-		scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db)
+		scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db, c)
 		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobService)
 
 		scraper := newSpyFailingScraper()
