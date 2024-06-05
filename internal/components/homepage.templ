@@ -4,9 +4,11 @@ import "github.com/m1yon/jobsummoner"
 
 templ Homepage(m jobsummoner.HomepageViewModel) {
 	@layout() {
-		<main class="mx-4  my-8 lg:my-12">
-			<h1 class="font-bold text-3xl mb-4 lg:mb-4">Jobs</h1>
-			<div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+		<main>
+			<header class="mb-6 py-3 border-b border-gray-700 px-4">
+				<h1 class="font-mono">m1yon/jobsummoner</h1>
+			</header>
+			<div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4 mx-4 ">
 				for _, job := range m.Jobs {
 					@jobCard(job)
 				}
