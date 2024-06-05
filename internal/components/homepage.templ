@@ -4,13 +4,20 @@ import "github.com/m1yon/jobsummoner"
 
 templ Homepage(m jobsummoner.HomepageViewModel) {
 	@layout() {
-		for _, job := range m.Jobs {
-			@jobCard(job)
-		}
+		<main class="mx-24 my-12">
+			<h1 class="font-bold text-3xl mb-8">Jobs</h1>
+			<div class="grid grid-cols-3 gap-4">
+				for _, job := range m.Jobs {
+					@jobCard(job)
+				}
+			</div>
+		</main>
 	}
 }
 
 templ jobCard(job jobsummoner.Job) {
-	<h1>{ job.Position }</h1>
-	<h1>{ job.CompanyID }</h1>
+	<div class="p-8 border rounded">
+		<h2 class="font-bold">{ job.Position }</h2>
+		<h3>{ job.CompanyName }</h3>
+	</div>
 }
