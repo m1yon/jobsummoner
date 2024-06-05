@@ -3,6 +3,7 @@ package sqlitedb
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/m1yon/jobsummoner"
 	"github.com/stretchr/testify/assert"
@@ -27,10 +28,11 @@ func TestJobRepository(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, companyToCreate.ID, id)
 
-		jobToCreate := jobsummoner.Job{
+		want := jobsummoner.Job{
 			Position:      "Software Developer",
 			URL:           "https://linkedin.com/jobs/1",
 			Location:      "San Francisco",
+			LastPosted:    time.Now(),
 			SourceID:      companyToCreate.SourceID,
 			CompanyID:     companyToCreate.ID,
 			CompanyName:   companyToCreate.Name,
@@ -38,12 +40,12 @@ func TestJobRepository(t *testing.T) {
 			CompanyURL:    companyToCreate.Url,
 		}
 
-		createdJobID, err := jobRepository.CreateJob(ctx, jobToCreate)
+		createdJobID, err := jobRepository.CreateJob(ctx, want)
 		assert.NoError(t, err)
 
-		job, err := jobRepository.GetJob(ctx, createdJobID)
+		got, err := jobRepository.GetJob(ctx, createdJobID)
 		assert.NoError(t, err)
-		assert.Equal(t, jobToCreate, job)
+		assertJobsEqual(t, want, got)
 	})
 
 	t.Run("get jobs", func(t *testing.T) {
@@ -74,6 +76,7 @@ func TestJobRepository(t *testing.T) {
 				CompanyName:   companyToCreate.Name,
 				CompanyAvatar: companyToCreate.Avatar,
 				CompanyURL:    companyToCreate.Url,
+				LastPosted:    time.Now(),
 			},
 			{
 				Position:      "Manager",
@@ -84,6 +87,7 @@ func TestJobRepository(t *testing.T) {
 				CompanyName:   companyToCreate.Name,
 				CompanyAvatar: companyToCreate.Avatar,
 				CompanyURL:    companyToCreate.Url,
+				LastPosted:    time.Now(),
 			},
 		}
 
@@ -92,6 +96,34 @@ func TestJobRepository(t *testing.T) {
 
 		jobs, err := jobRepository.GetJobs(ctx)
 		assert.NoError(t, err)
-		assert.Equal(t, jobsToCreate, jobs)
+		assertJobListsEqual(t, jobsToCreate, jobs)
 	})
+}
+
+func assertJobListsEqual(t *testing.T, expectedJobList, actualJobList []jobsummoner.Job) {
+	t.Helper()
+
+	if len(expectedJobList) != len(actualJobList) {
+		t.Fatalf("expected %v jobs, got %v", len(expectedJobList), len(actualJobList))
+	}
+
+	for i := range expectedJobList {
+		assertJobsEqual(t, expectedJobList[i], actualJobList[i])
+	}
+}
+
+func assertJobsEqual(t *testing.T, expectedJob, actualJob jobsummoner.Job) {
+	t.Helper()
+
+	assert.Equal(t, expectedJob.Position, actualJob.Position)
+	assert.Equal(t, expectedJob.URL, actualJob.URL)
+	assert.Equal(t, expectedJob.Location, actualJob.Location)
+	assert.Equal(t, expectedJob.SourceID, actualJob.SourceID)
+
+	assert.Equal(t, expectedJob.CompanyID, actualJob.CompanyID)
+	assert.Equal(t, expectedJob.CompanyAvatar, actualJob.CompanyAvatar)
+	assert.Equal(t, expectedJob.CompanyName, actualJob.CompanyName)
+	assert.Equal(t, expectedJob.CompanyURL, actualJob.CompanyURL)
+
+	assert.Equal(t, expectedJob.LastPosted.Round(time.Second).UTC(), actualJob.LastPosted.Round(time.Second).UTC())
 }

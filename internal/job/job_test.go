@@ -3,6 +3,7 @@ package job
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/m1yon/jobsummoner"
 	"github.com/m1yon/jobsummoner/internal/company"
@@ -59,7 +60,7 @@ func TestSqliteJobService(t *testing.T) {
 
 		job, err := jobService.GetJob(ctx, id)
 		assert.NoError(t, err)
-		assert.Equal(t, jobToCreate, job)
+		assertJobsAreEqual(t, jobToCreate, job)
 	})
 
 	t.Run("CreateJobs returns a list of job IDs", func(t *testing.T) {
@@ -160,4 +161,18 @@ func TestSqliteJobService(t *testing.T) {
 		assert.Empty(t, errs)
 		assert.Equal(t, jobsToCreate, jobs)
 	})
+}
+
+func assertJobsAreEqual(t *testing.T, expectedJob, actualJob jobsummoner.Job) {
+	assert.Equal(t, expectedJob.Position, actualJob.Position)
+	assert.Equal(t, expectedJob.URL, actualJob.URL)
+	assert.Equal(t, expectedJob.Location, actualJob.Location)
+	assert.Equal(t, expectedJob.SourceID, actualJob.SourceID)
+
+	assert.Equal(t, expectedJob.CompanyID, actualJob.CompanyID)
+	assert.Equal(t, expectedJob.CompanyAvatar, actualJob.CompanyAvatar)
+	assert.Equal(t, expectedJob.CompanyName, actualJob.CompanyName)
+	assert.Equal(t, expectedJob.CompanyURL, actualJob.CompanyURL)
+
+	assert.Equal(t, expectedJob.LastPosted.Round(time.Second).UTC(), actualJob.LastPosted.Round(time.Second).UTC())
 }

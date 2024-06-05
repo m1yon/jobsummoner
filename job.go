@@ -1,6 +1,9 @@
 package jobsummoner
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 type JobService interface {
 	GetJob(ctx context.Context, id string) (Job, error)
@@ -54,6 +57,7 @@ type Job struct {
 	Location      string
 	URL           string
 	SourceID      string
+	LastPosted    time.Time
 	CompanyID     string
 	CompanyName   string
 	CompanyAvatar string

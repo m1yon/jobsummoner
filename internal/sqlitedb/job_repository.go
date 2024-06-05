@@ -23,9 +23,10 @@ func (s *SqliteJobRepository) CreateJob(ctx context.Context, arg jobsummoner.Job
 			Valid:  arg.Location != "",
 			String: arg.Location,
 		},
-		Url:       arg.URL,
-		CompanyID: arg.CompanyID,
-		SourceID:  arg.SourceID,
+		Url:        arg.URL,
+		CompanyID:  arg.CompanyID,
+		SourceID:   arg.SourceID,
+		LastPosted: arg.LastPosted,
 	})
 
 	if err != nil {
@@ -47,6 +48,7 @@ func (s *SqliteJobRepository) GetJob(ctx context.Context, id string) (jobsummone
 		Location:      dbJob.Location.String,
 		URL:           dbJob.JobUrl,
 		SourceID:      dbJob.SourceID,
+		LastPosted:    dbJob.LastPosted,
 		CompanyID:     dbJob.CompanyID,
 		CompanyName:   dbJob.CompanyName,
 		CompanyAvatar: dbJob.CompanyAvatar.String,
@@ -71,6 +73,7 @@ func (s *SqliteJobRepository) GetJobs(ctx context.Context) ([]jobsummoner.Job, e
 			Location:      dbJob.Location.String,
 			URL:           dbJob.JobUrl,
 			SourceID:      dbJob.SourceID,
+			LastPosted:    dbJob.LastPosted,
 			CompanyID:     dbJob.CompanyID,
 			CompanyName:   dbJob.CompanyName,
 			CompanyAvatar: dbJob.CompanyAvatar.String,
