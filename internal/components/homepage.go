@@ -4,9 +4,9 @@ import (
 	"github.com/m1yon/jobsummoner"
 )
 
-func NewHomepageViewModel(jobs []jobsummoner.Job) (m jobsummoner.HomepageViewModel) {
-	for _, position := range jobs {
-		m.Text += position.Position + ","
+func NewHomepageViewModel(jobs []jobsummoner.Job) jobsummoner.HomepageViewModel {
+	m := jobsummoner.HomepageViewModel{
+		Jobs: jobs,
 	}
 
 	return m
