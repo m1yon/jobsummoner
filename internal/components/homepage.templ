@@ -20,8 +20,18 @@ templ jobCard(job jobsummoner.Job) {
 		<div class="flex items-center gap-4 mb-2">
 			<img src={ job.CompanyAvatar } class="size-10 rounded"/>
 			<div>
-				<h2 class="font-bold">{ job.Position }</h2>
-				<h3>{ job.CompanyName }</h3>
+				<a
+					class="block font-bold hover:underline"
+					href={ templ.SafeURL(job.URL) }
+					target="_blank"
+					rel="noreferrer"
+				>{ job.Position }</a>
+				<a
+					class="block hover:underline"
+					href={ templ.SafeURL(job.CompanyURL) }
+					target="_blank"
+					rel="noreferrer"
+				>{ job.CompanyName }</a>
 			</div>
 		</div>
 		<p class="text-sm flex items-center gap-1">
