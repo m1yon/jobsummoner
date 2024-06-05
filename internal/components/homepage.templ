@@ -5,7 +5,12 @@ import "github.com/m1yon/jobsummoner"
 templ Homepage(m jobsummoner.HomepageViewModel) {
 	@layout() {
 		for _, job := range m.Jobs {
-			<h1>{ job.Position }</h1>
+			@jobCard(job)
 		}
 	}
+}
+
+templ jobCard(job jobsummoner.Job) {
+	<h1>{ job.Position }</h1>
+	<h1>{ job.CompanyID }</h1>
 }
