@@ -23,7 +23,7 @@ func NewDefaultScrapeService(c clockwork.Clock, logger *slog.Logger, repository 
 
 func (ss *DefaultScrapeService) Start(scrapers []jobsummoner.Scraper, crontab string) {
 	ctx := context.Background()
-	ss.logger.Info("Initializing scrape scheduler...")
+	ss.logger.Info("initializing scrape scheduler...")
 	s, err := gocron.NewScheduler(gocron.WithClock(ss.c))
 	defer (func() {
 		err := s.Shutdown()
@@ -80,7 +80,7 @@ func (ss *DefaultScrapeService) Start(scrapers []jobsummoner.Scraper, crontab st
 		return
 	}
 
-	ss.logger.Info("Scrape scheduler initialized")
+	ss.logger.Info("scrape scheduler initialized")
 	s.Start()
 
 	select {}
