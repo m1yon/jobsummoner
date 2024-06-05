@@ -60,7 +60,9 @@ const callsBetween7amAnd8am = 3
 
 func TestScrapeService(t *testing.T) {
 	t.Run("calls the scrapers the correct amount of times given a cron", func(t *testing.T) {
-		c := getFakeClock(t)
+		c := createFakeClock(t, "America/Denver", func(loc *time.Location) time.Time {
+			return time.Date(2024, time.May, 19, 20, 0, 0, 0, loc)
+		})
 		logBufferSpy := new(bytes.Buffer)
 		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
 
@@ -77,31 +79,32 @@ func TestScrapeService(t *testing.T) {
 		scraper2 := NewSpyScraper()
 		scrapers := []jobsummoner.Scraper{scraper1, scraper2}
 
-		go scrapeService.Start(scrapers, "TZ=America/Denver */30 7-22 * * *")
+		go scrapeService.Start(scrapers, "TZ=America/Denver */30 7-22 * * *", false)
 		c.BlockUntil(1)
 
 		// loop one extra time to ensure no extra calls are made
 		callNotMade := simulateCron(c, callsBetween8pmAnd10pm+1, 30*time.Minute)
-		// expect an additional startup call
-		assert.Equal(t, callsBetween8pmAnd10pm+1, scraper1.calls)
+		assert.Equal(t, callsBetween8pmAnd10pm, scraper1.calls)
 		assertCallNotMade(t, callNotMade, scraper1.calls)
-		assert.Equal(t, callsBetween8pmAnd10pm+1, scraper2.calls)
+		assert.Equal(t, callsBetween8pmAnd10pm, scraper2.calls)
 		assertCallNotMade(t, callNotMade, scraper2.calls)
 
 		// advance to 6:30am
 		c.Advance(7*time.Hour + 30*time.Minute)
 
 		callNotMade = simulateCron(c, callsBetween7amAnd8am+1, 30*time.Minute)
-		// expect an additional startup call
-		assert.Equal(t, callsBetween8pmAnd10pm+callsBetween7amAnd8am+1, scraper1.calls)
+		assert.Equal(t, callsBetween8pmAnd10pm+callsBetween7amAnd8am, scraper1.calls)
 		assertCallNotMade(t, callNotMade, scraper1.calls)
-		assert.Equal(t, callsBetween8pmAnd10pm+callsBetween7amAnd8am+1, scraper2.calls)
+		assert.Equal(t, callsBetween8pmAnd10pm+callsBetween7amAnd8am, scraper2.calls)
 		assertCallNotMade(t, callNotMade, scraper2.calls)
 	})
 
 	t.Run("gets the latest scrape", func(t *testing.T) {
+		c := createFakeClock(t, "America/Denver", func(loc *time.Location) time.Time {
+			return time.Date(2024, time.May, 19, 20, 0, 0, 0, loc)
+		})
+
 		ctx := context.Background()
-		c := getFakeClock(t)
 		logBufferSpy := new(bytes.Buffer)
 		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
 
@@ -117,19 +120,20 @@ func TestScrapeService(t *testing.T) {
 		scraper1 := NewSpyScraper()
 		scrapers := []jobsummoner.Scraper{scraper1}
 
-		go scrapeService.Start(scrapers, "TZ=America/Denver */30 7-22 * * *")
+		go scrapeService.Start(scrapers, "TZ=America/Denver */30 7-22 * * *", false)
 		c.BlockUntil(1)
 
 		simulateCron(c, callsBetween8pmAnd10pm+1, 30*time.Minute)
 
 		scrape, err := scrapeRepository.GetLastScrape(ctx, "linkedin")
 		assert.NoError(t, err)
-		// expect an additional startup call
-		assert.Equal(t, callsBetween8pmAnd10pm+1, scrape.ID)
+		assert.Equal(t, callsBetween8pmAnd10pm, scrape.ID)
 	})
 
 	t.Run("logs errors that occur", func(t *testing.T) {
-		c := getFakeClock(t)
+		c := createFakeClock(t, "America/Denver", func(loc *time.Location) time.Time {
+			return time.Date(2024, time.May, 19, 20, 0, 0, 0, loc)
+		})
 		logBufferSpy := new(bytes.Buffer)
 		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
 
@@ -145,7 +149,7 @@ func TestScrapeService(t *testing.T) {
 		scraper := newSpyFailingScraper()
 		scrapers := []jobsummoner.Scraper{scraper}
 
-		go scrapeService.Start(scrapers, "TZ=America/Denver */30 7-22 * * *")
+		go scrapeService.Start(scrapers, "TZ=America/Denver */30 7-22 * * *", false)
 		c.BlockUntil(1)
 
 		simulateCron(c, 2, 30*time.Minute)
@@ -153,6 +157,46 @@ func TestScrapeService(t *testing.T) {
 		assert.Contains(t, logBufferSpy.String(), "could not scrape heading")
 		assert.Contains(t, logBufferSpy.String(), "problem scraping paragraph")
 	})
+
+	t.Run("calls scraper immediately when specified", func(t *testing.T) {
+		c := createFakeClock(t, "America/Denver", func(loc *time.Location) time.Time {
+			return time.Date(2024, time.May, 19, 7, 10, 0, 0, loc)
+		})
+		logBufferSpy := new(bytes.Buffer)
+		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
+
+		db := sqlitedb.NewTestDB()
+		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
+		companyService := company.NewDefaultCompanyService(companyRepository)
+		jobRepository := sqlitedb.NewSqliteJobRepository(db)
+		jobService := job.NewDefaultJobService(jobRepository, companyService)
+
+		scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db, c)
+		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobService)
+
+		scraper1 := NewSpyScraper()
+		scrapers := []jobsummoner.Scraper{scraper1}
+
+		go scrapeService.Start(scrapers, "TZ=America/Denver */30 7-22 * * *", true)
+		c.BlockUntil(1)
+
+		simulateCron(c, 3, 30*time.Minute)
+		assert.Equal(t, 3, scraper1.calls)
+	})
+}
+
+func createFakeClock(t *testing.T, location string, getTime func(*time.Location) time.Time) clockwork.FakeClock {
+	t.Helper()
+	loadedLocation, err := time.LoadLocation(location)
+
+	if err != nil {
+		t.Fatal("failed to load location")
+	}
+
+	convertedStartTime := getTime(loadedLocation)
+	c := clockwork.NewFakeClockAt(convertedStartTime)
+
+	return c
 }
 
 func simulateCron(c clockwork.FakeClock, numberOfCalls int, advanceInterval time.Duration) bool {
@@ -170,19 +214,6 @@ func simulateCron(c clockwork.FakeClock, numberOfCalls int, advanceInterval time
 	}
 
 	return missed
-}
-
-func getFakeClock(t *testing.T) clockwork.FakeClock {
-	t.Helper()
-	location, err := time.LoadLocation("America/Denver")
-	startTime := time.Date(2024, time.May, 19, 20, 0, 0, 0, location)
-
-	if err != nil {
-		t.Fatal("failed to load location")
-	}
-
-	c := clockwork.NewFakeClockAt(startTime)
-	return c
 }
 
 func assertCallNotMade(t *testing.T, callNotMade bool, calls int) {

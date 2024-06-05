@@ -46,5 +46,5 @@ func main() {
 	scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db, c)
 	scrapeService := scrape.NewDefaultScrapeService(c, logger, scrapeRepository, jobService)
 
-	scrapeService.Start(scrapers, "TZ=America/Denver */30 7-22 * * *")
+	scrapeService.Start(scrapers, "TZ=America/Denver */30 7-22 * * *", true)
 }

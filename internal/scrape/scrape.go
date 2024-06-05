@@ -21,7 +21,7 @@ func NewDefaultScrapeService(c clockwork.Clock, logger *slog.Logger, repository 
 	return &DefaultScrapeService{c, logger, repository, jobService}
 }
 
-func (ss *DefaultScrapeService) Start(scrapers []jobsummoner.Scraper, crontab string) {
+func (ss *DefaultScrapeService) Start(scrapers []jobsummoner.Scraper, crontab string, scrapeImmediately bool) {
 	ctx := context.Background()
 	ss.logger.Info("initializing scrape scheduler...")
 	s, err := gocron.NewScheduler(gocron.WithClock(ss.c))
@@ -37,6 +37,12 @@ func (ss *DefaultScrapeService) Start(scrapers []jobsummoner.Scraper, crontab st
 	if err != nil {
 		ss.logger.Error(errors.Wrap(err, "error initializing cron scheduler").Error())
 		return
+	}
+
+	additionalPlugins := make([]gocron.JobOption, 0)
+
+	if scrapeImmediately {
+		additionalPlugins = append(additionalPlugins, gocron.WithStartAt(gocron.WithStartImmediately()))
 	}
 
 	_, err = s.NewJob(
@@ -72,7 +78,7 @@ func (ss *DefaultScrapeService) Start(scrapers []jobsummoner.Scraper, crontab st
 
 			ss.logger.Info("scrape successful", slog.Int("jobs", numberOfJobsScraped))
 		}),
-		gocron.WithStartAt(gocron.WithStartImmediately()),
+		additionalPlugins...,
 	)
 
 	if err != nil {
