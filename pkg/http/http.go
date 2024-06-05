@@ -2,7 +2,6 @@ package http
 
 import (
 	"context"
-	"database/sql"
 	"io"
 	"log"
 	"log/slog"
@@ -10,10 +9,8 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/m1yon/jobsummoner"
-	"github.com/m1yon/jobsummoner/internal/company"
 	"github.com/m1yon/jobsummoner/internal/components"
 	"github.com/m1yon/jobsummoner/internal/job"
-	"github.com/m1yon/jobsummoner/internal/sqlitedb"
 )
 
 type Server interface {
@@ -27,17 +24,7 @@ type DefaultServer struct {
 	jobsummoner.JobService
 }
 
-func NewDefaultServer(logger *slog.Logger) *DefaultServer {
-	db, err := sql.Open("sqlite", "./db/database.db")
-
-	if err != nil {
-		logger.Error("failed starting db")
-	}
-
-	companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
-	companyService := company.NewDefaultCompanyService(companyRepository)
-	jobRepository := sqlitedb.NewSqliteJobRepository(db)
-	jobService := job.NewDefaultJobService(jobRepository, companyService)
+func NewDefaultServer(logger *slog.Logger, jobService *job.DefaultJobService) *DefaultServer {
 
 	return &DefaultServer{
 		logger:     logger,
