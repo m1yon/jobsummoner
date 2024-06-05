@@ -2,8 +2,10 @@ package http
 
 import (
 	"context"
+	"database/sql"
 	"io"
 	"log"
+	"log/slog"
 	"net/http"
 
 	"github.com/a-h/templ"
@@ -20,18 +22,25 @@ type Server interface {
 }
 
 type DefaultServer struct {
+	logger *slog.Logger
 	Render func(component templ.Component, ctx context.Context, w io.Writer) error
 	jobsummoner.JobService
 }
 
-func NewDefaultServer() *DefaultServer {
-	db := sqlitedb.NewTestDB()
+func NewDefaultServer(logger *slog.Logger) *DefaultServer {
+	db, err := sql.Open("sqlite", "./db/database.db")
+
+	if err != nil {
+		logger.Error("failed starting db")
+	}
+
 	companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
 	companyService := company.NewDefaultCompanyService(companyRepository)
 	jobRepository := sqlitedb.NewSqliteJobRepository(db)
 	jobService := job.NewDefaultJobService(jobRepository, companyService)
 
 	return &DefaultServer{
+		logger:     logger,
 		Render:     components.Render,
 		JobService: jobService,
 	}
