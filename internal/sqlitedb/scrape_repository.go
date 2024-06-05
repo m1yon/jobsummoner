@@ -46,7 +46,7 @@ func (s *SqliteScrapeRepository) GetLastScrape(ctx context.Context, sourceID str
 }
 
 func (s *SqliteScrapeRepository) GetLastScrapeTime(ctx context.Context, sourceID string) (time.Time, error) {
-	defaultLastScrapedTime := time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC)
+	defaultLastScrapedTime := s.c.Now().Add(-24 * time.Hour)
 	lastScrape, err := s.queries.GetLastScrape(ctx, sourceID)
 
 	if err != nil {
