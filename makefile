@@ -12,3 +12,6 @@ migrate-down:
 
 reset-db:
 	rm -f ./db/database.db && make migrate-up 
+
+dev: 
+	templ generate --watch --proxy="http://localhost:3000" --cmd="go run ./cmd/server"

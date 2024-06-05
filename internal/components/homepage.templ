@@ -3,9 +3,9 @@ package components
 import "github.com/m1yon/jobsummoner"
 
 templ Homepage(m jobsummoner.HomepageViewModel) {
-	<div>
+	@layout() {
 		for _, job := range m.Jobs {
 			<h1>{ job.Position }</h1>
 		}
-	</div>
+	}
 }
