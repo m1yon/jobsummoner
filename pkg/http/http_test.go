@@ -44,7 +44,7 @@ func TestGETHomepage(t *testing.T) {
 		},
 	}
 
-	t.Run("renders the available positions correctly", func(t *testing.T) {
+	t.Run("renders the page correctly", func(t *testing.T) {
 		ctx := context.Background()
 		logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 		db := sqlitedb.NewTestDB()
@@ -66,7 +66,7 @@ func TestGETHomepage(t *testing.T) {
 
 		doc, _ := goquery.NewDocumentFromReader(response.Body)
 
-		assertHeadingExists(t, doc, "Software Developer")
+		assertHeadingExists(t, doc, "Jobs")
 	})
 
 	t.Run("handles a template rendering failure", func(t *testing.T) {
