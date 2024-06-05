@@ -26,11 +26,14 @@ func (j *DefaultJobService) GetJob(ctx context.Context, id string) (jobsummoner.
 	return job, nil
 }
 
-func (j *DefaultJobService) GetJobs(ctx context.Context) ([]jobsummoner.Job, []error) {
-	return []jobsummoner.Job{
-		{Position: "Software Engineer"},
-		{Position: "Manager"},
-	}, nil
+func (j *DefaultJobService) GetJobs(ctx context.Context) ([]jobsummoner.Job, error) {
+	jobs, err := j.jobRepository.GetJobs(ctx)
+
+	if err != nil {
+		return []jobsummoner.Job{}, errors.Wrap(err, "error getting jobs in job service")
+	}
+
+	return jobs, nil
 }
 
 func (j *DefaultJobService) CreateJobs(ctx context.Context, jobs []jobsummoner.Job) ([]string, []error) {

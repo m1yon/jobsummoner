@@ -43,15 +43,42 @@ func (s *SqliteJobRepository) GetJob(ctx context.Context, id string) (jobsummone
 	}
 
 	job := jobsummoner.Job{
-		Position:    dbJob.Position,
-		CompanyID:   dbJob.CompanyID,
-		CompanyName: dbJob.CompanyName,
-		Location:    dbJob.Location.String,
-		URL:         dbJob.JobUrl,
-		SourceID:    dbJob.SourceID,
+		Position:      dbJob.Position,
+		Location:      dbJob.Location.String,
+		URL:           dbJob.JobUrl,
+		SourceID:      dbJob.SourceID,
+		CompanyID:     dbJob.CompanyID,
+		CompanyName:   dbJob.CompanyName,
+		CompanyAvatar: dbJob.CompanyAvatar.String,
+		CompanyURL:    dbJob.CompanyUrl,
 	}
 
 	return job, nil
+}
+
+func (s *SqliteJobRepository) GetJobs(ctx context.Context) ([]jobsummoner.Job, error) {
+	jobs, err := s.queries.GetJobs(ctx)
+
+	if err != nil {
+		return []jobsummoner.Job{}, errors.Wrap(err, "error getting jobs from db")
+	}
+
+	formattedJobs := make([]jobsummoner.Job, 0, len(jobs))
+
+	for _, dbJob := range jobs {
+		formattedJobs = append(formattedJobs, jobsummoner.Job{
+			Position:      dbJob.Position,
+			Location:      dbJob.Location.String,
+			URL:           dbJob.JobUrl,
+			SourceID:      dbJob.SourceID,
+			CompanyID:     dbJob.CompanyID,
+			CompanyName:   dbJob.CompanyName,
+			CompanyAvatar: dbJob.CompanyAvatar.String,
+			CompanyURL:    dbJob.CompanyUrl,
+		})
+	}
+
+	return formattedJobs, nil
 }
 
 func NewSqliteJobRepository(db *sql.DB) *SqliteJobRepository {

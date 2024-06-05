@@ -145,4 +145,19 @@ func TestSqliteJobService(t *testing.T) {
 			assert.Equal(t, jobToCreate.URL, job.URL)
 		}
 	})
+
+	t.Run("get jobs", func(t *testing.T) {
+		ctx := context.Background()
+		db := sqlitedb.NewTestDB()
+		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
+		companyService := company.NewDefaultCompanyService(companyRepository)
+		jobRepository := sqlitedb.NewSqliteJobRepository(db)
+		jobService := NewDefaultJobService(jobRepository, companyService)
+
+		jobService.CreateJobs(ctx, jobsToCreate)
+
+		jobs, errs := jobService.GetJobs(ctx)
+		assert.Empty(t, errs)
+		assert.Equal(t, jobsToCreate, jobs)
+	})
 }
