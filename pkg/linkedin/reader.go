@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"log/slog"
 	"math"
 	"net/http"
 	"net/url"
@@ -41,11 +42,14 @@ type HttpLinkedInReader struct {
 	config LinkedInReaderConfig
 	page   int
 	client httpGetter
+	logger *slog.Logger
 }
 
 func (m *HttpLinkedInReader) GetNextJobListingPage(lastScraped time.Time) (io.Reader, bool, error) {
 	url := m.buildJobListingURL(lastScraped)
 	resp, err := m.client.Get(url)
+
+	m.logger.Debug("reading linkedin url", slog.String("url", url))
 
 	if err != nil {
 		return &bytes.Buffer{}, false, errors.Wrap(err, "failed fetching job listings page")
@@ -89,8 +93,8 @@ type httpGetter interface {
 	Get(url string) (resp *http.Response, err error)
 }
 
-func NewHttpLinkedInReader(config LinkedInReaderConfig, client httpGetter) *HttpLinkedInReader {
-	return &HttpLinkedInReader{config, config.InitialPage, client}
+func NewHttpLinkedInReader(config LinkedInReaderConfig, client httpGetter, logger *slog.Logger) *HttpLinkedInReader {
+	return &HttpLinkedInReader{config, config.InitialPage, client, logger}
 }
 
 func (m *HttpLinkedInReader) buildJobListingURL(timeSinceLastScrape time.Time) string {

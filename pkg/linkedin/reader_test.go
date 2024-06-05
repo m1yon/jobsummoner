@@ -3,6 +3,7 @@ package linkedin
 import (
 	"errors"
 	"io"
+	"log/slog"
 	"net/http"
 	"strings"
 	"testing"
@@ -68,10 +69,11 @@ func NewStubClient() *stubClient {
 func TestHttpReader(t *testing.T) {
 	t.Run("hits the LinkedIn API and parses the results", func(t *testing.T) {
 		stubClient := NewStubClient()
+		logger := slog.New(slog.NewTextHandler(nil, nil))
 		httpReader := NewHttpLinkedInReader(LinkedInReaderConfig{
 			Keywords: []string{"Software Engineer", "Manager"},
 			Location: "United States",
-		}, stubClient)
+		}, stubClient, logger)
 
 		buffer, isLastPage, err := httpReader.GetNextJobListingPage(time.Now().Add(-30 * time.Minute))
 		assert.NoError(t, err)
@@ -158,9 +160,10 @@ func TestBuilderJobListingURL(t *testing.T) {
 		},
 	}
 
+	logger := slog.New(slog.NewTextHandler(nil, nil))
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			reader := NewHttpLinkedInReader(tt.getConfig(), http.DefaultClient)
+			reader := NewHttpLinkedInReader(tt.getConfig(), http.DefaultClient, logger)
 			got := reader.buildJobListingURL(time.Now().Add(-30 * time.Minute))
 			assert.Equal(t, linkedInBaseSearchURL+tt.want, got)
 		})

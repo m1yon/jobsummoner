@@ -46,11 +46,11 @@ func TestLinkedInScraper(t *testing.T) {
 
 	t.Run("http reader - scrape and paginates job listings correctly with 2 pages", func(t *testing.T) {
 		stubClient := NewStubClient()
+		logger := slog.New(slog.NewTextHandler(nil, nil))
 		httpReader := NewHttpLinkedInReader(LinkedInReaderConfig{
 			Keywords: []string{"Software Engineer", "Manager"},
 			Location: "United States",
-		}, stubClient)
-		logger := slog.New(slog.NewTextHandler(nil, nil))
+		}, stubClient, logger)
 		scraper := NewCustomLinkedInJobScraper(httpReader, logger)
 
 		got, errs := scraper.ScrapeJobs(time.Now().Add(-30 * time.Minute))

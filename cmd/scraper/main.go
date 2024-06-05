@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	scrapers := []jobsummoner.Scraper{
 		linkedin.NewLinkedInJobScraper(linkedin.LinkedInReaderConfig{
 			Keywords: []string{"typescript"},

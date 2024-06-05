@@ -27,7 +27,7 @@ type LinkedInScraper struct {
 
 // Initialize a new scraper that uses the default http client.
 func NewLinkedInJobScraper(config LinkedInReaderConfig, logger *slog.Logger) *LinkedInScraper {
-	reader := NewHttpLinkedInReader(config, http.DefaultClient)
+	reader := NewHttpLinkedInReader(config, http.DefaultClient, logger)
 
 	return NewCustomLinkedInJobScraper(reader, logger)
 }
