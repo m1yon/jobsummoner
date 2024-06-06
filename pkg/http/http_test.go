@@ -66,7 +66,7 @@ func TestGETHomepage(t *testing.T) {
 
 		doc, _ := goquery.NewDocumentFromReader(response.Body)
 
-		assertHeadingExists(t, doc, "Jobs")
+		assertHeadingExists(t, doc, "m1yon/jobsummoner")
 	})
 
 	t.Run("handles a template rendering failure", func(t *testing.T) {

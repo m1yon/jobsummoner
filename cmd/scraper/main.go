@@ -2,9 +2,11 @@ package main
 
 import (
 	"database/sql"
+	"log"
 	"log/slog"
 	"os"
 
+	"github.com/joho/godotenv"
 	"github.com/jonboulle/clockwork"
 	"github.com/m1yon/jobsummoner"
 	"github.com/m1yon/jobsummoner/internal/company"
@@ -17,11 +19,35 @@ import (
 
 func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	proxyConfig := linkedin.ProxyConfig{
+		Hostname: os.Getenv("PROXY_HOSTNAME"),
+		Port:     os.Getenv("PROXY_PORT"),
+		Username: os.Getenv("PROXY_USERNAME"),
+		Password: os.Getenv("PROXY_PASSWORD"),
+	}
+	proxyURL, err := linkedin.BuildHttpProxyURL(proxyConfig)
+
+	if err != nil {
+		logger.Error("failed to builder http proxy url", slog.String("err", err.Error()))
+	}
+
+	httpClient, err := linkedin.NewHttpProxyClient(proxyURL)
+
+	if err != nil {
+		logger.Error("problem setting up http proxy client", slog.String("err", err.Error()))
+	}
+
 	scrapers := []jobsummoner.Scraper{
-		linkedin.NewLinkedInJobScraper(linkedin.LinkedInReaderConfig{
+		linkedin.NewLinkedInJobScraper(linkedin.NewHttpLinkedInReader(linkedin.LinkedInReaderConfig{
 			Keywords: []string{"typescript"},
 			Location: "United States",
-		}, logger),
+		}, httpClient, logger), logger),
 	}
 
 	c := clockwork.NewRealClock()

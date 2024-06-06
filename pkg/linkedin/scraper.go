@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
-	"net/http"
 	"net/url"
 	"strings"
 	"time"
@@ -25,14 +24,7 @@ type LinkedInScraper struct {
 	logger *slog.Logger
 }
 
-// Initialize a new scraper that uses the default http client.
-func NewLinkedInJobScraper(config LinkedInReaderConfig, logger *slog.Logger) *LinkedInScraper {
-	reader := NewHttpLinkedInReader(config, http.DefaultClient, logger)
-
-	return NewCustomLinkedInJobScraper(reader, logger)
-}
-
-func NewCustomLinkedInJobScraper(r LinkedInReader, logger *slog.Logger) *LinkedInScraper {
+func NewLinkedInJobScraper(r LinkedInReader, logger *slog.Logger) *LinkedInScraper {
 	return &LinkedInScraper{r, logger}
 }
 

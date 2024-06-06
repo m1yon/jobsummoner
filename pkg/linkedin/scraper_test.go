@@ -15,7 +15,7 @@ func TestLinkedInScraper(t *testing.T) {
 	t.Run("file reader - scrape and paginates job listings correctly with 2 pages", func(t *testing.T) {
 		fileReader := NewFileLinkedInReader("./test-helpers/li-job-listings-%v.html")
 		logger := slog.New(slog.NewTextHandler(nil, nil))
-		scraper := NewCustomLinkedInJobScraper(fileReader, logger)
+		scraper := NewLinkedInJobScraper(fileReader, logger)
 
 		got, errs := scraper.ScrapeJobs(time.Now().Add(-30 * time.Minute))
 		want := []jobsummoner.Job{
@@ -51,7 +51,7 @@ func TestLinkedInScraper(t *testing.T) {
 			Keywords: []string{"Software Engineer", "Manager"},
 			Location: "United States",
 		}, stubClient, logger)
-		scraper := NewCustomLinkedInJobScraper(httpReader, logger)
+		scraper := NewLinkedInJobScraper(httpReader, logger)
 
 		got, errs := scraper.ScrapeJobs(time.Now().Add(-30 * time.Minute))
 		want := []jobsummoner.Job{
@@ -84,7 +84,7 @@ func TestLinkedInScraper(t *testing.T) {
 		mockReader := NewFileLinkedInReader("./test-helpers/li-job-listings_bad-company-url-%v.html")
 		logBufferSpy := new(bytes.Buffer)
 		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
-		scraper := NewCustomLinkedInJobScraper(mockReader, logger)
+		scraper := NewLinkedInJobScraper(mockReader, logger)
 
 		got, errs := scraper.ScrapeJobs(time.Now().Add(-30 * time.Minute))
 		want := []jobsummoner.Job{
