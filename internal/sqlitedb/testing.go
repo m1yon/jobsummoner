@@ -1,10 +1,11 @@
 package sqlitedb
 
 import (
+	"context"
 	"database/sql"
 	"log"
 
-	"github.com/pressly/goose"
+	"github.com/pressly/goose/v3"
 	"modernc.org/sqlite"
 )
 
@@ -18,6 +19,7 @@ func init() {
 }
 
 func NewTestDB() *sql.DB {
+	ctx := context.Background()
 	db, err := goose.OpenDBWithDriver("sqlite3", dbstring)
 
 	if err != nil {
@@ -25,7 +27,7 @@ func NewTestDB() *sql.DB {
 		return &sql.DB{}
 	}
 
-	if err := goose.Run("up", db, dir); err != nil {
+	if err := goose.RunContext(ctx, "up", db, dir); err != nil {
 		log.Fatalf("goose erro: %v", err)
 		return &sql.DB{}
 	}
