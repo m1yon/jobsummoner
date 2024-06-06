@@ -7,29 +7,25 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/joho/godotenv"
 	"github.com/m1yon/jobsummoner/sql/migrations"
 	"github.com/pressly/goose/v3"
 	"github.com/pressly/goose/v3/database"
+	_ "github.com/tursodatabase/libsql-client-go/libsql"
 	_ "modernc.org/sqlite"
 )
 
 func main() {
-	log.SetFlags(0)
-	ctx := context.Background()
+	err := godotenv.Load()
 
-	if _, err := os.Stat("./db"); os.IsNotExist(err) {
-		err := os.Mkdir("./db", os.ModePerm)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-
-	_, err := os.OpenFile("./db/database.db", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Error loading .env file")
 	}
 
-	db, err := sql.Open("sqlite", "./db/database.db")
+	ctx := context.Background()
+	databaseURL := os.Getenv("DATABASE_URL")
+
+	db, err := sql.Open("libsql", databaseURL)
 	if err != nil {
 		log.Fatal(err)
 	}

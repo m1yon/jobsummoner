@@ -14,17 +14,21 @@ import (
 	"github.com/m1yon/jobsummoner/internal/scrape"
 	"github.com/m1yon/jobsummoner/internal/sqlitedb"
 	"github.com/m1yon/jobsummoner/pkg/linkedin"
+
+	_ "github.com/tursodatabase/libsql-client-go/libsql"
 	_ "modernc.org/sqlite"
 )
 
 func main() {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
-
 	err := godotenv.Load()
+
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
 
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+
+	databaseURL := os.Getenv("DATABASE_URL")
 	proxyConfig := linkedin.ProxyConfig{
 		Hostname: os.Getenv("PROXY_HOSTNAME"),
 		Port:     os.Getenv("PROXY_PORT"),
@@ -52,7 +56,7 @@ func main() {
 
 	c := clockwork.NewRealClock()
 
-	db, err := sql.Open("sqlite", "./db/database.db")
+	db, err := sql.Open("libsql", databaseURL)
 
 	if err != nil {
 		logger.Error("failed starting db")
