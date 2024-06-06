@@ -45,6 +45,10 @@ type HttpLinkedInReader struct {
 	logger *slog.Logger
 }
 
+func NewHttpLinkedInReader(config LinkedInReaderConfig, client httpGetter, logger *slog.Logger) *HttpLinkedInReader {
+	return &HttpLinkedInReader{config, config.InitialPage, client, logger}
+}
+
 func (m *HttpLinkedInReader) GetNextJobListingPage(lastScraped time.Time) (io.Reader, bool, error) {
 	url := m.buildJobListingURL(lastScraped)
 	resp, err := m.client.Get(url)
@@ -93,10 +97,6 @@ type httpGetter interface {
 	Get(url string) (resp *http.Response, err error)
 }
 
-func NewHttpLinkedInReader(config LinkedInReaderConfig, client httpGetter, logger *slog.Logger) *HttpLinkedInReader {
-	return &HttpLinkedInReader{config, config.InitialPage, client, logger}
-}
-
 func (m *HttpLinkedInReader) buildJobListingURL(timeSinceLastScrape time.Time) string {
 	url, _ := url.Parse(linkedInBaseSearchURL)
 
@@ -142,6 +142,10 @@ type FileLinkedInReader struct {
 	page  int
 }
 
+func NewFileLinkedInReader(pathf string) *FileLinkedInReader {
+	return &FileLinkedInReader{pathf: pathf, page: 1}
+}
+
 func (m *FileLinkedInReader) GetNextJobListingPage(lastScraped time.Time) (io.Reader, bool, error) {
 	file, err := os.Open(fmt.Sprintf(m.pathf, m.page))
 
@@ -165,8 +169,4 @@ func (m *FileLinkedInReader) GetNextJobListingPage(lastScraped time.Time) (io.Re
 	m.page++
 
 	return &buffer, false, nil
-}
-
-func NewFileLinkedInReader(pathf string) *FileLinkedInReader {
-	return &FileLinkedInReader{pathf: pathf, page: 1}
 }
