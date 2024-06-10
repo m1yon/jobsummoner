@@ -2,4 +2,5 @@ db
 **_templ.txt
 .env
 /server
+/scraper
 .DS_Store

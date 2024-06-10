@@ -1,0 +1,12 @@
+# fly.toml app configuration file generated for jobsummoner-scraper on 2024-06-10T17:02:48-06:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'jobsummoner-scraper'
+primary_region = 'den'
+
+[build]
+
+[[vm]]
+size = 'shared-cpu-1x'
