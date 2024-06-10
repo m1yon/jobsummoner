@@ -18,3 +18,6 @@ dev:
 
 migrate:
 	go run ./cmd/migrator/main.go
+
+docker-build:
+	docker/server/build.sh && docker-compose up --build
