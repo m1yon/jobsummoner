@@ -36,6 +36,7 @@ func main() {
 	jobRepository := sqlitedb.NewSqliteJobRepository(db)
 	jobService := job.NewDefaultJobService(jobRepository, companyService)
 
+	logger.Info("server started")
 	server := http.NewDefaultServer(logger, jobService)
 	server.ListenAndServe(":3000")
 }
