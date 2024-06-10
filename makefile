@@ -19,5 +19,5 @@ dev:
 migrate:
 	go run ./cmd/migrator/main.go
 
-docker-build:
-	docker/server/build.sh && docker-compose up --build
+deploy-server:
+	docker/server/build.sh && fly deploy --config docker/server/fly.toml --dockerfile docker/server/Dockerfile

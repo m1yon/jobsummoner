@@ -2,3 +2,4 @@ db
 **_templ.txt
 .env
 /server
+.DS_Store
