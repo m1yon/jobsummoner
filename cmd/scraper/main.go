@@ -33,16 +33,11 @@ func main() {
 		Username: os.Getenv("PROXY_USERNAME"),
 		Password: os.Getenv("PROXY_PASSWORD"),
 	}
-	proxyURL, err := linkedin.BuildHttpProxyURL(proxyConfig)
+
+	httpClient, err := linkedin.NewHttpProxyClientFromConfig(proxyConfig)
 
 	if err != nil {
-		logger.Error("failed to builder http proxy url", slog.String("err", err.Error()))
-	}
-
-	httpClient, err := linkedin.NewHttpProxyClient(proxyURL)
-
-	if err != nil {
-		logger.Error("problem setting up http proxy client", slog.String("err", err.Error()))
+		logger.Warn("proxy server disabled", "reason", err.Error())
 	}
 
 	scrapers := []jobsummoner.Scraper{

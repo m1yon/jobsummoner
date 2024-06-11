@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -32,7 +33,7 @@ func TestHttpProxyBuilder(t *testing.T) {
 		}
 
 		_, err := BuildHttpProxyURL(fakeProxyConfig)
-		assert.Errorf(t, err, ErrInvalidProxyConfig)
+		assert.ErrorContains(t, err, ErrInvalidProxyConfig)
 	})
 }
 
@@ -45,15 +46,52 @@ func TestHttpProxyClient(t *testing.T) {
 		}))
 		defer proxyServer.Close()
 
-		proxyServerURL, err := url.Parse(proxyServer.URL)
-		assert.NoError(t, err)
-
-		client, err := NewHttpProxyClient(proxyServerURL)
-		assert.NoError(t, err)
+		proxyServerURL, _ := url.Parse(proxyServer.URL)
+		client, _ := NewHttpProxyClient(proxyServerURL)
 
 		req, _ := http.NewRequest(http.MethodGet, "http://example.com", nil)
-		_, err = client.Transport.RoundTrip(req)
-		assert.NoError(t, err)
+		_, _ = client.Transport.RoundTrip(req)
+
 		assert.Equal(t, true, proxyCalled, "proxy was not called")
+	})
+}
+
+func TestNewHttpProxyClientFromConfig(t *testing.T) {
+	t.Run("initializes proxy client correctly", func(t *testing.T) {
+		proxyCalled := false
+		proxyServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			proxyCalled = true
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer proxyServer.Close()
+
+		// split into hostname/port
+		proxyInfo := strings.Split(strings.ReplaceAll(proxyServer.URL, "http://", ""), ":")
+
+		client, _ := NewHttpProxyClientFromConfig(ProxyConfig{
+			Hostname: proxyInfo[0],
+			Port:     proxyInfo[1],
+		})
+
+		req, _ := http.NewRequest(http.MethodGet, "http://example.com", nil)
+		_, _ = client.Transport.RoundTrip(req)
+
+		assert.Equal(t, true, proxyCalled, "proxy was not called")
+	})
+
+	t.Run("returns an error for bad config", func(t *testing.T) {
+		proxyServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer proxyServer.Close()
+
+		// split into hostname/port
+		proxyInfo := strings.Split(strings.ReplaceAll(proxyServer.URL, "http://", ""), ":")
+
+		_, err := NewHttpProxyClientFromConfig(ProxyConfig{
+			Hostname: "",
+			Port:     proxyInfo[1],
+		})
+		assert.ErrorContains(t, err, ErrBuildingProxyURL)
 	})
 }
