@@ -10,16 +10,30 @@ import (
 )
 
 func TestHttpProxyBuilder(t *testing.T) {
-	fakeProxyConfig := ProxyConfig{
-		Hostname: "crazyproxies.com",
-		Port:     "44443",
-		Username: "michael",
-		Password: "hunter12",
-	}
+	t.Run("builds a valid URL", func(t *testing.T) {
+		fakeProxyConfig := ProxyConfig{
+			Hostname: "crazyproxies.com",
+			Port:     "44443",
+			Username: "michael",
+			Password: "hunter12",
+		}
 
-	url, err := BuildHttpProxyURL(fakeProxyConfig)
-	assert.NoError(t, err)
-	assert.Equal(t, "http://michael:hunter12@crazyproxies.com:44443", url.String())
+		url, err := BuildHttpProxyURL(fakeProxyConfig)
+		assert.NoError(t, err)
+		assert.Equal(t, "http://michael:hunter12@crazyproxies.com:44443", url.String())
+	})
+
+	t.Run("returns an error on empty values", func(t *testing.T) {
+		fakeProxyConfig := ProxyConfig{
+			Hostname: "",
+			Port:     "",
+			Username: "",
+			Password: "",
+		}
+
+		_, err := BuildHttpProxyURL(fakeProxyConfig)
+		assert.Errorf(t, err, ErrInvalidProxyConfig)
+	})
 }
 
 func TestHttpProxyClient(t *testing.T) {
