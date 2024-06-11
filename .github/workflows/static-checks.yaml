@@ -14,4 +14,4 @@ jobs:
       - run: go version
 
       - name: test
-        run: go test -v ./...
+        run: go run gotest.tools/gotestsum@latest
