@@ -1,5 +1,5 @@
 FROM --platform=linux/amd64 alpine
-RUN apk update && apk add ca-certificates tzdata
+RUN apk update && apk add ca-certificates && apk add tzdata
 WORKDIR /app
 COPY scraper scraper
 CMD ["./scraper"]
