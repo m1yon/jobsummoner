@@ -22,12 +22,16 @@ func main() {
 		logger.Warn("no .env file found")
 	}
 
-	databaseURL := os.Getenv("DATABASE_URL")
-
-	db, err := sqlitedb.NewDB("libsql", databaseURL, sql.Open)
+	db, err := sqlitedb.NewDB(sql.Open)
 
 	if err != nil {
 		logger.Error("failed starting db")
+	}
+
+	err = db.Ping()
+
+	if err != nil {
+		logger.Error("failed pinging db")
 	}
 
 	companyRepository := sqlitedb.NewSqliteCompanyRepository(db)

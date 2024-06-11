@@ -26,7 +26,6 @@ func main() {
 		logger.Warn("no .env file found")
 	}
 
-	databaseURL := os.Getenv("DATABASE_URL")
 	proxyConfig := linkedin.ProxyConfig{
 		Hostname: os.Getenv("PROXY_HOSTNAME"),
 		Port:     os.Getenv("PROXY_PORT"),
@@ -49,7 +48,7 @@ func main() {
 
 	c := clockwork.NewRealClock()
 
-	db, err := sqlitedb.NewDB("libsql", databaseURL, sql.Open)
+	db, err := sqlitedb.NewDB(sql.Open)
 
 	if err != nil {
 		logger.Error("failed starting db")
