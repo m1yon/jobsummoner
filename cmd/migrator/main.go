@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 
@@ -16,10 +17,11 @@ import (
 )
 
 func main() {
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	err := godotenv.Load()
 
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		logger.Warn("no .env file found")
 	}
 
 	ctx := context.Background()

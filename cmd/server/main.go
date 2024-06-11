@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"log"
 	"log/slog"
 	"os"
 
@@ -16,15 +15,15 @@ import (
 )
 
 func main() {
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	err := godotenv.Load()
 
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		logger.Warn("no .env file found")
 	}
 
 	databaseURL := os.Getenv("DATABASE_URL")
 
-	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	db, err := sql.Open("libsql", databaseURL)
 
 	if err != nil {
