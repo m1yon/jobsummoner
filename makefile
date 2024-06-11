@@ -19,10 +19,14 @@ dev:
 migrate:
 	go run ./cmd/migrator/main.go
 
+build-server:
+	docker/server/build.sh
+
 deploy-server:
-	docker/server/build.sh && fly deploy --config docker/server/fly.toml --dockerfile docker/server/Dockerfile
+	fly deploy --config docker/server/fly.toml --dockerfile docker/server/Dockerfile
+
+build-scraper:
+	docker/scraper/build.sh
 
 deploy-scraper:
-	docker/scraper/build.sh && fly deploy --config docker/scraper/fly.toml --dockerfile docker/scraper/Dockerfile
-
-deploy: deploy-server deploy-scraper
+	fly deploy --config docker/scraper/fly.toml --dockerfile docker/scraper/Dockerfile
