@@ -45,6 +45,9 @@ deploy-scraper:
 .PHONY: build-all
 build-all: build-server build-scraper
 
+.PHONY: deploy-all
+deploy-all: deploy-server deploy-scraper
+
 .PHONY: start-services
 start-services:
 	docker-compose up --build

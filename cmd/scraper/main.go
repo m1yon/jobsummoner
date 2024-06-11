@@ -54,12 +54,14 @@ func main() {
 
 	if err != nil {
 		logger.Error("failed starting db")
+		os.Exit(1)
 	}
 
 	err = db.Ping()
 
 	if err != nil {
 		logger.Error("failed pinging db")
+		os.Exit(1)
 	}
 
 	companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
