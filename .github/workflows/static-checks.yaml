@@ -1,9 +1,10 @@
-name: static checks
+name: Static Checks
 
 on: push
 
 jobs:
   code:
+    name: Code
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -13,5 +14,10 @@ jobs:
 
       - run: go version
 
-      - name: test
+      - name: Run tests
         run: go run gotest.tools/gotestsum@latest
+
+      - name: Run linter
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.58
