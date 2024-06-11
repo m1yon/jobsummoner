@@ -24,7 +24,7 @@ func main() {
 
 	databaseURL := os.Getenv("DATABASE_URL")
 
-	db, err := sql.Open("libsql", databaseURL)
+	db, err := sqlitedb.NewDB("libsql", databaseURL, sql.Open)
 
 	if err != nil {
 		logger.Error("failed starting db")
