@@ -37,6 +37,8 @@ func main() {
 
 	if err != nil {
 		logger.Warn("proxy server disabled", "reason", err.Error())
+	} else {
+		logger.Info("proxy server enabled")
 	}
 
 	scrapers := []jobsummoner.Scraper{
