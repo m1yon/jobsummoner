@@ -15,32 +15,6 @@ func init() {
 	sql.Register("sqlite3", &sqlite.Driver{})
 }
 
-func NewFileDB() (*sql.DB, error) {
-	workingDir, err := os.Getwd()
-
-	if err != nil {
-		return nil, errors.Wrap(err, "error getting working directory")
-	}
-
-	migrationsDir := workingDir + "/sql/migrations"
-	localDbDir := workingDir + "/db"
-	localDbPath := localDbDir + "/database.db"
-
-	if _, err := os.Stat(localDbDir); os.IsNotExist(err) {
-		err := os.Mkdir(localDbDir, os.ModePerm)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	_, err = os.OpenFile(localDbPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		return nil, err
-	}
-
-	return migrateLocalDB(localDbPath, migrationsDir)
-}
-
 func NewInMemoryDB() (*sql.DB, error) {
 	workingDir, err := os.Getwd()
 
