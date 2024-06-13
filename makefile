@@ -24,7 +24,7 @@ dev:
 
 .PHONY: migrate
 migrate:
-	go build -o migrator ./cmd/migrator && ./migrator
+	go build -o bin/migrator ./cmd/migrator && ./bin/migrator
 
 .PHONY: build-server
 build-server:

@@ -1,3 +1,3 @@
 #!/bin/bash
 
-CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o scraper ./cmd/scraper
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o bin/scraper ./cmd/scraper

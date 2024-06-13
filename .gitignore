@@ -1,7 +1,5 @@
 db
 **_templ.txt
 .env
-/server
-/scraper
-/migrator
+/bin
 .DS_Store
