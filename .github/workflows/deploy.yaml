@@ -1,4 +1,4 @@
-name: Fly Deploy
+name: Production Deploy
 on:
   push:
     branches:
@@ -10,6 +10,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: make build-deploy-all
+      - name: Migrate Turso DB
+        run: make migrate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - name: Deply to Fly
+        run: make build-deploy-all
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

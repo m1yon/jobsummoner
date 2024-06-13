@@ -3,4 +3,5 @@ db
 .env
 /server
 /scraper
+/migrator
 .DS_Store

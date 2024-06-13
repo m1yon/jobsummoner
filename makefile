@@ -24,7 +24,7 @@ dev:
 
 .PHONY: migrate
 migrate:
-	go run ./cmd/migrator/main.go
+	go build -o migrator ./cmd/migrator && ./migrator
 
 .PHONY: build-server
 build-server:
