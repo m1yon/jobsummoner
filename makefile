@@ -32,7 +32,7 @@ build-server:
 
 .PHONY: deploy-server
 deploy-server:
-	fly deploy --config docker/server/fly.toml --dockerfile docker/server/Dockerfile
+	flyctl deploy --config docker/server/fly.toml --dockerfile docker/server/Dockerfile
 
 .PHONY: build-scraper
 build-scraper:
@@ -40,7 +40,7 @@ build-scraper:
 
 .PHONY: deploy-scraper
 deploy-scraper:
-	fly deploy --config docker/scraper/fly.toml --dockerfile docker/scraper/Dockerfile
+	flyctl deploy --config docker/scraper/fly.toml --dockerfile docker/scraper/Dockerfile
 
 .PHONY: build-all
 build-all: build-server build-scraper
