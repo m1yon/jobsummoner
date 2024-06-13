@@ -12,7 +12,7 @@ import (
 func TestJobRepository(t *testing.T) {
 	t.Run("create job and immediately get created job", func(t *testing.T) {
 		ctx := context.Background()
-		db := NewTestDB()
+		db, _ := NewInMemoryDB()
 		companyRepository := NewSqliteCompanyRepository(db)
 		jobRepository := NewSqliteJobRepository(db)
 
@@ -50,7 +50,7 @@ func TestJobRepository(t *testing.T) {
 
 	t.Run("get jobs", func(t *testing.T) {
 		ctx := context.Background()
-		db := NewTestDB()
+		db, _ := NewInMemoryDB()
 		companyRepository := NewSqliteCompanyRepository(db)
 		jobRepository := NewSqliteJobRepository(db)
 

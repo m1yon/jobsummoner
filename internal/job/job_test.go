@@ -8,6 +8,7 @@ import (
 	"github.com/m1yon/jobsummoner"
 	"github.com/m1yon/jobsummoner/internal/company"
 	"github.com/m1yon/jobsummoner/internal/sqlitedb"
+	_ "github.com/m1yon/jobsummoner/internal/testing"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -35,7 +36,7 @@ func TestSqliteJobService(t *testing.T) {
 
 	t.Run("create job and immediately get created job", func(t *testing.T) {
 		ctx := context.Background()
-		db := sqlitedb.NewTestDB()
+		db, _ := sqlitedb.NewInMemoryDB()
 		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
 		companyService := company.NewDefaultCompanyService(companyRepository)
 		jobRepository := sqlitedb.NewSqliteJobRepository(db)
@@ -65,7 +66,7 @@ func TestSqliteJobService(t *testing.T) {
 
 	t.Run("CreateJobs returns a list of job IDs", func(t *testing.T) {
 		ctx := context.Background()
-		db := sqlitedb.NewTestDB()
+		db, _ := sqlitedb.NewInMemoryDB()
 		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
 		companyService := company.NewDefaultCompanyService(companyRepository)
 		jobRepository := sqlitedb.NewSqliteJobRepository(db)
@@ -82,7 +83,7 @@ func TestSqliteJobService(t *testing.T) {
 
 	t.Run("new companies exist after jobs created", func(t *testing.T) {
 		ctx := context.Background()
-		db := sqlitedb.NewTestDB()
+		db, _ := sqlitedb.NewInMemoryDB()
 		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
 		companyService := company.NewDefaultCompanyService(companyRepository)
 		jobRepository := sqlitedb.NewSqliteJobRepository(db)
@@ -101,7 +102,7 @@ func TestSqliteJobService(t *testing.T) {
 
 	t.Run("can query new companies after jobs created", func(t *testing.T) {
 		ctx := context.Background()
-		db := sqlitedb.NewTestDB()
+		db, _ := sqlitedb.NewInMemoryDB()
 		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
 		companyService := company.NewDefaultCompanyService(companyRepository)
 		jobRepository := sqlitedb.NewSqliteJobRepository(db)
@@ -125,7 +126,7 @@ func TestSqliteJobService(t *testing.T) {
 
 	t.Run("can get jobs after jobs created", func(t *testing.T) {
 		ctx := context.Background()
-		db := sqlitedb.NewTestDB()
+		db, _ := sqlitedb.NewInMemoryDB()
 		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
 		companyService := company.NewDefaultCompanyService(companyRepository)
 		jobRepository := sqlitedb.NewSqliteJobRepository(db)
@@ -149,7 +150,7 @@ func TestSqliteJobService(t *testing.T) {
 
 	t.Run("get jobs", func(t *testing.T) {
 		ctx := context.Background()
-		db := sqlitedb.NewTestDB()
+		db, _ := sqlitedb.NewInMemoryDB()
 		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
 		companyService := company.NewDefaultCompanyService(companyRepository)
 		jobRepository := sqlitedb.NewSqliteJobRepository(db)

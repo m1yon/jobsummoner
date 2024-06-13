@@ -12,7 +12,7 @@ import (
 func TestScrapeRepository(t *testing.T) {
 	t.Run("can create scrape and immediately get scrape", func(t *testing.T) {
 		ctx := context.Background()
-		db := NewTestDB()
+		db, _ := NewInMemoryDB()
 		c := clockwork.NewFakeClock()
 		scrapeRepository := NewSqliteScrapeRepository(db, c)
 
@@ -27,7 +27,7 @@ func TestScrapeRepository(t *testing.T) {
 
 	t.Run("gets latest scrape", func(t *testing.T) {
 		ctx := context.Background()
-		db := NewTestDB()
+		db, _ := NewInMemoryDB()
 		c := clockwork.NewFakeClock()
 		scrapeRepository := NewSqliteScrapeRepository(db, c)
 
@@ -46,7 +46,7 @@ func TestScrapeRepository(t *testing.T) {
 
 	t.Run("gets latest scrape time", func(t *testing.T) {
 		ctx := context.Background()
-		db := NewTestDB()
+		db, _ := NewInMemoryDB()
 		c := clockwork.NewFakeClock()
 		scrapeRepository := NewSqliteScrapeRepository(db, c)
 

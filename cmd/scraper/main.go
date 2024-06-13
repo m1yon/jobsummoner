@@ -51,17 +51,17 @@ func main() {
 
 	c := clockwork.NewRealClock()
 
-	db, err := sqlitedb.NewDB(sql.Open)
+	db, err := sqlitedb.NewDB(logger, sql.Open)
 
 	if err != nil {
-		logger.Error("failed starting db")
+		logger.Error("failed starting db", tint.Err(err))
 		os.Exit(1)
 	}
 
 	err = db.Ping()
 
 	if err != nil {
-		logger.Error("failed pinging db")
+		logger.Error("failed pinging db", tint.Err(err))
 		os.Exit(1)
 	}
 

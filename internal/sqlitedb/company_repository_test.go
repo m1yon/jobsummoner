@@ -5,13 +5,15 @@ import (
 	"testing"
 
 	"github.com/m1yon/jobsummoner"
+	_ "github.com/m1yon/jobsummoner/internal/testing"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCompanyRepository(t *testing.T) {
 	t.Run("create company and ensure it exists", func(t *testing.T) {
 		ctx := context.Background()
-		db := NewTestDB()
+		db, err := NewInMemoryDB()
+		assert.NoError(t, err)
 		companyRepository := NewSqliteCompanyRepository(db)
 
 		companyToCreate := jobsummoner.Company{
@@ -37,7 +39,7 @@ func TestCompanyRepository(t *testing.T) {
 
 	t.Run("create company and immediately get company", func(t *testing.T) {
 		ctx := context.Background()
-		db := NewTestDB()
+		db, _ := NewInMemoryDB()
 		companyRepository := NewSqliteCompanyRepository(db)
 
 		companyToCreate := jobsummoner.Company{

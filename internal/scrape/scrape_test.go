@@ -13,6 +13,7 @@ import (
 	"github.com/m1yon/jobsummoner/internal/company"
 	"github.com/m1yon/jobsummoner/internal/job"
 	"github.com/m1yon/jobsummoner/internal/sqlitedb"
+	_ "github.com/m1yon/jobsummoner/internal/testing"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -66,7 +67,7 @@ func TestScrapeService(t *testing.T) {
 		logBufferSpy := new(bytes.Buffer)
 		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
 
-		db := sqlitedb.NewTestDB()
+		db, _ := sqlitedb.NewInMemoryDB()
 		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
 		companyService := company.NewDefaultCompanyService(companyRepository)
 		jobRepository := sqlitedb.NewSqliteJobRepository(db)
@@ -108,7 +109,7 @@ func TestScrapeService(t *testing.T) {
 		logBufferSpy := new(bytes.Buffer)
 		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
 
-		db := sqlitedb.NewTestDB()
+		db, _ := sqlitedb.NewInMemoryDB()
 		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
 		companyService := company.NewDefaultCompanyService(companyRepository)
 		jobRepository := sqlitedb.NewSqliteJobRepository(db)
@@ -137,7 +138,7 @@ func TestScrapeService(t *testing.T) {
 		logBufferSpy := new(bytes.Buffer)
 		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
 
-		db := sqlitedb.NewTestDB()
+		db, _ := sqlitedb.NewInMemoryDB()
 		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
 		companyService := company.NewDefaultCompanyService(companyRepository)
 		jobRepository := sqlitedb.NewSqliteJobRepository(db)
@@ -165,7 +166,7 @@ func TestScrapeService(t *testing.T) {
 		logBufferSpy := new(bytes.Buffer)
 		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
 
-		db := sqlitedb.NewTestDB()
+		db, _ := sqlitedb.NewInMemoryDB()
 		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
 		companyService := company.NewDefaultCompanyService(companyRepository)
 		jobRepository := sqlitedb.NewSqliteJobRepository(db)

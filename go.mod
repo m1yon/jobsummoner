@@ -8,9 +8,11 @@ require (
 	github.com/go-co-op/gocron/v2 v2.5.0
 	github.com/joho/godotenv v1.5.1
 	github.com/jonboulle/clockwork v0.4.0
+	github.com/lmittmann/tint v1.0.4
 	github.com/pkg/errors v0.9.1
 	github.com/pressly/goose/v3 v3.20.0
 	github.com/stretchr/testify v1.9.0
+	github.com/tursodatabase/libsql-client-go v0.0.0-20240416075003-747366ff79c4
 	gotest.tools v2.2.0+incompatible
 	modernc.org/sqlite v1.29.10
 )
@@ -25,7 +27,6 @@ require (
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/libsql/sqlite-antlr4-parser v0.0.0-20240327125255-dbf53b6cbf06 // indirect
-	github.com/lmittmann/tint v1.0.4 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mfridman/interpolate v0.0.2 // indirect
 	github.com/ncruces/go-strftime v0.1.9 // indirect
@@ -34,7 +35,6 @@ require (
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/sethvargo/go-retry v0.2.4 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
-	github.com/tursodatabase/libsql-client-go v0.0.0-20240416075003-747366ff79c4 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/exp v0.0.0-20240416160154-fe59bbe5cc7f // indirect
 	golang.org/x/net v0.24.0 // indirect

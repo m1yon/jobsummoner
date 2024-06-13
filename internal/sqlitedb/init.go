@@ -2,6 +2,7 @@ package sqlitedb
 
 import (
 	"database/sql"
+	"log/slog"
 	"os"
 
 	"github.com/pkg/errors"
@@ -13,7 +14,18 @@ const (
 	ErrDatabaseURLNotSet = "DATABASE_URL not set"
 )
 
-func NewDB(open func(driverName string, dataSourceName string) (*sql.DB, error)) (*sql.DB, error) {
+func NewDB(logger *slog.Logger, open func(driverName string, dataSourceName string) (*sql.DB, error)) (*sql.DB, error) {
+	useLocalDB := os.Getenv("LOCAL_DB")
+
+	if useLocalDB == "true" {
+		logger.Info("using local database")
+		return NewFileDB()
+	}
+
+	return NewTursoDB(open)
+}
+
+func NewTursoDB(open func(driverName string, dataSourceName string) (*sql.DB, error)) (*sql.DB, error) {
 	dbURL := os.Getenv("DATABASE_URL")
 
 	if dbURL == "" {

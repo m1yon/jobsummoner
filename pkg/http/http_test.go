@@ -19,6 +19,7 @@ import (
 	"github.com/m1yon/jobsummoner/internal/company"
 	"github.com/m1yon/jobsummoner/internal/job"
 	"github.com/m1yon/jobsummoner/internal/sqlitedb"
+	_ "github.com/m1yon/jobsummoner/internal/testing"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -47,7 +48,7 @@ func TestGETHomepage(t *testing.T) {
 	t.Run("renders the page correctly", func(t *testing.T) {
 		ctx := context.Background()
 		logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
-		db := sqlitedb.NewTestDB()
+		db, _ := sqlitedb.NewInMemoryDB()
 
 		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
 		companyService := company.NewDefaultCompanyService(companyRepository)

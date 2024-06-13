@@ -29,7 +29,7 @@ func TestNewDB(t *testing.T) {
 		mockDb := &sql.DB{}
 		mockOpener.On("Open", "libsql", dataSourceName).Return(mockDb, nil)
 
-		db, err := NewDB(mockOpener.Open)
+		db, err := NewTursoDB(mockOpener.Open)
 
 		mockOpener.AssertExpectations(t)
 		assert.Equal(t, mockDb, db)
@@ -40,7 +40,7 @@ func TestNewDB(t *testing.T) {
 		os.Setenv("DATABASE_URL", "")
 		mockOpener := new(MockSqlOpener)
 
-		_, err := NewDB(mockOpener.Open)
+		_, err := NewTursoDB(mockOpener.Open)
 
 		mockOpener.AssertExpectations(t)
 		assert.ErrorContains(t, err, ErrDatabaseURLNotSet)
@@ -55,7 +55,7 @@ func TestNewDB(t *testing.T) {
 		mockDb := &sql.DB{}
 		mockOpener.On("Open", "libsql", dataSourceName).Return(mockDb, errors.New("could not make connection"))
 
-		_, err := NewDB(mockOpener.Open)
+		_, err := NewTursoDB(mockOpener.Open)
 
 		mockOpener.AssertExpectations(t)
 		assert.ErrorContains(t, err, ErrOpeningDB)
