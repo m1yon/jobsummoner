@@ -14,18 +14,18 @@ const (
 	ErrDatabaseURLNotSet = "DATABASE_URL not set"
 )
 
-func NewDB(logger *slog.Logger, open func(driverName string, dataSourceName string) (*sql.DB, error)) (*sql.DB, error) {
+func NewDB(logger *slog.Logger, opener ConnectionOpener) (*sql.DB, error) {
 	useLocalDB := os.Getenv("LOCAL_DB")
 
 	if useLocalDB == "true" {
 		logger.Info("using local database")
-		return NewFileDB(open)
+		return NewFileDB(opener)
 	}
 
-	return NewTursoDB(open)
+	return NewTursoDB(opener)
 }
 
-func NewFileDB(open func(driverName string, dataSourceName string) (*sql.DB, error)) (*sql.DB, error) {
+func NewFileDB(opener ConnectionOpener) (*sql.DB, error) {
 	workingDir, err := os.Getwd()
 
 	if err != nil {
@@ -48,17 +48,17 @@ func NewFileDB(open func(driverName string, dataSourceName string) (*sql.DB, err
 		return nil, err
 	}
 
-	return open("sqlite", localDbPath)
+	return opener.Open("sqlite", localDbPath)
 }
 
-func NewTursoDB(open func(driverName string, dataSourceName string) (*sql.DB, error)) (*sql.DB, error) {
+func NewTursoDB(opener ConnectionOpener) (*sql.DB, error) {
 	dbURL := os.Getenv("DATABASE_URL")
 
 	if dbURL == "" {
 		return nil, errors.New(ErrDatabaseURLNotSet)
 	}
 
-	db, err := open("libsql", dbURL)
+	db, err := opener.Open("libsql", dbURL)
 
 	if err != nil {
 		return nil, errors.Wrap(err, ErrOpeningDB)

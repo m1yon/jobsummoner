@@ -2,92 +2,106 @@ package sqlitedb
 
 import (
 	"database/sql"
-	"errors"
 	"os"
 	"testing"
 
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-type MockSqlOpener struct {
+const (
+	tursoFakeDataSource = "libsql://jobsummoner.turso.io/db"
+)
+
+type MockConnectionOpener struct {
 	mock.Mock
 }
 
-func (m *MockSqlOpener) Open(driverName string, dataSourceName string) (*sql.DB, error) {
+func (m *MockConnectionOpener) Open(driverName string, dataSourceName string) (*sql.DB, error) {
 	args := m.Called(driverName, dataSourceName)
 	return args.Get(0).(*sql.DB), args.Error(1)
 }
 
 func TestNewFileDB(t *testing.T) {
 	t.Run("returns a new file db connection", func(t *testing.T) {
-		mockOpener := setupFileDBTest(t)
+		mockOpener, cleanup := setupFileDBTest(t)
+		defer cleanup()
 
-		db, err := NewFileDB(mockOpener.Open)
+		db, err := NewFileDB(mockOpener)
 
-		mockOpener.AssertExpectations(t)
-		assert.NotNil(t, db)
-		assert.NoError(t, err)
+		if assert.NoError(t, err) {
+			mockOpener.AssertExpectations(t)
+			assert.NotNil(t, db)
+		}
 	})
 }
 
-func setupFileDBTest(t *testing.T) *MockSqlOpener {
+func setupFileDBTest(t *testing.T) (*MockConnectionOpener, func()) {
 	t.Helper()
 
 	os.Setenv("LOCAL_DB", "true")
-	defer os.Setenv("LOCAL_DB", "")
 	workingDir, err := os.Getwd()
 
 	if err != nil {
 		t.Fatal("could not get working directory")
 	}
 
-	mockOpener := new(MockSqlOpener)
+	mockOpener := new(MockConnectionOpener)
 	mockDb := &sql.DB{}
 	mockOpener.On("Open", "sqlite", workingDir+"/db/database.db").Return(mockDb, nil)
 
-	return mockOpener
+	return mockOpener, func() {
+		os.Setenv("LOCAL_DB", "")
+	}
 }
 
 func TestNewTursoDB(t *testing.T) {
 	t.Run("returns a new turso db connection", func(t *testing.T) {
-		dataSourceName := "libsql://jobsummoner.turso.io/db"
-		os.Setenv("DATABASE_URL", dataSourceName)
-		defer os.Setenv("DATABASE_URL", "")
+		mockOpener, cleanup := setupTursoDBTest(t, tursoFakeDataSource)
+		defer cleanup()
 
-		mockOpener := new(MockSqlOpener)
-		mockDb := &sql.DB{}
-		mockOpener.On("Open", "libsql", dataSourceName).Return(mockDb, nil)
+		mockOpener.On("Open", "libsql", tursoFakeDataSource).Return(&sql.DB{}, nil)
 
-		db, err := NewTursoDB(mockOpener.Open)
+		db, err := NewTursoDB(mockOpener)
 
-		mockOpener.AssertExpectations(t)
-		assert.Equal(t, mockDb, db)
-		assert.NoError(t, err)
+		if assert.NoError(t, err) {
+			mockOpener.AssertExpectations(t)
+			assert.NotNil(t, db)
+		}
 	})
 
 	t.Run("returns error when DATABASE_URL is not set", func(t *testing.T) {
-		os.Setenv("DATABASE_URL", "")
-		mockOpener := new(MockSqlOpener)
+		mockOpener, cleanup := setupTursoDBTest(t, "")
+		defer cleanup()
 
-		_, err := NewTursoDB(mockOpener.Open)
+		_, err := NewTursoDB(mockOpener)
 
 		mockOpener.AssertExpectations(t)
 		assert.ErrorContains(t, err, ErrDatabaseURLNotSet)
 	})
 
 	t.Run("returns error when failed to open", func(t *testing.T) {
-		dataSourceName := "libsql://jobsummoner.turso.io/db"
-		os.Setenv("DATABASE_URL", dataSourceName)
-		defer os.Setenv("DATABASE_URL", "")
+		mockOpener, cleanup := setupTursoDBTest(t, tursoFakeDataSource)
+		defer cleanup()
 
-		mockOpener := new(MockSqlOpener)
-		mockDb := &sql.DB{}
-		mockOpener.On("Open", "libsql", dataSourceName).Return(mockDb, errors.New("could not make connection"))
+		mockOpener.On("Open", "libsql", tursoFakeDataSource).Return(&sql.DB{}, errors.New("could not make connection"))
 
-		_, err := NewTursoDB(mockOpener.Open)
+		_, err := NewTursoDB(mockOpener)
 
 		mockOpener.AssertExpectations(t)
 		assert.ErrorContains(t, err, ErrOpeningDB)
 	})
+}
+
+func setupTursoDBTest(t *testing.T, databaseURL string) (*MockConnectionOpener, func()) {
+	t.Helper()
+
+	os.Setenv("DATABASE_URL", databaseURL)
+
+	mockOpener := new(MockConnectionOpener)
+
+	return mockOpener, func() {
+		os.Setenv("DATABASE_URL", "")
+	}
 }

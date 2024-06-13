@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"log/slog"
 	"os"
 
@@ -23,7 +22,7 @@ func main() {
 		logger.Warn("no .env file found", tint.Err(err))
 	}
 
-	db, err := sqlitedb.NewDB(logger, sql.Open)
+	db, err := sqlitedb.NewDB(logger, &sqlitedb.SqlConnectionOpener{})
 
 	if err != nil {
 		logger.Error("failed starting db", tint.Err(err))
