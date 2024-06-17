@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"log/slog"
+	"net/http"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -27,6 +28,27 @@ func main() {
 		logger.Warn("no .env file found")
 	}
 
+	httpClient := initHttpClient(logger)
+
+	db, err := openDB(logger)
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+
+	scrapeService := initScrapeService(logger, db)
+
+	scrapers := []jobsummoner.Scraper{
+		linkedin.NewLinkedInJobScraper(linkedin.NewHttpLinkedInReader(linkedin.LinkedInReaderConfig{
+			Keywords: []string{"typescript"},
+			Location: "United States",
+		}, httpClient, logger), logger),
+	}
+
+	scrapeService.Start(scrapers, "TZ=America/Denver */30 7-22 * * *", true)
+}
+
+func initHttpClient(logger *slog.Logger) *http.Client {
 	proxyConfig := linkedin.ProxyConfig{
 		Hostname: os.Getenv("PROXY_HOSTNAME"),
 		Port:     os.Getenv("PROXY_PORT"),
@@ -42,21 +64,7 @@ func main() {
 		logger.Info("proxy server enabled")
 	}
 
-	scrapers := []jobsummoner.Scraper{
-		linkedin.NewLinkedInJobScraper(linkedin.NewHttpLinkedInReader(linkedin.LinkedInReaderConfig{
-			Keywords: []string{"typescript"},
-			Location: "United States",
-		}, httpClient, logger), logger),
-	}
-
-	db, err := openDB(logger)
-	if err != nil {
-		logger.Error(err.Error())
-		os.Exit(1)
-	}
-
-	scrapeService := initScrapeService(logger, db)
-	scrapeService.Start(scrapers, "TZ=America/Denver */30 7-22 * * *", true)
+	return httpClient
 }
 
 func openDB(logger *slog.Logger) (*sql.DB, error) {
