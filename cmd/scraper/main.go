@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"log/slog"
 	"os"
 
@@ -50,17 +51,9 @@ func main() {
 
 	c := clockwork.NewRealClock()
 
-	db, err := sqlitedb.NewDB(logger, &sqlitedb.SqlConnectionOpener{})
-
+	db, err := openDB(logger)
 	if err != nil {
-		logger.Error("failed starting db", tint.Err(err))
-		os.Exit(1)
-	}
-
-	err = db.Ping()
-
-	if err != nil {
-		logger.Error("failed pinging db", tint.Err(err))
+		logger.Error(err.Error())
 		os.Exit(1)
 	}
 
@@ -73,4 +66,20 @@ func main() {
 	scrapeService := scrape.NewDefaultScrapeService(c, logger, scrapeRepository, jobService)
 
 	scrapeService.Start(scrapers, "TZ=America/Denver */30 7-22 * * *", true)
+}
+
+func openDB(logger *slog.Logger) (*sql.DB, error) {
+	db, err := sqlitedb.NewDB(logger, &sqlitedb.SqlConnectionOpener{})
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.Ping()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
 }

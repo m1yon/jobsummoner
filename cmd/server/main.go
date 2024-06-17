@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"log/slog"
 	"os"
 
@@ -22,17 +23,9 @@ func main() {
 		logger.Warn("no .env file found", tint.Err(err))
 	}
 
-	db, err := sqlitedb.NewDB(logger, &sqlitedb.SqlConnectionOpener{})
-
+	db, err := openDB(logger)
 	if err != nil {
-		logger.Error("failed starting db", tint.Err(err))
-		os.Exit(1)
-	}
-
-	err = db.Ping()
-
-	if err != nil {
-		logger.Error("failed pinging db", tint.Err(err))
+		logger.Error(err.Error())
 		os.Exit(1)
 	}
 
@@ -44,4 +37,20 @@ func main() {
 	logger.Info("server started")
 	server := http.NewDefaultServer(logger, jobService)
 	server.ListenAndServe(":3000")
+}
+
+func openDB(logger *slog.Logger) (*sql.DB, error) {
+	db, err := sqlitedb.NewDB(logger, &sqlitedb.SqlConnectionOpener{})
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.Ping()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
 }
