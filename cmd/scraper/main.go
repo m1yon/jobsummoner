@@ -49,22 +49,13 @@ func main() {
 		}, httpClient, logger), logger),
 	}
 
-	c := clockwork.NewRealClock()
-
 	db, err := openDB(logger)
 	if err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}
 
-	companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
-	companyService := company.NewDefaultCompanyService(companyRepository)
-	jobRepository := sqlitedb.NewSqliteJobRepository(db)
-	jobService := job.NewDefaultJobService(jobRepository, companyService)
-
-	scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db, c)
-	scrapeService := scrape.NewDefaultScrapeService(c, logger, scrapeRepository, jobService)
-
+	scrapeService := initScrapeService(logger, db)
 	scrapeService.Start(scrapers, "TZ=America/Denver */30 7-22 * * *", true)
 }
 
@@ -82,4 +73,18 @@ func openDB(logger *slog.Logger) (*sql.DB, error) {
 	}
 
 	return db, nil
+}
+
+func initScrapeService(logger *slog.Logger, db *sql.DB) *scrape.DefaultScrapeService {
+	c := clockwork.NewRealClock()
+
+	companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
+	companyService := company.NewDefaultCompanyService(companyRepository)
+	jobRepository := sqlitedb.NewSqliteJobRepository(db)
+	jobService := job.NewDefaultJobService(jobRepository, companyService)
+
+	scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db, c)
+	scrapeService := scrape.NewDefaultScrapeService(c, logger, scrapeRepository, jobService)
+
+	return scrapeService
 }

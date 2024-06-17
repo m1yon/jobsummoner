@@ -29,13 +29,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
-	companyService := company.NewDefaultCompanyService(companyRepository)
-	jobRepository := sqlitedb.NewSqliteJobRepository(db)
-	jobService := job.NewDefaultJobService(jobRepository, companyService)
-
+	server := initServer(logger, db)
 	logger.Info("server started")
-	server := http.NewDefaultServer(logger, jobService)
 	server.ListenAndServe(":3000")
 }
 
@@ -53,4 +48,15 @@ func openDB(logger *slog.Logger) (*sql.DB, error) {
 	}
 
 	return db, nil
+}
+
+func initServer(logger *slog.Logger, db *sql.DB) *http.DefaultServer {
+	companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
+	companyService := company.NewDefaultCompanyService(companyRepository)
+	jobRepository := sqlitedb.NewSqliteJobRepository(db)
+	jobService := job.NewDefaultJobService(jobRepository, companyService)
+
+	server := http.NewDefaultServer(logger, jobService)
+
+	return server
 }
