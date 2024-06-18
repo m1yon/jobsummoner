@@ -7,8 +7,17 @@ import (
 	"github.com/m1yon/jobsummoner/internal/sqlitedb"
 )
 
-func openDB(logger *slog.Logger) (*sql.DB, error) {
-	db, err := sqlitedb.NewDB(logger, &sqlitedb.SqlConnectionOpener{})
+func openDB(logger *slog.Logger, config *config) (*sql.DB, error) {
+	var db *sql.DB
+	var err error
+
+	if config.useLocalDB {
+		db, err = sqlitedb.NewInMemoryDB()
+		logger.Info("using local DB")
+	} else {
+		db, err = sqlitedb.NewFileDB(&sqlitedb.SqlConnectionOpener{})
+		logger.Info("using remote DB")
+	}
 
 	if err != nil {
 		return nil, err

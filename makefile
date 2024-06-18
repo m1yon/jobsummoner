@@ -18,10 +18,6 @@ migrate-down:
 reset-db:
 	rm -f ./db/database.db && go run ./cmd/migrator/main.go ./db/database.db
 
-.PHONY: dev
-dev: 
-	templ generate --watch --proxy="http://localhost:3000" --cmd="go run ./cmd/server"
-
 .PHONY: migrate
 migrate:
 	go build -o bin/migrator ./cmd/migrator && ./bin/migrator
@@ -55,5 +51,9 @@ build-deploy-all: build-all deploy-all
 start-services:
 	docker-compose up --build
 
-.PHONY: dev
-dev: build-all start-services
+.PHONY: docker-dev
+docker-dev: build-all start-services
+
+.PHONY: server
+server: 
+	go build -o ./bin/server ./cmd/server && ./bin/server

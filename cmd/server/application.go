@@ -12,10 +12,13 @@ type application struct {
 	logger *slog.Logger
 	db     *sql.DB
 	server *http.DefaultServer
+	config *config
 }
 
 func newApplication(logger *slog.Logger) *application {
-	db, err := openDB(logger)
+	config := getConfigFromFlags()
+
+	db, err := openDB(logger, config)
 	if err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)
@@ -23,7 +26,7 @@ func newApplication(logger *slog.Logger) *application {
 
 	server := newServer(logger, db)
 
-	return &application{logger: logger, db: db, server: server}
+	return &application{logger: logger, db: db, server: server, config: config}
 }
 
 func (a *application) Start() {
