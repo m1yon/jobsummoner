@@ -16,10 +16,13 @@ type scraperApp struct {
 	scrapeService *scrape.DefaultScrapeService
 	httpClient    *http.Client
 	scrapers      []jobsummoner.Scraper
+	config        *config
 }
 
 func newScraperApp(logger *slog.Logger) *scraperApp {
-	db, err := openDB(logger)
+	config := getConfigFromFlags()
+
+	db, err := openDB(logger, config)
 	if err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)
@@ -28,7 +31,7 @@ func newScraperApp(logger *slog.Logger) *scraperApp {
 	scrapeService := newScrapeService(logger, db)
 	httpClient := newHttpClient(logger)
 
-	return &scraperApp{logger: logger, db: db, scrapeService: scrapeService, httpClient: httpClient}
+	return &scraperApp{logger: logger, db: db, scrapeService: scrapeService, httpClient: httpClient, config: config}
 }
 
 func (a *scraperApp) AddScrapers(scrapers []jobsummoner.Scraper) {

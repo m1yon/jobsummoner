@@ -54,6 +54,10 @@ start-services:
 .PHONY: docker-dev
 docker-dev: build-all start-services
 
+.PHONY: scraper
+scraper: 
+	go build -o ./bin/scraper ./cmd/scraper && ./bin/scraper
+
 .PHONY: server
 server: 
 	go build -o ./bin/server ./cmd/server && ./bin/server

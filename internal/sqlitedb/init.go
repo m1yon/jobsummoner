@@ -2,7 +2,6 @@ package sqlitedb
 
 import (
 	"database/sql"
-	"log/slog"
 	"os"
 
 	"github.com/pkg/errors"
@@ -13,17 +12,6 @@ const (
 	ErrPingingDB         = "db did not respond to ping"
 	ErrDatabaseURLNotSet = "DATABASE_URL not set"
 )
-
-func NewDB(logger *slog.Logger, opener ConnectionOpener) (*sql.DB, error) {
-	useLocalDB := os.Getenv("LOCAL_DB")
-
-	if useLocalDB == "true" {
-		logger.Info("using local database")
-		return NewFileDB(opener)
-	}
-
-	return NewTursoDB(opener)
-}
 
 func NewFileDB(opener ConnectionOpener) (*sql.DB, error) {
 	workingDir, err := os.Getwd()

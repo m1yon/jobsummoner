@@ -25,8 +25,7 @@ func (m *MockConnectionOpener) Open(driverName string, dataSourceName string) (*
 
 func TestNewFileDB(t *testing.T) {
 	t.Run("returns a new file db connection", func(t *testing.T) {
-		mockOpener, cleanup := setupFileDBTest(t)
-		defer cleanup()
+		mockOpener := setupFileDBTest(t)
 
 		db, err := NewFileDB(mockOpener)
 
@@ -37,10 +36,9 @@ func TestNewFileDB(t *testing.T) {
 	})
 }
 
-func setupFileDBTest(t *testing.T) (*MockConnectionOpener, func()) {
+func setupFileDBTest(t *testing.T) *MockConnectionOpener {
 	t.Helper()
 
-	os.Setenv("LOCAL_DB", "true")
 	workingDir, err := os.Getwd()
 
 	if err != nil {
@@ -51,9 +49,7 @@ func setupFileDBTest(t *testing.T) (*MockConnectionOpener, func()) {
 	mockDb := &sql.DB{}
 	mockOpener.On("Open", "sqlite", workingDir+"/db/database.db").Return(mockDb, nil)
 
-	return mockOpener, func() {
-		os.Setenv("LOCAL_DB", "")
-	}
+	return mockOpener
 }
 
 func TestNewTursoDB(t *testing.T) {
