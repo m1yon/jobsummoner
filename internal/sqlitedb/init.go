@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	ErrOpeningDB         = "problem opening db"
-	ErrPingingDB         = "db did not respond to ping"
-	ErrDatabaseURLNotSet = "DATABASE_URL not set"
+	ErrOpeningDB = "problem opening db"
+	ErrPingingDB = "db did not respond to ping"
+	ErrDSNNotSet = "dsn not provided"
 )
 
 func NewFileDB(opener ConnectionOpener) (*sql.DB, error) {
@@ -39,14 +39,12 @@ func NewFileDB(opener ConnectionOpener) (*sql.DB, error) {
 	return opener.Open("sqlite", localDbPath)
 }
 
-func NewTursoDB(opener ConnectionOpener) (*sql.DB, error) {
-	dbURL := os.Getenv("DATABASE_URL")
-
-	if dbURL == "" {
-		return nil, errors.New(ErrDatabaseURLNotSet)
+func NewTursoDB(dsn string, opener ConnectionOpener) (*sql.DB, error) {
+	if dsn == "" {
+		return nil, errors.New(ErrDSNNotSet)
 	}
 
-	db, err := opener.Open("libsql", dbURL)
+	db, err := opener.Open("libsql", dsn)
 
 	if err != nil {
 		return nil, errors.Wrap(err, ErrOpeningDB)

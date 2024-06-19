@@ -1,3 +1,6 @@
+-include .env
+export
+
 .PHONY: test
 test:
 	gotestsum --watch
@@ -20,7 +23,7 @@ reset-db:
 
 .PHONY: migrate
 migrate:
-	go build -o bin/migrator ./cmd/migrator && ./bin/migrator
+	go build -o bin/migrator ./cmd/migrator && ./bin/migrator -dsn=${DATABASE_URL}
 
 .PHONY: build-server
 build-server:

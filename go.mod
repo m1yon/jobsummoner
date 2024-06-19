@@ -6,7 +6,6 @@ require (
 	github.com/PuerkitoBio/goquery v1.9.2
 	github.com/a-h/templ v0.2.707
 	github.com/go-co-op/gocron/v2 v2.5.0
-	github.com/joho/godotenv v1.5.1
 	github.com/jonboulle/clockwork v0.4.0
 	github.com/lmittmann/tint v1.0.4
 	github.com/pkg/errors v0.9.1

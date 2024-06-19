@@ -8,6 +8,7 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - TZ=${TZ}
+      - LOCAL_DB=${LOCAL_DB:-false}
   scraper:
     build:
       context: .
@@ -19,3 +20,4 @@ services:
       - PROXY_USERNAME=${PROXY_USERNAME}
       - PROXY_PASSWORD=${PROXY_PASSWORD}
       - TZ=${TZ}
+      - LOCAL_DB=${LOCAL_DB:-false}

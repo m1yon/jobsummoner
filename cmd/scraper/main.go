@@ -4,7 +4,6 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/joho/godotenv"
 	"github.com/lmittmann/tint"
 	"github.com/m1yon/jobsummoner"
 	"github.com/m1yon/jobsummoner/pkg/linkedin"
@@ -15,11 +14,6 @@ import (
 
 func main() {
 	logger := slog.New(tint.NewHandler(os.Stdout, &tint.Options{Level: slog.LevelDebug}))
-	err := godotenv.Load()
-
-	if err != nil {
-		logger.Warn("no .env file found")
-	}
 
 	scraperApp := newScraperApp(logger)
 	scraperApp.AddScrapers([]jobsummoner.Scraper{

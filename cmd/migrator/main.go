@@ -3,12 +3,10 @@ package main
 import (
 	"context"
 	"database/sql"
+	"flag"
 	"log"
-	"log/slog"
-	"os"
 	"path/filepath"
 
-	"github.com/joho/godotenv"
 	"github.com/m1yon/jobsummoner/sql/migrations"
 	"github.com/pressly/goose/v3"
 	"github.com/pressly/goose/v3/database"
@@ -17,17 +15,12 @@ import (
 )
 
 func main() {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
-	err := godotenv.Load()
-
-	if err != nil {
-		logger.Warn("no .env file found")
-	}
-
 	ctx := context.Background()
-	databaseURL := os.Getenv("DATABASE_URL")
+	dsn := flag.String("dsn", "", "Database connection string")
 
-	db, err := sql.Open("libsql", databaseURL)
+	flag.Parse()
+
+	db, err := sql.Open("libsql", *dsn)
 	if err != nil {
 		log.Fatal(err)
 	}

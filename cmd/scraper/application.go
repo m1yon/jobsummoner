@@ -29,7 +29,7 @@ func newScraperApp(logger *slog.Logger) *scraperApp {
 	}
 
 	scrapeService := newScrapeService(logger, db)
-	httpClient := newHttpClient(logger)
+	httpClient := newHttpClient(logger, config)
 
 	return &scraperApp{logger: logger, db: db, scrapeService: scrapeService, httpClient: httpClient, config: config}
 }

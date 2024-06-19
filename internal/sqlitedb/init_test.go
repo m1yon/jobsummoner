@@ -54,12 +54,11 @@ func setupFileDBTest(t *testing.T) *MockConnectionOpener {
 
 func TestNewTursoDB(t *testing.T) {
 	t.Run("returns a new turso db connection", func(t *testing.T) {
-		mockOpener, cleanup := setupTursoDBTest(t, tursoFakeDataSource)
-		defer cleanup()
+		mockOpener := setupTursoDBTest(t)
 
 		mockOpener.On("Open", "libsql", tursoFakeDataSource).Return(&sql.DB{}, nil)
 
-		db, err := NewTursoDB(mockOpener)
+		db, err := NewTursoDB(tursoFakeDataSource, mockOpener)
 
 		if assert.NoError(t, err) {
 			mockOpener.AssertExpectations(t)
@@ -67,37 +66,30 @@ func TestNewTursoDB(t *testing.T) {
 		}
 	})
 
-	t.Run("returns error when DATABASE_URL is not set", func(t *testing.T) {
-		mockOpener, cleanup := setupTursoDBTest(t, "")
-		defer cleanup()
+	t.Run("returns error when DSN is not set", func(t *testing.T) {
+		mockOpener := setupTursoDBTest(t)
 
-		_, err := NewTursoDB(mockOpener)
+		_, err := NewTursoDB("", mockOpener)
 
 		mockOpener.AssertExpectations(t)
-		assert.ErrorContains(t, err, ErrDatabaseURLNotSet)
+		assert.ErrorContains(t, err, ErrDSNNotSet)
 	})
 
 	t.Run("returns error when failed to open", func(t *testing.T) {
-		mockOpener, cleanup := setupTursoDBTest(t, tursoFakeDataSource)
-		defer cleanup()
-
+		mockOpener := setupTursoDBTest(t)
 		mockOpener.On("Open", "libsql", tursoFakeDataSource).Return(&sql.DB{}, errors.New("could not make connection"))
 
-		_, err := NewTursoDB(mockOpener)
+		_, err := NewTursoDB(tursoFakeDataSource, mockOpener)
 
 		mockOpener.AssertExpectations(t)
 		assert.ErrorContains(t, err, ErrOpeningDB)
 	})
 }
 
-func setupTursoDBTest(t *testing.T, databaseURL string) (*MockConnectionOpener, func()) {
+func setupTursoDBTest(t *testing.T) *MockConnectionOpener {
 	t.Helper()
-
-	os.Setenv("DATABASE_URL", databaseURL)
 
 	mockOpener := new(MockConnectionOpener)
 
-	return mockOpener, func() {
-		os.Setenv("DATABASE_URL", "")
-	}
+	return mockOpener
 }

@@ -12,10 +12,10 @@ func openDB(logger *slog.Logger, config *config) (*sql.DB, error) {
 	var err error
 
 	if config.useLocalDB {
-		db, err = sqlitedb.NewInMemoryDB()
+		db, err = sqlitedb.NewFileDB(&sqlitedb.SqlConnectionOpener{})
 		logger.Info("using local DB")
 	} else {
-		db, err = sqlitedb.NewFileDB(&sqlitedb.SqlConnectionOpener{})
+		db, err = sqlitedb.NewTursoDB(config.dsn, &sqlitedb.SqlConnectionOpener{})
 		logger.Info("using remote DB")
 	}
 

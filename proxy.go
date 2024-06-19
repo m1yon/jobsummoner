@@ -1,4 +1,4 @@
-package linkedin
+package jobsummoner
 
 import (
 	"fmt"
