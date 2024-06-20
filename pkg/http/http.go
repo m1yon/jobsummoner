@@ -25,7 +25,6 @@ type DefaultServer struct {
 }
 
 func NewDefaultServer(logger *slog.Logger, jobService *job.DefaultJobService) *DefaultServer {
-
 	return &DefaultServer{
 		logger:     logger,
 		Render:     components.Render,
@@ -33,28 +32,10 @@ func NewDefaultServer(logger *slog.Logger, jobService *job.DefaultJobService) *D
 	}
 }
 
-func (h *DefaultServer) ServerHTTP(w http.ResponseWriter, r *http.Request) {
-	h.GetHomepage(w, r)
+func (server *DefaultServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	server.routes().ServeHTTP(w, r)
 }
 
-func (h *DefaultServer) GetHomepage(w http.ResponseWriter, r *http.Request) {
-	jobs, err := h.JobService.GetJobs(r.Context())
-
-	if err != nil {
-		h.logger.Error("problem getting jobs", slog.String("err", err.Error()))
-		w.WriteHeader(500)
-	}
-
-	m := components.NewHomepageViewModel(jobs)
-	component := components.Homepage(m)
-	err = h.Render(component, context.Background(), w)
-
-	if err != nil {
-		w.WriteHeader(500)
-	}
-}
-
-func (h *DefaultServer) ListenAndServe(addr string) {
-	handler := http.HandlerFunc(h.ServerHTTP)
-	log.Fatal(http.ListenAndServe(addr, handler))
+func (server *DefaultServer) ListenAndServe(addr string) {
+	log.Fatal(http.ListenAndServe(addr, server))
 }
