@@ -6,12 +6,12 @@ import (
 	"github.com/justinas/alice"
 )
 
-func (server *DefaultServer) routes() http.Handler {
+func (s *Server) routes() http.Handler {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("GET /{$}", server.getHomepageHandler)
+	mux.HandleFunc("GET /{$}", s.getHomepageHandler)
 
-	standard := alice.New(server.logRequest, server.recoverPanic, commonHeaders)
+	standard := alice.New(s.logRequest, s.recoverPanic, commonHeaders)
 
 	return standard.Then(mux)
 }

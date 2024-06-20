@@ -11,7 +11,7 @@ import (
 type application struct {
 	logger *slog.Logger
 	db     *sql.DB
-	server *http.DefaultServer
+	server *http.Server
 	config *config
 }
 
@@ -30,6 +30,5 @@ func newApplication(logger *slog.Logger) *application {
 }
 
 func (a *application) Start() {
-	a.logger.Info("server started", "port", "3000")
-	a.server.ListenAndServe(":3000")
+	a.server.Start(":3000")
 }

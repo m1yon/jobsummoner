@@ -60,7 +60,7 @@ func TestGETHomepage(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/", nil)
 		response := httptest.NewRecorder()
 
-		server := NewDefaultServer(logger, jobService)
+		server := NewServer(logger, jobService)
 		server.ServeHTTP(response, request)
 
 		assert.Equal(t, response.Code, 200)
@@ -86,7 +86,7 @@ func TestGETHomepage(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/", nil)
 		response := httptest.NewRecorder()
 
-		server := NewDefaultServer(logger, jobService)
+		server := NewServer(logger, jobService)
 		server.Render = func(component templ.Component, ctx context.Context, w io.Writer) error {
 			return errors.New("could not render template")
 		}

@@ -10,13 +10,13 @@ import (
 	"github.com/m1yon/jobsummoner/pkg/http"
 )
 
-func newServer(logger *slog.Logger, db *sql.DB) *http.DefaultServer {
+func newServer(logger *slog.Logger, db *sql.DB) *http.Server {
 	companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
 	companyService := company.NewDefaultCompanyService(companyRepository)
 	jobRepository := sqlitedb.NewSqliteJobRepository(db)
 	jobService := job.NewDefaultJobService(jobRepository, companyService)
 
-	server := http.NewDefaultServer(logger, jobService)
+	server := http.NewServer(logger, jobService)
 
 	return server
 }

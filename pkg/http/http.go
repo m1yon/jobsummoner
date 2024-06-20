@@ -13,29 +13,25 @@ import (
 	"github.com/m1yon/jobsummoner/internal/job"
 )
 
-type Server interface {
-	Render(component templ.Component, ctx context.Context, w io.Writer) error
-	ListenAndServe(addr string)
+type Server struct {
+	logger     *slog.Logger
+	Render     func(component templ.Component, ctx context.Context, w io.Writer) error
+	jobService jobsummoner.JobService
 }
 
-type DefaultServer struct {
-	logger *slog.Logger
-	Render func(component templ.Component, ctx context.Context, w io.Writer) error
-	jobsummoner.JobService
-}
-
-func NewDefaultServer(logger *slog.Logger, jobService *job.DefaultJobService) *DefaultServer {
-	return &DefaultServer{
+func NewServer(logger *slog.Logger, jobService *job.DefaultJobService) *Server {
+	return &Server{
 		logger:     logger,
 		Render:     components.Render,
-		JobService: jobService,
+		jobService: jobService,
 	}
 }
 
-func (server *DefaultServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	server.routes().ServeHTTP(w, r)
+func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	s.routes().ServeHTTP(w, r)
 }
 
-func (server *DefaultServer) ListenAndServe(addr string) {
-	log.Fatal(http.ListenAndServe(addr, server))
+func (s *Server) Start(addr string) {
+	s.logger.Info("server started", "port", "3000")
+	log.Fatal(http.ListenAndServe(addr, s))
 }
