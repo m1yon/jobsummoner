@@ -3,9 +3,10 @@ package http
 import (
 	"context"
 	"io"
-	"log"
 	"log/slog"
 	"net/http"
+	"os"
+	"time"
 
 	"github.com/a-h/templ"
 	"github.com/m1yon/jobsummoner"
@@ -17,21 +18,32 @@ type Server struct {
 	logger     *slog.Logger
 	Render     func(component templ.Component, ctx context.Context, w io.Writer) error
 	jobService jobsummoner.JobService
+	*http.Server
 }
 
 func NewServer(logger *slog.Logger, jobService *job.DefaultJobService) *Server {
-	return &Server{
+	s := &Server{
 		logger:     logger,
 		Render:     components.Render,
 		jobService: jobService,
 	}
-}
 
-func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	s.routes().ServeHTTP(w, r)
+	s.Server = &http.Server{
+		Addr:         ":3000",
+		Handler:      s.routes(),
+		ErrorLog:     slog.NewLogLogger(s.logger.Handler(), slog.LevelError),
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+	}
+
+	return s
 }
 
 func (s *Server) Start(addr string) {
-	s.logger.Info("server started", "port", "3000")
-	log.Fatal(http.ListenAndServe(addr, s))
+	s.logger.Info("server started", "addr", s.Server.Addr)
+
+	err := s.ListenAndServe()
+	s.logger.Error(err.Error())
+	os.Exit(1)
 }
