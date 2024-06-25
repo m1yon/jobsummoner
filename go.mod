@@ -5,6 +5,8 @@ go 1.22.2
 require (
 	github.com/PuerkitoBio/goquery v1.9.2
 	github.com/a-h/templ v0.2.707
+	github.com/alexedwards/scs/sqlite3store v0.0.0-20240316134038-7e11d57e8885
+	github.com/alexedwards/scs/v2 v2.8.0
 	github.com/go-co-op/gocron/v2 v2.5.0
 	github.com/jonboulle/clockwork v0.4.0
 	github.com/justinas/alice v1.2.0

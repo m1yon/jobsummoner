@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"database/sql"
 	"io"
 	"log/slog"
 	"net/http"
@@ -9,23 +10,31 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
+	"github.com/alexedwards/scs/sqlite3store"
+	"github.com/alexedwards/scs/v2"
 	"github.com/m1yon/jobsummoner"
 	"github.com/m1yon/jobsummoner/internal/components"
 	"github.com/m1yon/jobsummoner/internal/job"
 )
 
 type Server struct {
-	logger     *slog.Logger
-	Render     func(component templ.Component, ctx context.Context, w io.Writer) error
-	jobService jobsummoner.JobService
+	logger         *slog.Logger
+	Render         func(component templ.Component, ctx context.Context, w io.Writer) error
+	jobService     jobsummoner.JobService
+	sessionManager *scs.SessionManager
 	*http.Server
 }
 
-func NewServer(logger *slog.Logger, jobService *job.DefaultJobService) *Server {
+func NewServer(logger *slog.Logger, jobService *job.DefaultJobService, db *sql.DB) *Server {
+	sessionManager := scs.New()
+	sessionManager.Store = sqlite3store.New(db)
+	sessionManager.Lifetime = 12 * time.Hour
+
 	s := &Server{
-		logger:     logger,
-		Render:     components.Render,
-		jobService: jobService,
+		logger:         logger,
+		Render:         components.Render,
+		jobService:     jobService,
+		sessionManager: sessionManager,
 	}
 
 	s.Server = &http.Server{

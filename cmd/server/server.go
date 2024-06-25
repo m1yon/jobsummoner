@@ -16,7 +16,7 @@ func newServer(logger *slog.Logger, db *sql.DB) *http.Server {
 	jobRepository := sqlitedb.NewSqliteJobRepository(db)
 	jobService := job.NewDefaultJobService(jobRepository, companyService)
 
-	server := http.NewServer(logger, jobService)
+	server := http.NewServer(logger, jobService, db)
 
 	return server
 }
