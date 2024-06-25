@@ -36,3 +36,18 @@ type Scrape struct {
 	SourceID  string
 	CreatedAt time.Time
 }
+
+type Session struct {
+	Token  string
+	Data   []byte
+	Expiry float64
+}
+
+type User struct {
+	ID             int64
+	Name           string
+	Email          string
+	HashedPassword string
+	CreatedAt      time.Time
+	UpdatedAt      sql.NullTime
+}

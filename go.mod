@@ -8,6 +8,7 @@ require (
 	github.com/alexedwards/scs/sqlite3store v0.0.0-20240316134038-7e11d57e8885
 	github.com/alexedwards/scs/v2 v2.8.0
 	github.com/go-co-op/gocron/v2 v2.5.0
+	github.com/go-playground/form/v4 v4.2.1
 	github.com/jonboulle/clockwork v0.4.0
 	github.com/justinas/alice v1.2.0
 	github.com/lmittmann/tint v1.0.4
@@ -15,6 +16,7 @@ require (
 	github.com/pressly/goose/v3 v3.20.0
 	github.com/stretchr/testify v1.9.0
 	github.com/tursodatabase/libsql-client-go v0.0.0-20240416075003-747366ff79c4
+	golang.org/x/crypto v0.24.0
 	gotest.tools v2.2.0+incompatible
 	modernc.org/sqlite v1.29.10
 )
@@ -41,7 +43,7 @@ require (
 	golang.org/x/exp v0.0.0-20240416160154-fe59bbe5cc7f // indirect
 	golang.org/x/net v0.24.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.19.0 // indirect
+	golang.org/x/sys v0.21.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	modernc.org/gc/v3 v3.0.0-20240107210532-573471604cb6 // indirect
 	modernc.org/libc v1.49.3 // indirect

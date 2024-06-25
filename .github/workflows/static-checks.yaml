@@ -15,7 +15,7 @@ jobs:
       - run: go version
 
       - name: Run tests
-        run: go run gotest.tools/gotestsum@latest
+        run: make test-ci
 
       - name: Run linter
         uses: golangci/golangci-lint-action@v6

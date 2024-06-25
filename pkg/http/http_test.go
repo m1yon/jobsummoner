@@ -20,6 +20,7 @@ import (
 	"github.com/m1yon/jobsummoner/internal/job"
 	"github.com/m1yon/jobsummoner/internal/sqlitedb"
 	_ "github.com/m1yon/jobsummoner/internal/testing"
+	"github.com/m1yon/jobsummoner/internal/user"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -54,13 +55,14 @@ func TestGETHomepage(t *testing.T) {
 		companyService := company.NewDefaultCompanyService(companyRepository)
 		jobRepository := sqlitedb.NewSqliteJobRepository(db)
 		jobService := job.NewDefaultJobService(jobRepository, companyService)
+		userService := user.NewDefaultUserService(db)
 
 		jobService.CreateJobs(ctx, jobsToCreate)
 
 		request, _ := http.NewRequest(http.MethodGet, "/", nil)
 		response := httptest.NewRecorder()
 
-		server := NewServer(logger, jobService, db)
+		server := NewServer(logger, jobService, userService, db)
 		server.Handler.ServeHTTP(response, request)
 
 		assert.Equal(t, response.Code, 200)
@@ -82,18 +84,19 @@ func TestGETHomepage(t *testing.T) {
 		companyService := company.NewDefaultCompanyService(companyRepository)
 		jobRepository := sqlitedb.NewSqliteJobRepository(db)
 		jobService := job.NewDefaultJobService(jobRepository, companyService)
+		userService := user.NewDefaultUserService(db)
 
 		request, _ := http.NewRequest(http.MethodGet, "/", nil)
 		response := httptest.NewRecorder()
 
-		server := NewServer(logger, jobService, db)
+		server := NewServer(logger, jobService, userService, db)
 		server.Render = func(component templ.Component, ctx context.Context, w io.Writer) error {
 			return errors.New("could not render template")
 		}
 		server.Handler.ServeHTTP(response, request)
 
 		assert.Equal(t, 500, response.Code)
-		assert.Equal(t, "Internal Server Error\n", response.Body.String())
+		assert.Contains(t, response.Body.String(), "Internal Server Error")
 	})
 }
 

@@ -1,0 +1,11 @@
+package components
+
+templ formInput(name, inputType, label, placeholder, defaultValue string, err string) {
+	<div class="flex flex-col mb-4">
+		<label class="mb-1">{ label }</label>
+		<input type={ inputType } name={ name } class="text-black p-2" placeholder={ placeholder } value={ defaultValue }/>
+		if err != "" {
+			<label class="mt-1 text-red-400">{ err }</label>
+		}
+	</div>
+}
