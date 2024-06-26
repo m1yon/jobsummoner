@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/m1yon/jobsummoner"
+	"github.com/m1yon/jobsummoner/internal/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -112,7 +112,7 @@ func TestBuilderJobListingURL(t *testing.T) {
 		{
 			"WorkTypes field",
 			func() LinkedInReaderConfig {
-				config := LinkedInReaderConfig{WorkTypes: []jobsummoner.WorkType{jobsummoner.WorkTypeRemote, jobsummoner.WorkTypeOnSite}}
+				config := LinkedInReaderConfig{WorkTypes: []models.WorkType{models.WorkTypeRemote, models.WorkTypeOnSite}}
 				return config
 			},
 			"?f_TPR=r1800&f_WT=2%2C1",
@@ -120,7 +120,7 @@ func TestBuilderJobListingURL(t *testing.T) {
 		{
 			"JobTypes field",
 			func() LinkedInReaderConfig {
-				config := LinkedInReaderConfig{JobTypes: []jobsummoner.JobType{jobsummoner.JobTypeFullTime, jobsummoner.JobTypeOther}}
+				config := LinkedInReaderConfig{JobTypes: []models.JobType{models.JobTypeFullTime, models.JobTypeOther}}
 				return config
 			},
 			"?f_JT=F%2CO&f_TPR=r1800",
@@ -128,7 +128,7 @@ func TestBuilderJobListingURL(t *testing.T) {
 		{
 			"SalaryRange field",
 			func() LinkedInReaderConfig {
-				config := LinkedInReaderConfig{SalaryRange: jobsummoner.SalaryRange160kPlus}
+				config := LinkedInReaderConfig{SalaryRange: models.SalaryRange160kPlus}
 				return config
 			},
 			"?f_SB2=7&f_TPR=r1800",
@@ -149,9 +149,9 @@ func TestBuilderJobListingURL(t *testing.T) {
 				config := LinkedInReaderConfig{
 					Keywords:    []string{"go", "templ"},
 					Location:    "Africa",
-					WorkTypes:   []jobsummoner.WorkType{jobsummoner.WorkTypeHybrid},
-					JobTypes:    []jobsummoner.JobType{jobsummoner.JobTypeFullTime, jobsummoner.JobTypeOther},
-					SalaryRange: jobsummoner.SalaryRange200kPlus,
+					WorkTypes:   []models.WorkType{models.WorkTypeHybrid},
+					JobTypes:    []models.JobType{models.JobTypeFullTime, models.JobTypeOther},
+					SalaryRange: models.SalaryRange200kPlus,
 					InitialPage: 4,
 				}
 				return config

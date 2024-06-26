@@ -6,22 +6,22 @@ import (
 
 	"github.com/go-co-op/gocron/v2"
 	"github.com/jonboulle/clockwork"
-	"github.com/m1yon/jobsummoner"
+	"github.com/m1yon/jobsummoner/internal/models"
 	"github.com/pkg/errors"
 )
 
 type DefaultScrapeService struct {
 	c                clockwork.Clock
 	logger           *slog.Logger
-	scrapeRepository jobsummoner.ScrapeRepository
-	jobService       jobsummoner.JobService
+	scrapeRepository models.ScrapeRepository
+	jobs             models.JobModelInterface
 }
 
-func NewDefaultScrapeService(c clockwork.Clock, logger *slog.Logger, repository jobsummoner.ScrapeRepository, jobService jobsummoner.JobService) *DefaultScrapeService {
-	return &DefaultScrapeService{c, logger, repository, jobService}
+func NewDefaultScrapeService(c clockwork.Clock, logger *slog.Logger, repository models.ScrapeRepository, jobs models.JobModelInterface) *DefaultScrapeService {
+	return &DefaultScrapeService{c, logger, repository, jobs}
 }
 
-func (ss *DefaultScrapeService) Start(scrapers []jobsummoner.Scraper, crontab string, scrapeImmediately bool) {
+func (ss *DefaultScrapeService) Start(scrapers []models.Scraper, crontab string, scrapeImmediately bool) {
 	ctx := context.Background()
 	ss.logger.Info("initializing scrape scheduler...")
 	s, err := gocron.NewScheduler(gocron.WithClock(ss.c))
@@ -65,7 +65,7 @@ func (ss *DefaultScrapeService) Start(scrapers []jobsummoner.Scraper, crontab st
 					ss.logger.Error("job scrape failure", slog.String("err", err.Error()))
 				}
 
-				ss.jobService.CreateJobs(ctx, results)
+				ss.jobs.CreateJobs(ctx, results)
 
 				err = ss.scrapeRepository.CreateScrape(ctx, scraper.GetSourceID(), ss.c.Now())
 

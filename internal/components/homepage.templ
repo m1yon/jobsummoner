@@ -1,8 +1,6 @@
 package components
 
-import "github.com/m1yon/jobsummoner"
-
-templ Homepage(m jobsummoner.HomepageViewModel) {
+templ Homepage(m HomepageViewModel) {
 	@layout() {
 		@header(m.IsAuthenticated)
 		if m.Flash != "" {
@@ -18,7 +16,7 @@ templ Homepage(m jobsummoner.HomepageViewModel) {
 	}
 }
 
-templ jobCard(job jobsummoner.HomepageJobModel) {
+templ jobCard(job HomepageJobModel) {
 	<div class="p-4 border border-gray-700">
 		<div class="flex gap-2 justify-between">
 			<div class="flex items-center gap-4 mb-6">

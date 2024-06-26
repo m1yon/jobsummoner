@@ -1,4 +1,4 @@
-package sqlitedb
+package models
 
 import (
 	"context"
@@ -7,22 +7,43 @@ import (
 	"time"
 
 	"github.com/jonboulle/clockwork"
-	"github.com/m1yon/jobsummoner"
+	"github.com/m1yon/jobsummoner/internal/sqlitedb"
 	"github.com/pkg/errors"
 )
 
+type Scraper interface {
+	ScrapeJobs(lastScraped time.Time) ([]Job, []error)
+	GetSourceID() string
+}
+
+type ScrapeService interface {
+	Start(scraper []Scraper, crontab string)
+}
+
+type Scrape struct {
+	ID        int
+	SourceID  string
+	CreatedAt time.Time
+}
+
+type ScrapeRepository interface {
+	CreateScrape(ctx context.Context, sourceID string, createdAt time.Time) error
+	GetLastScrape(ctx context.Context, sourceID string) (Scrape, error)
+	GetLastScrapeTime(ctx context.Context, sourceID string) (time.Time, error)
+}
+
 type SqliteScrapeRepository struct {
-	queries *Queries
+	queries *sqlitedb.Queries
 	c       clockwork.Clock
 }
 
 func NewSqliteScrapeRepository(db *sql.DB, c clockwork.Clock) *SqliteScrapeRepository {
-	queries := New(db)
+	queries := sqlitedb.New(db)
 	return &SqliteScrapeRepository{queries, c}
 }
 
 func (s *SqliteScrapeRepository) CreateScrape(ctx context.Context, sourceID string, createdAt time.Time) error {
-	err := s.queries.CreateScrape(ctx, CreateScrapeParams{SourceID: sourceID, CreatedAt: createdAt.UTC()})
+	err := s.queries.CreateScrape(ctx, sqlitedb.CreateScrapeParams{SourceID: sourceID, CreatedAt: createdAt.UTC()})
 
 	if err != nil {
 		return errors.Wrap(err, "problem creating scrape")
@@ -31,14 +52,14 @@ func (s *SqliteScrapeRepository) CreateScrape(ctx context.Context, sourceID stri
 	return nil
 }
 
-func (s *SqliteScrapeRepository) GetLastScrape(ctx context.Context, sourceID string) (jobsummoner.Scrape, error) {
+func (s *SqliteScrapeRepository) GetLastScrape(ctx context.Context, sourceID string) (Scrape, error) {
 	scrape, err := s.queries.GetLastScrape(ctx, sourceID)
 
 	if err != nil {
-		return jobsummoner.Scrape{}, errors.Wrap(err, "problem getting scrape")
+		return Scrape{}, errors.Wrap(err, "problem getting scrape")
 	}
 
-	return jobsummoner.Scrape{
+	return Scrape{
 		ID:        int(scrape.ID),
 		SourceID:  scrape.SourceID,
 		CreatedAt: scrape.CreatedAt,

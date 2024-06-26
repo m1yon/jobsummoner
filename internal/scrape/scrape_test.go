@@ -9,8 +9,6 @@ import (
 	"time"
 
 	"github.com/jonboulle/clockwork"
-	"github.com/m1yon/jobsummoner"
-	"github.com/m1yon/jobsummoner/internal/job"
 	"github.com/m1yon/jobsummoner/internal/models"
 	"github.com/m1yon/jobsummoner/internal/sqlitedb"
 	_ "github.com/m1yon/jobsummoner/internal/testing"
@@ -27,9 +25,9 @@ func NewSpyScraper() *SpyScraper {
 	}
 }
 
-func (m *SpyScraper) ScrapeJobs(lastScraped time.Time) ([]jobsummoner.Job, []error) {
+func (m *SpyScraper) ScrapeJobs(lastScraped time.Time) ([]models.Job, []error) {
 	m.calls++
-	return []jobsummoner.Job{}, []error{}
+	return []models.Job{}, []error{}
 }
 
 func (m *SpyScraper) GetSourceID() string {
@@ -40,9 +38,9 @@ type SpyFailingScraper struct {
 	*SpyScraper
 }
 
-func (m *SpyFailingScraper) ScrapeJobs(lastScraped time.Time) ([]jobsummoner.Job, []error) {
+func (m *SpyFailingScraper) ScrapeJobs(lastScraped time.Time) ([]models.Job, []error) {
 	m.calls++
-	return []jobsummoner.Job{}, []error{fmt.Errorf("could not scrape heading"), fmt.Errorf("problem scraping paragraph")}
+	return []models.Job{}, []error{fmt.Errorf("could not scrape heading"), fmt.Errorf("problem scraping paragraph")}
 }
 
 func (m *SpyFailingScraper) GetSourceID() string {
@@ -71,14 +69,14 @@ func TestScrapeService(t *testing.T) {
 
 		queries := sqlitedb.New(db)
 		companies := &models.CompanyModel{Queries: queries}
-		jobService := job.NewDefaultJobService(queries, companies)
+		jobs := &models.JobModel{Queries: queries, Companies: companies}
 
-		scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db, c)
-		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobService)
+		scrapeRepository := models.NewSqliteScrapeRepository(db, c)
+		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobs)
 
 		scraper1 := NewSpyScraper()
 		scraper2 := NewSpyScraper()
-		scrapers := []jobsummoner.Scraper{scraper1, scraper2}
+		scrapers := []models.Scraper{scraper1, scraper2}
 		go scrapeService.Start(scrapers, "TZ=America/Denver */30 7-22 * * *", false)
 		c.BlockUntil(1)
 
@@ -112,13 +110,13 @@ func TestScrapeService(t *testing.T) {
 
 		queries := sqlitedb.New(db)
 		companies := &models.CompanyModel{Queries: queries}
-		jobService := job.NewDefaultJobService(queries, companies)
+		jobs := &models.JobModel{Queries: queries, Companies: companies}
 
-		scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db, c)
-		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobService)
+		scrapeRepository := models.NewSqliteScrapeRepository(db, c)
+		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobs)
 
 		scraper1 := NewSpyScraper()
-		scrapers := []jobsummoner.Scraper{scraper1}
+		scrapers := []models.Scraper{scraper1}
 
 		go scrapeService.Start(scrapers, "TZ=America/Denver */30 7-22 * * *", false)
 		c.BlockUntil(1)
@@ -141,13 +139,13 @@ func TestScrapeService(t *testing.T) {
 
 		queries := sqlitedb.New(db)
 		companies := &models.CompanyModel{Queries: queries}
-		jobService := job.NewDefaultJobService(queries, companies)
+		jobs := &models.JobModel{Queries: queries, Companies: companies}
 
-		scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db, c)
-		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobService)
+		scrapeRepository := models.NewSqliteScrapeRepository(db, c)
+		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobs)
 
 		scraper := newSpyFailingScraper()
-		scrapers := []jobsummoner.Scraper{scraper}
+		scrapers := []models.Scraper{scraper}
 
 		go scrapeService.Start(scrapers, "TZ=America/Denver */30 7-22 * * *", false)
 		c.BlockUntil(1)
@@ -169,13 +167,13 @@ func TestScrapeService(t *testing.T) {
 
 		queries := sqlitedb.New(db)
 		companies := &models.CompanyModel{Queries: queries}
-		jobService := job.NewDefaultJobService(queries, companies)
+		jobs := &models.JobModel{Queries: queries, Companies: companies}
 
-		scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db, c)
-		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobService)
+		scrapeRepository := models.NewSqliteScrapeRepository(db, c)
+		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobs)
 
 		scraper1 := NewSpyScraper()
-		scrapers := []jobsummoner.Scraper{scraper1}
+		scrapers := []models.Scraper{scraper1}
 
 		go scrapeService.Start(scrapers, "TZ=America/Denver */30 7-22 * * *", true)
 		c.BlockUntil(1)

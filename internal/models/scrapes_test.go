@@ -1,4 +1,4 @@
-package sqlitedb
+package models
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/jonboulle/clockwork"
+	"github.com/m1yon/jobsummoner/internal/sqlitedb"
 	_ "github.com/m1yon/jobsummoner/internal/testing"
 	"github.com/stretchr/testify/assert"
 )
@@ -13,7 +14,7 @@ import (
 func TestScrapeRepository(t *testing.T) {
 	t.Run("can create scrape and immediately get scrape", func(t *testing.T) {
 		ctx := context.Background()
-		db, _ := NewInMemoryDB()
+		db, _ := sqlitedb.NewInMemoryDB()
 		c := clockwork.NewFakeClock()
 		scrapeRepository := NewSqliteScrapeRepository(db, c)
 
@@ -28,7 +29,7 @@ func TestScrapeRepository(t *testing.T) {
 
 	t.Run("gets latest scrape", func(t *testing.T) {
 		ctx := context.Background()
-		db, _ := NewInMemoryDB()
+		db, _ := sqlitedb.NewInMemoryDB()
 		c := clockwork.NewFakeClock()
 		scrapeRepository := NewSqliteScrapeRepository(db, c)
 
@@ -47,7 +48,7 @@ func TestScrapeRepository(t *testing.T) {
 
 	t.Run("gets latest scrape time", func(t *testing.T) {
 		ctx := context.Background()
-		db, _ := NewInMemoryDB()
+		db, _ := sqlitedb.NewInMemoryDB()
 		c := clockwork.NewFakeClock()
 		scrapeRepository := NewSqliteScrapeRepository(db, c)
 

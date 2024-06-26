@@ -11,7 +11,7 @@ import (
 )
 
 func (s *Server) getHomepageHandler(w http.ResponseWriter, r *http.Request) {
-	jobs, err := s.jobService.GetJobs(r.Context())
+	jobs, err := s.jobs.GetJobs(r.Context())
 
 	if err != nil {
 		s.serverError(w, r, err)

@@ -12,7 +12,6 @@ import (
 	"github.com/a-h/templ"
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-playground/form/v4"
-	"github.com/m1yon/jobsummoner"
 	"github.com/m1yon/jobsummoner/internal/components"
 	"github.com/m1yon/jobsummoner/internal/models"
 	"github.com/m1yon/jobsummoner/internal/sqlite3store"
@@ -21,14 +20,14 @@ import (
 type Server struct {
 	logger         *slog.Logger
 	Render         func(component templ.Component, ctx context.Context, w io.Writer) error
-	jobService     jobsummoner.JobService
-	users          models.UserModel
+	jobs           models.JobModelInterface
+	users          models.UserModelInterface
 	sessionManager *scs.SessionManager
 	formDecoder    *form.Decoder
 	*http.Server
 }
 
-func NewServer(logger *slog.Logger, jobService jobsummoner.JobService, users models.UserModel, db *sql.DB) *Server {
+func NewServer(logger *slog.Logger, jobs models.JobModelInterface, users models.UserModelInterface, db *sql.DB) *Server {
 	formDecoder := form.NewDecoder()
 
 	sessionManager := scs.New()
@@ -39,7 +38,7 @@ func NewServer(logger *slog.Logger, jobService jobsummoner.JobService, users mod
 	s := &Server{
 		logger:         logger,
 		Render:         components.Render,
-		jobService:     jobService,
+		jobs:           jobs,
 		users:          users,
 		sessionManager: sessionManager,
 		formDecoder:    formDecoder,

@@ -1,19 +1,17 @@
-package job
+package models
 
 import (
 	"context"
 	"testing"
 	"time"
 
-	"github.com/m1yon/jobsummoner"
-	"github.com/m1yon/jobsummoner/internal/models"
 	"github.com/m1yon/jobsummoner/internal/sqlitedb"
 	_ "github.com/m1yon/jobsummoner/internal/testing"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestSqliteJobService(t *testing.T) {
-	jobsToCreate := []jobsummoner.Job{
+	jobsToCreate := []Job{
 		{
 			Position:      "Software Developer",
 			URL:           "https://linkedin.com/jobs/1",
@@ -39,10 +37,10 @@ func TestSqliteJobService(t *testing.T) {
 		db, _ := sqlitedb.NewInMemoryDB()
 
 		queries := sqlitedb.New(db)
-		companies := &models.CompanyModel{Queries: queries}
-		jobService := NewDefaultJobService(queries, companies)
+		companies := &CompanyModel{Queries: queries}
+		jobs := &JobModel{Queries: queries, Companies: companies}
 
-		jobToCreate := jobsummoner.Job{
+		jobToCreate := Job{
 			Position:    "Software Developer",
 			URL:         "https://linkedin.com/jobs/1",
 			Location:    "San Francisco",
@@ -51,7 +49,7 @@ func TestSqliteJobService(t *testing.T) {
 			SourceID:    "linkedin",
 		}
 
-		id, err := jobService.CreateJob(ctx, jobToCreate)
+		id, err := jobs.CreateJob(ctx, jobToCreate)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, id)
 
@@ -59,7 +57,7 @@ func TestSqliteJobService(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, true, doesCompanyExist)
 
-		job, err := jobService.GetJob(ctx, id)
+		job, err := jobs.GetJob(ctx, id)
 		assert.NoError(t, err)
 		assertJobsAreEqual(t, jobToCreate, job)
 	})
@@ -69,10 +67,10 @@ func TestSqliteJobService(t *testing.T) {
 		db, _ := sqlitedb.NewInMemoryDB()
 
 		queries := sqlitedb.New(db)
-		companies := &models.CompanyModel{Queries: queries}
-		jobService := NewDefaultJobService(queries, companies)
+		companies := &CompanyModel{Queries: queries}
+		jobs := &JobModel{Queries: queries, Companies: companies}
 
-		ids, errs := jobService.CreateJobs(ctx, jobsToCreate)
+		ids, errs := jobs.CreateJobs(ctx, jobsToCreate)
 		assert.Equal(t, 0, len(errs))
 
 		for i := range jobsToCreate {
@@ -86,10 +84,10 @@ func TestSqliteJobService(t *testing.T) {
 		db, _ := sqlitedb.NewInMemoryDB()
 
 		queries := sqlitedb.New(db)
-		companies := &models.CompanyModel{Queries: queries}
-		jobService := NewDefaultJobService(queries, companies)
+		companies := &CompanyModel{Queries: queries}
+		jobs := &JobModel{Queries: queries, Companies: companies}
 
-		ids, errs := jobService.CreateJobs(ctx, jobsToCreate)
+		ids, errs := jobs.CreateJobs(ctx, jobsToCreate)
 		assert.Equal(t, len(jobsToCreate), len(ids))
 		assert.Equal(t, 0, len(errs))
 
@@ -105,10 +103,10 @@ func TestSqliteJobService(t *testing.T) {
 		db, _ := sqlitedb.NewInMemoryDB()
 
 		queries := sqlitedb.New(db)
-		companies := &models.CompanyModel{Queries: queries}
-		jobService := NewDefaultJobService(queries, companies)
+		companies := &CompanyModel{Queries: queries}
+		jobs := &JobModel{Queries: queries, Companies: companies}
 
-		ids, errs := jobService.CreateJobs(ctx, jobsToCreate)
+		ids, errs := jobs.CreateJobs(ctx, jobsToCreate)
 		assert.Equal(t, len(jobsToCreate), len(ids))
 		assert.Equal(t, 0, len(errs))
 
@@ -129,16 +127,16 @@ func TestSqliteJobService(t *testing.T) {
 		db, _ := sqlitedb.NewInMemoryDB()
 
 		queries := sqlitedb.New(db)
-		companies := &models.CompanyModel{Queries: queries}
-		jobService := NewDefaultJobService(queries, companies)
+		companies := &CompanyModel{Queries: queries}
+		jobs := &JobModel{Queries: queries, Companies: companies}
 
-		ids, errs := jobService.CreateJobs(ctx, jobsToCreate)
+		ids, errs := jobs.CreateJobs(ctx, jobsToCreate)
 		assert.Equal(t, len(jobsToCreate), len(ids))
 		assert.Equal(t, 0, len(errs))
 
 		for i, jobToCreate := range jobsToCreate {
 			id := ids[i]
-			job, err := jobService.GetJob(ctx, id)
+			job, err := jobs.GetJob(ctx, id)
 			assert.NoError(t, err)
 
 			assert.Equal(t, jobToCreate.Position, job.Position)
@@ -153,18 +151,18 @@ func TestSqliteJobService(t *testing.T) {
 		db, _ := sqlitedb.NewInMemoryDB()
 
 		queries := sqlitedb.New(db)
-		companies := &models.CompanyModel{Queries: queries}
-		jobService := NewDefaultJobService(queries, companies)
+		companies := &CompanyModel{Queries: queries}
+		jobs := &JobModel{Queries: queries, Companies: companies}
 
-		jobService.CreateJobs(ctx, jobsToCreate)
+		jobs.CreateJobs(ctx, jobsToCreate)
 
-		jobs, errs := jobService.GetJobs(ctx)
+		res, errs := jobs.GetJobs(ctx)
 		assert.Empty(t, errs)
-		assert.Equal(t, jobsToCreate, jobs)
+		assert.Equal(t, jobsToCreate, res)
 	})
 }
 
-func assertJobsAreEqual(t *testing.T, expectedJob, actualJob jobsummoner.Job) {
+func assertJobsAreEqual(t *testing.T, expectedJob, actualJob Job) {
 	assert.Equal(t, expectedJob.Position, actualJob.Position)
 	assert.Equal(t, expectedJob.URL, actualJob.URL)
 	assert.Equal(t, expectedJob.Location, actualJob.Location)

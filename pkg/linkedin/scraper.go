@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/m1yon/jobsummoner"
+	"github.com/m1yon/jobsummoner/internal/models"
 	"github.com/pkg/errors"
 )
 
@@ -28,8 +28,8 @@ func NewLinkedInJobScraper(r LinkedInReader, logger *slog.Logger) *LinkedInScrap
 	return &LinkedInScraper{r, logger}
 }
 
-func (l *LinkedInScraper) ScrapeJobs(lastScraped time.Time) ([]jobsummoner.Job, []error) {
-	results := make([]jobsummoner.Job, 0)
+func (l *LinkedInScraper) ScrapeJobs(lastScraped time.Time) ([]models.Job, []error) {
+	results := make([]models.Job, 0)
 	errs := make([]error, 0)
 
 	for {
@@ -61,16 +61,16 @@ func (m *LinkedInScraper) GetSourceID() string {
 	return "linkedin"
 }
 
-func (l *LinkedInScraper) scrapePage(reader io.Reader) ([]jobsummoner.Job, error) {
+func (l *LinkedInScraper) scrapePage(reader io.Reader) ([]models.Job, error) {
 	doc, err := goquery.NewDocumentFromReader(reader)
 
 	if err != nil {
-		return []jobsummoner.Job{}, errors.Wrap(err, errInvalidHTML)
+		return []models.Job{}, errors.Wrap(err, errInvalidHTML)
 	}
 
 	jobElements := doc.Find("body > li")
 
-	Jobs := make([]jobsummoner.Job, 0, jobElements.Length())
+	Jobs := make([]models.Job, 0, jobElements.Length())
 
 	jobElements.Each(func(i int, s *goquery.Selection) {
 		Position := strings.TrimSpace(s.Find(".base-search-card__title").Text())
@@ -96,7 +96,7 @@ func (l *LinkedInScraper) scrapePage(reader io.Reader) ([]jobsummoner.Job, error
 		Location := strings.TrimSpace(s.Find(".job-search-card__location").Text())
 		URL, _ := s.Find(".base-card__full-link").Attr("href")
 
-		Jobs = append(Jobs, jobsummoner.Job{
+		Jobs = append(Jobs, models.Job{
 			Position:      Position,
 			CompanyID:     CompanyID,
 			CompanyName:   CompanyName,

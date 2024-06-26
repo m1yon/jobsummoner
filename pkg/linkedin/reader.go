@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/m1yon/jobsummoner"
+	"github.com/m1yon/jobsummoner/internal/models"
 	"github.com/pkg/errors"
 )
 
@@ -26,9 +26,9 @@ const (
 type LinkedInReaderConfig struct {
 	Keywords    []string
 	Location    string
-	WorkTypes   []jobsummoner.WorkType
-	JobTypes    []jobsummoner.JobType
-	SalaryRange jobsummoner.SalaryRange
+	WorkTypes   []models.WorkType
+	JobTypes    []models.JobType
+	SalaryRange models.SalaryRange
 	InitialPage int
 }
 

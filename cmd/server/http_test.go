@@ -15,8 +15,6 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/a-h/templ"
-	"github.com/m1yon/jobsummoner"
-	"github.com/m1yon/jobsummoner/internal/job"
 	"github.com/m1yon/jobsummoner/internal/models"
 	"github.com/m1yon/jobsummoner/internal/sqlitedb"
 	_ "github.com/m1yon/jobsummoner/internal/testing"
@@ -24,7 +22,7 @@ import (
 )
 
 func TestGETHomepage(t *testing.T) {
-	jobsToCreate := []jobsummoner.Job{
+	jobsToCreate := []models.Job{
 		{
 			Position:      "Software Developer",
 			URL:           "https://linkedin.com/jobs/1",
@@ -53,15 +51,15 @@ func TestGETHomepage(t *testing.T) {
 		queries := sqlitedb.New(db)
 
 		companies := &models.CompanyModel{Queries: queries}
-		jobService := job.NewDefaultJobService(queries, companies)
-		users := models.UserModel{Queries: queries}
+		jobs := &models.JobModel{Queries: queries, Companies: companies}
+		users := &models.UserModel{Queries: queries}
 
-		jobService.CreateJobs(ctx, jobsToCreate)
+		jobs.CreateJobs(ctx, jobsToCreate)
 
 		request, _ := http.NewRequest(http.MethodGet, "/", nil)
 		response := httptest.NewRecorder()
 
-		server := NewServer(logger, jobService, users, db)
+		server := NewServer(logger, jobs, users, db)
 		server.Handler.ServeHTTP(response, request)
 
 		assert.Equal(t, response.Code, 200)
@@ -82,13 +80,13 @@ func TestGETHomepage(t *testing.T) {
 		queries := sqlitedb.New(db)
 
 		companies := &models.CompanyModel{Queries: queries}
-		jobService := job.NewDefaultJobService(queries, companies)
-		users := models.UserModel{Queries: queries}
+		jobs := &models.JobModel{Queries: queries, Companies: companies}
+		users := &models.UserModel{Queries: queries}
 
 		request, _ := http.NewRequest(http.MethodGet, "/", nil)
 		response := httptest.NewRecorder()
 
-		server := NewServer(logger, jobService, users, db)
+		server := NewServer(logger, jobs, users, db)
 		server.Render = func(component templ.Component, ctx context.Context, w io.Writer) error {
 			return errors.New("could not render template")
 		}

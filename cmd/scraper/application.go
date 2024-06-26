@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/m1yon/jobsummoner"
+	"github.com/m1yon/jobsummoner/internal/models"
 	"github.com/m1yon/jobsummoner/internal/scrape"
 )
 
@@ -15,7 +15,7 @@ type scraperApp struct {
 	db            *sql.DB
 	scrapeService *scrape.DefaultScrapeService
 	httpClient    *http.Client
-	scrapers      []jobsummoner.Scraper
+	scrapers      []models.Scraper
 	config        *config
 }
 
@@ -34,7 +34,7 @@ func newScraperApp(logger *slog.Logger) *scraperApp {
 	return &scraperApp{logger: logger, db: db, scrapeService: scrapeService, httpClient: httpClient, config: config}
 }
 
-func (a *scraperApp) AddScrapers(scrapers []jobsummoner.Scraper) {
+func (a *scraperApp) AddScrapers(scrapers []models.Scraper) {
 	a.scrapers = scrapers
 }
 
