@@ -7,17 +7,18 @@ import (
 	"encoding/hex"
 
 	"github.com/m1yon/jobsummoner"
+	"github.com/m1yon/jobsummoner/internal/models"
 	"github.com/m1yon/jobsummoner/internal/sqlitedb"
 	"github.com/pkg/errors"
 )
 
 type DefaultJobService struct {
-	Queries        *sqlitedb.Queries
-	companyService jobsummoner.CompanyService
+	Queries   *sqlitedb.Queries
+	companies models.CompanyModelInterface
 }
 
-func NewDefaultJobService(queries *sqlitedb.Queries, companyService jobsummoner.CompanyService) *DefaultJobService {
-	return &DefaultJobService{queries, companyService}
+func NewDefaultJobService(queries *sqlitedb.Queries, companies models.CompanyModelInterface) *DefaultJobService {
+	return &DefaultJobService{queries, companies}
 }
 
 func (j *DefaultJobService) GetJob(ctx context.Context, id string) (jobsummoner.Job, error) {
@@ -86,14 +87,14 @@ func (j *DefaultJobService) CreateJobs(ctx context.Context, jobs []jobsummoner.J
 }
 
 func (j *DefaultJobService) CreateJob(ctx context.Context, job jobsummoner.Job) (string, error) {
-	doesCompanyExist, err := j.companyService.DoesCompanyExist(ctx, job.CompanyID)
+	doesCompanyExist, err := j.companies.DoesCompanyExist(ctx, job.CompanyID)
 
 	if err != nil {
 		return "", errors.Wrap(err, "error fetching company in job service")
 	}
 
 	if !doesCompanyExist {
-		_, err := j.companyService.CreateCompany(ctx, jobsummoner.Company{ID: job.CompanyID, Name: job.CompanyName, SourceID: job.SourceID, Url: job.CompanyURL, Avatar: job.CompanyAvatar})
+		_, err := j.companies.CreateCompany(ctx, models.Company{ID: job.CompanyID, Name: job.CompanyName, SourceID: job.SourceID, Url: job.CompanyURL, Avatar: job.CompanyAvatar})
 
 		if err != nil {
 			return "", errors.Wrap(err, "error creating company in job service")

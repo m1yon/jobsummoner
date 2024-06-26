@@ -16,7 +16,6 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/a-h/templ"
 	"github.com/m1yon/jobsummoner"
-	"github.com/m1yon/jobsummoner/internal/company"
 	"github.com/m1yon/jobsummoner/internal/job"
 	"github.com/m1yon/jobsummoner/internal/models"
 	"github.com/m1yon/jobsummoner/internal/sqlitedb"
@@ -53,8 +52,8 @@ func TestGETHomepage(t *testing.T) {
 
 		queries := sqlitedb.New(db)
 
-		companyService := company.NewDefaultCompanyService(queries)
-		jobService := job.NewDefaultJobService(queries, companyService)
+		companies := &models.CompanyModel{Queries: queries}
+		jobService := job.NewDefaultJobService(queries, companies)
 		users := models.UserModel{Queries: queries}
 
 		jobService.CreateJobs(ctx, jobsToCreate)
@@ -82,8 +81,8 @@ func TestGETHomepage(t *testing.T) {
 
 		queries := sqlitedb.New(db)
 
-		companyService := company.NewDefaultCompanyService(queries)
-		jobService := job.NewDefaultJobService(queries, companyService)
+		companies := &models.CompanyModel{Queries: queries}
+		jobService := job.NewDefaultJobService(queries, companies)
 		users := models.UserModel{Queries: queries}
 
 		request, _ := http.NewRequest(http.MethodGet, "/", nil)

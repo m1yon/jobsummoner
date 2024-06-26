@@ -1,24 +1,23 @@
-package company
+package models
 
 import (
 	"context"
 	"testing"
 
-	"github.com/m1yon/jobsummoner"
 	"github.com/m1yon/jobsummoner/internal/sqlitedb"
 	_ "github.com/m1yon/jobsummoner/internal/testing"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCompany(t *testing.T) {
+func TestCompanies(t *testing.T) {
 	t.Run("create company and ensure it exists", func(t *testing.T) {
 		ctx := context.Background()
 		db, _ := sqlitedb.NewInMemoryDB()
 
 		queries := sqlitedb.New(db)
-		companyService := NewDefaultCompanyService(queries)
+		companies := CompanyModel{queries}
 
-		companyToCreate := jobsummoner.Company{
+		companyToCreate := Company{
 			ID:       "/google",
 			Name:     "Google",
 			Url:      "https://google.com/",
@@ -26,15 +25,15 @@ func TestCompany(t *testing.T) {
 			SourceID: "linkedin",
 		}
 
-		doesCompanyExist, err := companyService.DoesCompanyExist(ctx, companyToCreate.ID)
+		doesCompanyExist, err := companies.DoesCompanyExist(ctx, companyToCreate.ID)
 		assert.NoError(t, err)
 		assert.Equal(t, false, doesCompanyExist, "company shouldn't exist yet")
 
-		id, err := companyService.CreateCompany(ctx, companyToCreate)
+		id, err := companies.CreateCompany(ctx, companyToCreate)
 		assert.NoError(t, err)
 		assert.Equal(t, companyToCreate.ID, id)
 
-		doesCompanyExist, err = companyService.DoesCompanyExist(ctx, id)
+		doesCompanyExist, err = companies.DoesCompanyExist(ctx, id)
 		assert.NoError(t, err)
 		assert.Equal(t, true, doesCompanyExist, "company should exist now")
 	})
@@ -44,9 +43,9 @@ func TestCompany(t *testing.T) {
 		db, _ := sqlitedb.NewInMemoryDB()
 
 		queries := sqlitedb.New(db)
-		companyService := NewDefaultCompanyService(queries)
+		companies := CompanyModel{queries}
 
-		companyToCreate := jobsummoner.Company{
+		companyToCreate := Company{
 			ID:       "/google",
 			Name:     "Google",
 			Url:      "https://google.com/",
@@ -54,11 +53,11 @@ func TestCompany(t *testing.T) {
 			SourceID: "linkedin",
 		}
 
-		id, err := companyService.CreateCompany(ctx, companyToCreate)
+		id, err := companies.CreateCompany(ctx, companyToCreate)
 		assert.NoError(t, err)
 		assert.Equal(t, companyToCreate.ID, id)
 
-		company, err := companyService.GetCompany(ctx, id)
+		company, err := companies.GetCompany(ctx, id)
 		assert.NoError(t, err)
 		assert.Equal(t, companyToCreate, company, "company should exist now")
 	})

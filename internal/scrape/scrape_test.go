@@ -10,8 +10,8 @@ import (
 
 	"github.com/jonboulle/clockwork"
 	"github.com/m1yon/jobsummoner"
-	"github.com/m1yon/jobsummoner/internal/company"
 	"github.com/m1yon/jobsummoner/internal/job"
+	"github.com/m1yon/jobsummoner/internal/models"
 	"github.com/m1yon/jobsummoner/internal/sqlitedb"
 	_ "github.com/m1yon/jobsummoner/internal/testing"
 	"github.com/stretchr/testify/assert"
@@ -70,8 +70,8 @@ func TestScrapeService(t *testing.T) {
 		db, _ := sqlitedb.NewInMemoryDB()
 
 		queries := sqlitedb.New(db)
-		companyService := company.NewDefaultCompanyService(queries)
-		jobService := job.NewDefaultJobService(queries, companyService)
+		companies := &models.CompanyModel{Queries: queries}
+		jobService := job.NewDefaultJobService(queries, companies)
 
 		scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db, c)
 		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobService)
@@ -79,7 +79,6 @@ func TestScrapeService(t *testing.T) {
 		scraper1 := NewSpyScraper()
 		scraper2 := NewSpyScraper()
 		scrapers := []jobsummoner.Scraper{scraper1, scraper2}
-
 		go scrapeService.Start(scrapers, "TZ=America/Denver */30 7-22 * * *", false)
 		c.BlockUntil(1)
 
@@ -112,8 +111,8 @@ func TestScrapeService(t *testing.T) {
 		db, _ := sqlitedb.NewInMemoryDB()
 
 		queries := sqlitedb.New(db)
-		companyService := company.NewDefaultCompanyService(queries)
-		jobService := job.NewDefaultJobService(queries, companyService)
+		companies := &models.CompanyModel{Queries: queries}
+		jobService := job.NewDefaultJobService(queries, companies)
 
 		scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db, c)
 		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobService)
@@ -141,8 +140,8 @@ func TestScrapeService(t *testing.T) {
 		db, _ := sqlitedb.NewInMemoryDB()
 
 		queries := sqlitedb.New(db)
-		companyService := company.NewDefaultCompanyService(queries)
-		jobService := job.NewDefaultJobService(queries, companyService)
+		companies := &models.CompanyModel{Queries: queries}
+		jobService := job.NewDefaultJobService(queries, companies)
 
 		scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db, c)
 		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobService)
@@ -169,8 +168,8 @@ func TestScrapeService(t *testing.T) {
 		db, _ := sqlitedb.NewInMemoryDB()
 
 		queries := sqlitedb.New(db)
-		companyService := company.NewDefaultCompanyService(queries)
-		jobService := job.NewDefaultJobService(queries, companyService)
+		companies := &models.CompanyModel{Queries: queries}
+		jobService := job.NewDefaultJobService(queries, companies)
 
 		scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db, c)
 		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobService)
