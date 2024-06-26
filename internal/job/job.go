@@ -2,38 +2,70 @@ package job
 
 import (
 	"context"
+	"crypto/sha256"
+	"database/sql"
+	"encoding/hex"
 
 	"github.com/m1yon/jobsummoner"
+	"github.com/m1yon/jobsummoner/internal/sqlitedb"
 	"github.com/pkg/errors"
 )
 
 type DefaultJobService struct {
-	jobRepository  jobsummoner.JobRepository
+	Queries        *sqlitedb.Queries
 	companyService jobsummoner.CompanyService
 }
 
-func NewDefaultJobService(repository jobsummoner.JobRepository, companyService jobsummoner.CompanyService) *DefaultJobService {
-	return &DefaultJobService{repository, companyService}
+func NewDefaultJobService(queries *sqlitedb.Queries, companyService jobsummoner.CompanyService) *DefaultJobService {
+	return &DefaultJobService{queries, companyService}
 }
 
 func (j *DefaultJobService) GetJob(ctx context.Context, id string) (jobsummoner.Job, error) {
-	job, err := j.jobRepository.GetJob(ctx, id)
+	dbJob, err := j.Queries.GetJob(ctx, id)
 
 	if err != nil {
-		return jobsummoner.Job{}, errors.Wrap(err, "error getting job in job service")
+		return jobsummoner.Job{}, errors.Wrap(err, "error getting job from db")
+	}
+
+	job := jobsummoner.Job{
+		Position:      dbJob.Position,
+		Location:      dbJob.Location.String,
+		URL:           dbJob.JobUrl,
+		SourceID:      dbJob.SourceID,
+		LastPosted:    dbJob.LastPosted,
+		CompanyID:     dbJob.CompanyID,
+		CompanyName:   dbJob.CompanyName,
+		CompanyAvatar: dbJob.CompanyAvatar.String,
+		CompanyURL:    dbJob.CompanyUrl,
 	}
 
 	return job, nil
 }
 
 func (j *DefaultJobService) GetJobs(ctx context.Context) ([]jobsummoner.Job, error) {
-	jobs, err := j.jobRepository.GetJobs(ctx)
+	jobs, err := j.Queries.GetJobs(ctx)
 
 	if err != nil {
-		return []jobsummoner.Job{}, errors.Wrap(err, "error getting jobs in job service")
+		return []jobsummoner.Job{}, errors.Wrap(err, "error getting jobs from db")
 	}
 
-	return jobs, nil
+	formattedJobs := make([]jobsummoner.Job, 0, len(jobs))
+
+	for _, dbJob := range jobs {
+		formattedJobs = append(formattedJobs, jobsummoner.Job{
+			Position:      dbJob.Position,
+			Location:      dbJob.Location.String,
+			URL:           dbJob.JobUrl,
+			SourceID:      dbJob.SourceID,
+			LastPosted:    dbJob.LastPosted,
+			CompanyID:     dbJob.CompanyID,
+			CompanyName:   dbJob.CompanyName,
+			CompanyAvatar: dbJob.CompanyAvatar.String,
+			CompanyURL:    dbJob.CompanyUrl,
+		})
+	}
+
+	return formattedJobs, nil
 }
 
 func (j *DefaultJobService) CreateJobs(ctx context.Context, jobs []jobsummoner.Job) ([]string, []error) {
@@ -68,11 +100,35 @@ func (j *DefaultJobService) CreateJob(ctx context.Context, job jobsummoner.Job) 
 		}
 	}
 
-	id, err := j.jobRepository.CreateJob(ctx, job)
+	id := generateJobID(job.CompanyID, job.Position)
+	err = j.Queries.CreateJob(ctx, sqlitedb.CreateJobParams{
+		ID:       id,
+		Position: job.Position,
+		Location: sql.NullString{
+			Valid:  job.Location != "",
+			String: job.Location,
+		},
+		Url:        job.URL,
+		CompanyID:  job.CompanyID,
+		SourceID:   job.SourceID,
+		LastPosted: job.LastPosted,
+	})
 
 	if err != nil {
 		return "", errors.Wrap(err, "error creating job in job service")
 	}
 
 	return id, nil
+}
+
+func generateJobID(company_id string, position string) string {
+	data := company_id + "|" + position
+
+	hasher := sha256.New()
+
+	hasher.Write([]byte(data))
+
+	hash := hasher.Sum(nil)
+
+	return hex.EncodeToString(hash)
 }

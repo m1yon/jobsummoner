@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/jonboulle/clockwork"
+	_ "github.com/m1yon/jobsummoner/internal/testing"
 	"github.com/stretchr/testify/assert"
 )
 

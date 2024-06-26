@@ -13,11 +13,10 @@ import (
 
 func newScrapeService(logger *slog.Logger, db *sql.DB) *scrape.DefaultScrapeService {
 	c := clockwork.NewRealClock()
+	queries := sqlitedb.New(db)
 
-	companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
-	companyService := company.NewDefaultCompanyService(companyRepository)
-	jobRepository := sqlitedb.NewSqliteJobRepository(db)
-	jobService := job.NewDefaultJobService(jobRepository, companyService)
+	companyService := company.NewDefaultCompanyService(queries)
+	jobService := job.NewDefaultJobService(queries, companyService)
 
 	scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db, c)
 	scrapeService := scrape.NewDefaultScrapeService(c, logger, scrapeRepository, jobService)

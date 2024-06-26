@@ -37,10 +37,10 @@ func TestSqliteJobService(t *testing.T) {
 	t.Run("create job and immediately get created job", func(t *testing.T) {
 		ctx := context.Background()
 		db, _ := sqlitedb.NewInMemoryDB()
-		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
-		companyService := company.NewDefaultCompanyService(companyRepository)
-		jobRepository := sqlitedb.NewSqliteJobRepository(db)
-		jobService := NewDefaultJobService(jobRepository, companyService)
+
+		queries := sqlitedb.New(db)
+		companyService := company.NewDefaultCompanyService(queries)
+		jobService := NewDefaultJobService(queries, companyService)
 
 		jobToCreate := jobsummoner.Job{
 			Position:    "Software Developer",
@@ -67,10 +67,10 @@ func TestSqliteJobService(t *testing.T) {
 	t.Run("CreateJobs returns a list of job IDs", func(t *testing.T) {
 		ctx := context.Background()
 		db, _ := sqlitedb.NewInMemoryDB()
-		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
-		companyService := company.NewDefaultCompanyService(companyRepository)
-		jobRepository := sqlitedb.NewSqliteJobRepository(db)
-		jobService := NewDefaultJobService(jobRepository, companyService)
+
+		queries := sqlitedb.New(db)
+		companyService := company.NewDefaultCompanyService(queries)
+		jobService := NewDefaultJobService(queries, companyService)
 
 		ids, errs := jobService.CreateJobs(ctx, jobsToCreate)
 		assert.Equal(t, 0, len(errs))
@@ -84,10 +84,10 @@ func TestSqliteJobService(t *testing.T) {
 	t.Run("new companies exist after jobs created", func(t *testing.T) {
 		ctx := context.Background()
 		db, _ := sqlitedb.NewInMemoryDB()
-		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
-		companyService := company.NewDefaultCompanyService(companyRepository)
-		jobRepository := sqlitedb.NewSqliteJobRepository(db)
-		jobService := NewDefaultJobService(jobRepository, companyService)
+
+		queries := sqlitedb.New(db)
+		companyService := company.NewDefaultCompanyService(queries)
+		jobService := NewDefaultJobService(queries, companyService)
 
 		ids, errs := jobService.CreateJobs(ctx, jobsToCreate)
 		assert.Equal(t, len(jobsToCreate), len(ids))
@@ -103,10 +103,10 @@ func TestSqliteJobService(t *testing.T) {
 	t.Run("can query new companies after jobs created", func(t *testing.T) {
 		ctx := context.Background()
 		db, _ := sqlitedb.NewInMemoryDB()
-		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
-		companyService := company.NewDefaultCompanyService(companyRepository)
-		jobRepository := sqlitedb.NewSqliteJobRepository(db)
-		jobService := NewDefaultJobService(jobRepository, companyService)
+
+		queries := sqlitedb.New(db)
+		companyService := company.NewDefaultCompanyService(queries)
+		jobService := NewDefaultJobService(queries, companyService)
 
 		ids, errs := jobService.CreateJobs(ctx, jobsToCreate)
 		assert.Equal(t, len(jobsToCreate), len(ids))
@@ -127,10 +127,10 @@ func TestSqliteJobService(t *testing.T) {
 	t.Run("can get jobs after jobs created", func(t *testing.T) {
 		ctx := context.Background()
 		db, _ := sqlitedb.NewInMemoryDB()
-		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
-		companyService := company.NewDefaultCompanyService(companyRepository)
-		jobRepository := sqlitedb.NewSqliteJobRepository(db)
-		jobService := NewDefaultJobService(jobRepository, companyService)
+
+		queries := sqlitedb.New(db)
+		companyService := company.NewDefaultCompanyService(queries)
+		jobService := NewDefaultJobService(queries, companyService)
 
 		ids, errs := jobService.CreateJobs(ctx, jobsToCreate)
 		assert.Equal(t, len(jobsToCreate), len(ids))
@@ -151,10 +151,10 @@ func TestSqliteJobService(t *testing.T) {
 	t.Run("get jobs", func(t *testing.T) {
 		ctx := context.Background()
 		db, _ := sqlitedb.NewInMemoryDB()
-		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
-		companyService := company.NewDefaultCompanyService(companyRepository)
-		jobRepository := sqlitedb.NewSqliteJobRepository(db)
-		jobService := NewDefaultJobService(jobRepository, companyService)
+
+		queries := sqlitedb.New(db)
+		companyService := company.NewDefaultCompanyService(queries)
+		jobService := NewDefaultJobService(queries, companyService)
 
 		jobService.CreateJobs(ctx, jobsToCreate)
 

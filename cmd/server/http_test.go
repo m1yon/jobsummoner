@@ -53,10 +53,8 @@ func TestGETHomepage(t *testing.T) {
 
 		queries := sqlitedb.New(db)
 
-		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
-		companyService := company.NewDefaultCompanyService(companyRepository)
-		jobRepository := sqlitedb.NewSqliteJobRepository(db)
-		jobService := job.NewDefaultJobService(jobRepository, companyService)
+		companyService := company.NewDefaultCompanyService(queries)
+		jobService := job.NewDefaultJobService(queries, companyService)
 		users := models.UserModel{Queries: queries}
 
 		jobService.CreateJobs(ctx, jobsToCreate)
@@ -84,10 +82,8 @@ func TestGETHomepage(t *testing.T) {
 
 		queries := sqlitedb.New(db)
 
-		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
-		companyService := company.NewDefaultCompanyService(companyRepository)
-		jobRepository := sqlitedb.NewSqliteJobRepository(db)
-		jobService := job.NewDefaultJobService(jobRepository, companyService)
+		companyService := company.NewDefaultCompanyService(queries)
+		jobService := job.NewDefaultJobService(queries, companyService)
 		users := models.UserModel{Queries: queries}
 
 		request, _ := http.NewRequest(http.MethodGet, "/", nil)

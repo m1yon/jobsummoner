@@ -68,10 +68,10 @@ func TestScrapeService(t *testing.T) {
 		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
 
 		db, _ := sqlitedb.NewInMemoryDB()
-		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
-		companyService := company.NewDefaultCompanyService(companyRepository)
-		jobRepository := sqlitedb.NewSqliteJobRepository(db)
-		jobService := job.NewDefaultJobService(jobRepository, companyService)
+
+		queries := sqlitedb.New(db)
+		companyService := company.NewDefaultCompanyService(queries)
+		jobService := job.NewDefaultJobService(queries, companyService)
 
 		scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db, c)
 		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobService)
@@ -110,10 +110,10 @@ func TestScrapeService(t *testing.T) {
 		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
 
 		db, _ := sqlitedb.NewInMemoryDB()
-		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
-		companyService := company.NewDefaultCompanyService(companyRepository)
-		jobRepository := sqlitedb.NewSqliteJobRepository(db)
-		jobService := job.NewDefaultJobService(jobRepository, companyService)
+
+		queries := sqlitedb.New(db)
+		companyService := company.NewDefaultCompanyService(queries)
+		jobService := job.NewDefaultJobService(queries, companyService)
 
 		scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db, c)
 		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobService)
@@ -139,10 +139,10 @@ func TestScrapeService(t *testing.T) {
 		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
 
 		db, _ := sqlitedb.NewInMemoryDB()
-		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
-		companyService := company.NewDefaultCompanyService(companyRepository)
-		jobRepository := sqlitedb.NewSqliteJobRepository(db)
-		jobService := job.NewDefaultJobService(jobRepository, companyService)
+
+		queries := sqlitedb.New(db)
+		companyService := company.NewDefaultCompanyService(queries)
+		jobService := job.NewDefaultJobService(queries, companyService)
 
 		scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db, c)
 		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobService)
@@ -167,10 +167,10 @@ func TestScrapeService(t *testing.T) {
 		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
 
 		db, _ := sqlitedb.NewInMemoryDB()
-		companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
-		companyService := company.NewDefaultCompanyService(companyRepository)
-		jobRepository := sqlitedb.NewSqliteJobRepository(db)
-		jobService := job.NewDefaultJobService(jobRepository, companyService)
+
+		queries := sqlitedb.New(db)
+		companyService := company.NewDefaultCompanyService(queries)
+		jobService := job.NewDefaultJobService(queries, companyService)
 
 		scrapeRepository := sqlitedb.NewSqliteScrapeRepository(db, c)
 		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobService)
