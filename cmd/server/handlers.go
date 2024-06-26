@@ -55,7 +55,7 @@ func (s *Server) userSignupPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.userService.Insert(form.Name, form.Email, form.Password)
+	err = s.users.Insert(form.Name, form.Email, form.Password)
 	if err != nil {
 		if errors.Is(err, models.ErrDuplicateEmail) {
 			form.AddFieldError("email", "Email address is already in use")
@@ -99,7 +99,7 @@ func (s *Server) userLoginPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := s.userService.Authenticate(r.Context(), form.Email, form.Password)
+	id, err := s.users.Authenticate(r.Context(), form.Email, form.Password)
 	if err != nil {
 		form.AddNonFieldError("Email or password is incorrect")
 		s.render(w, r, http.StatusOK, components.LoginForm(form))

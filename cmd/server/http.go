@@ -14,6 +14,7 @@ import (
 	"github.com/go-playground/form/v4"
 	"github.com/m1yon/jobsummoner"
 	"github.com/m1yon/jobsummoner/internal/components"
+	"github.com/m1yon/jobsummoner/internal/models"
 	"github.com/m1yon/jobsummoner/internal/sqlite3store"
 )
 
@@ -21,13 +22,13 @@ type Server struct {
 	logger         *slog.Logger
 	Render         func(component templ.Component, ctx context.Context, w io.Writer) error
 	jobService     jobsummoner.JobService
-	userService    jobsummoner.UserService
+	users          models.UserModel
 	sessionManager *scs.SessionManager
 	formDecoder    *form.Decoder
 	*http.Server
 }
 
-func NewServer(logger *slog.Logger, jobService jobsummoner.JobService, userService jobsummoner.UserService, db *sql.DB) *Server {
+func NewServer(logger *slog.Logger, jobService jobsummoner.JobService, users models.UserModel, db *sql.DB) *Server {
 	formDecoder := form.NewDecoder()
 
 	sessionManager := scs.New()
@@ -39,7 +40,7 @@ func NewServer(logger *slog.Logger, jobService jobsummoner.JobService, userServi
 		logger:         logger,
 		Render:         components.Render,
 		jobService:     jobService,
-		userService:    userService,
+		users:          users,
 		sessionManager: sessionManager,
 		formDecoder:    formDecoder,
 	}

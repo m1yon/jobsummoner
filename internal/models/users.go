@@ -2,7 +2,7 @@ package models
 
 import (
 	"context"
-	"database/sql"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -11,16 +11,24 @@ import (
 	"modernc.org/sqlite"
 )
 
-type DefaultUserService struct {
-	queries *sqlitedb.Queries
+type UserModelInterface interface {
+	Insert(name, email, password string) error
+	Authenticate(context context.Context, email, password string) (int, error)
+	Exists(id int) (bool, error)
 }
 
-func NewDefaultUserService(db *sql.DB) *DefaultUserService {
-	queries := sqlitedb.New(db)
-	return &DefaultUserService{queries}
+type User struct {
+	ID             int
+	Name           string
+	Email          string
+	HashedPassword []byte
+	CreatedAt      time.Time
+}
+type UserModel struct {
+	Queries *sqlitedb.Queries
 }
 
-func (m *DefaultUserService) Insert(name, email, password string) error {
+func (m *UserModel) Insert(name, email, password string) error {
 	ctx := context.Background()
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
@@ -28,7 +36,7 @@ func (m *DefaultUserService) Insert(name, email, password string) error {
 		return err
 	}
 
-	err = m.queries.CreateUser(ctx, sqlitedb.CreateUserParams{Name: name, Email: email, HashedPassword: string(hashedPassword)})
+	err = m.Queries.CreateUser(ctx, sqlitedb.CreateUserParams{Name: name, Email: email, HashedPassword: string(hashedPassword)})
 
 	if err != nil {
 		var sqliteError *sqlite.Error
@@ -45,8 +53,8 @@ func (m *DefaultUserService) Insert(name, email, password string) error {
 	return nil
 }
 
-func (m *DefaultUserService) Authenticate(ctx context.Context, email, password string) (int, error) {
-	row, err := m.queries.GetUserCredentials(ctx, email)
+func (m *UserModel) Authenticate(ctx context.Context, email, password string) (int, error) {
+	row, err := m.Queries.GetUserCredentials(ctx, email)
 	if err != nil {
 		return 0, err
 	}
@@ -59,6 +67,6 @@ func (m *DefaultUserService) Authenticate(ctx context.Context, email, password s
 	return int(row.ID), nil
 }
 
-func (m *DefaultUserService) Exists(id int) (bool, error) {
+func (m *UserModel) Exists(id int) (bool, error) {
 	return false, nil
 }
