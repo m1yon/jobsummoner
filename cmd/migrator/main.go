@@ -18,18 +18,19 @@ import (
 func main() {
 	ctx := context.Background()
 
-	useLocalDB := *flag.Bool("local-db", true, "Use a local sqlite DB")
-	dsn := *flag.String("dsn", "", "Database connection string")
+	useLocalDB := flag.Bool("local-db", true, "Use a local sqlite DB")
+	dsn := flag.String("dsn", "", "Database connection string")
+	down := flag.Bool("down", false, "Runs a down migration")
 
 	flag.Parse()
 
 	var db *sql.DB
 	var err error
 
-	if useLocalDB {
+	if *useLocalDB {
 		db, err = sqlitedb.NewFileDB(&sqlitedb.SqlConnectionOpener{})
 	} else {
-		db, err = sqlitedb.NewTursoDB(dsn, &sqlitedb.SqlConnectionOpener{})
+		db, err = sqlitedb.NewTursoDB(*dsn, &sqlitedb.SqlConnectionOpener{})
 	}
 
 	if err != nil {
@@ -61,10 +62,24 @@ func main() {
 	}
 
 	log.Println("\n=== log migration output  ===")
-	results, err := provider.Up(ctx)
-	if err != nil {
-		log.Fatal(err)
+	var results []*goose.MigrationResult
+
+	if *down {
+		log.Println("\n=== down migration  ===")
+		result, err := provider.Down(ctx)
+		results = append(results, result)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		log.Println("\n=== up migrations  ===")
+		results, err = provider.Up(ctx)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
+
 	log.Println("\n=== migration results  ===")
 	for _, r := range results {
 		log.Printf("%-3s %-2v done: %v\n", r.Source.Type, r.Source.Version, r.Duration)

@@ -21,9 +21,13 @@ migrate-down:
 reset-db:
 	rm -f ./db/database.db && go run ./cmd/migrator/main.go ./db/database.db
 
-.PHONY: migrate
-migrate:
-	go build -o bin/migrator ./cmd/migrator && ./bin/migrator -dsn=${DATABASE_URL}
+.PHONY: migrate-remote-up
+migrate-remote-up:
+	go build -o bin/migrator ./cmd/migrator && ./bin/migrator -local-db=false -dsn=${DATABASE_URL}
+
+.PHONY: migrate-remote-down
+migrate-remote-down:
+	go build -o bin/migrator ./cmd/migrator && ./bin/migrator -local-db=false -dsn=${DATABASE_URL} -down
 
 .PHONY: build-server
 build-server:
