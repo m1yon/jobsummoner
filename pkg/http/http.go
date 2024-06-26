@@ -33,6 +33,7 @@ func NewServer(logger *slog.Logger, jobService jobsummoner.JobService, userServi
 	sessionManager := scs.New()
 	sessionManager.Store = sqlite3store.New(db)
 	sessionManager.Lifetime = 12 * time.Hour
+	sessionManager.Cookie.Secure = os.Getenv("FLY_APP_NAME") != ""
 
 	s := &Server{
 		logger:         logger,
