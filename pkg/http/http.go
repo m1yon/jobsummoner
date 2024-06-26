@@ -10,11 +10,11 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
-	"github.com/alexedwards/scs/sqlite3store"
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-playground/form/v4"
 	"github.com/m1yon/jobsummoner"
 	"github.com/m1yon/jobsummoner/internal/components"
+	"github.com/m1yon/jobsummoner/internal/sqlite3store"
 )
 
 type Server struct {
