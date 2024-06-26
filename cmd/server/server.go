@@ -8,17 +8,16 @@ import (
 	"github.com/m1yon/jobsummoner/internal/job"
 	"github.com/m1yon/jobsummoner/internal/sqlitedb"
 	"github.com/m1yon/jobsummoner/internal/user"
-	"github.com/m1yon/jobsummoner/pkg/http"
 )
 
-func newServer(logger *slog.Logger, db *sql.DB) *http.Server {
+func newServer(logger *slog.Logger, db *sql.DB) *Server {
 	companyRepository := sqlitedb.NewSqliteCompanyRepository(db)
 	companyService := company.NewDefaultCompanyService(companyRepository)
 	jobRepository := sqlitedb.NewSqliteJobRepository(db)
 	jobService := job.NewDefaultJobService(jobRepository, companyService)
 	userService := user.NewDefaultUserService(db)
 
-	server := http.NewServer(logger, jobService, userService, db)
+	server := NewServer(logger, jobService, userService, db)
 
 	return server
 }

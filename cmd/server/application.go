@@ -4,14 +4,12 @@ import (
 	"database/sql"
 	"log/slog"
 	"os"
-
-	"github.com/m1yon/jobsummoner/pkg/http"
 )
 
 type application struct {
 	logger *slog.Logger
 	db     *sql.DB
-	server *http.Server
+	server *Server
 	config *config
 }
 
