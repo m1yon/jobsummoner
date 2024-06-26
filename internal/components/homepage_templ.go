@@ -40,7 +40,7 @@ func Homepage(m jobsummoner.HomepageViewModel) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if m.Flash != "" {
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"bg-teal-400 text-black p-4 mx-4\"><p>")
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"bg-teal-400 text-black p-4 mx-4 mb-3\"><p>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

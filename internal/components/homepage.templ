@@ -6,7 +6,7 @@ templ Homepage(m jobsummoner.HomepageViewModel) {
 	@layout() {
 		@header(m.IsAuthenticated)
 		if m.Flash != "" {
-			<div class="bg-teal-400 text-black p-4 mx-4">
+			<div class="bg-teal-400 text-black p-4 mx-4 mb-3">
 				<p>{ m.Flash }</p>
 			</div>
 		}
