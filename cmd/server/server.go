@@ -6,8 +6,8 @@ import (
 
 	"github.com/m1yon/jobsummoner/internal/company"
 	"github.com/m1yon/jobsummoner/internal/job"
+	"github.com/m1yon/jobsummoner/internal/models"
 	"github.com/m1yon/jobsummoner/internal/sqlitedb"
-	"github.com/m1yon/jobsummoner/internal/user"
 )
 
 func newServer(logger *slog.Logger, db *sql.DB) *Server {
@@ -15,7 +15,7 @@ func newServer(logger *slog.Logger, db *sql.DB) *Server {
 	companyService := company.NewDefaultCompanyService(companyRepository)
 	jobRepository := sqlitedb.NewSqliteJobRepository(db)
 	jobService := job.NewDefaultJobService(jobRepository, companyService)
-	userService := user.NewDefaultUserService(db)
+	userService := models.NewDefaultUserService(db)
 
 	server := NewServer(logger, jobService, userService, db)
 

@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/m1yon/jobsummoner/internal/components"
-	"github.com/m1yon/jobsummoner/internal/user"
+	"github.com/m1yon/jobsummoner/internal/models"
 	"github.com/m1yon/jobsummoner/pkg/validator"
 )
 
@@ -57,7 +57,7 @@ func (s *Server) userSignupPost(w http.ResponseWriter, r *http.Request) {
 
 	err = s.userService.Insert(form.Name, form.Email, form.Password)
 	if err != nil {
-		if errors.Is(err, user.ErrDuplicateEmail) {
+		if errors.Is(err, models.ErrDuplicateEmail) {
 			form.AddFieldError("email", "Email address is already in use")
 			s.render(w, r, http.StatusOK, components.SignupForm(form))
 			return

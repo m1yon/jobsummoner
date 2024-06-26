@@ -18,9 +18,9 @@ import (
 	"github.com/m1yon/jobsummoner"
 	"github.com/m1yon/jobsummoner/internal/company"
 	"github.com/m1yon/jobsummoner/internal/job"
+	"github.com/m1yon/jobsummoner/internal/models"
 	"github.com/m1yon/jobsummoner/internal/sqlitedb"
 	_ "github.com/m1yon/jobsummoner/internal/testing"
-	"github.com/m1yon/jobsummoner/internal/user"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -55,7 +55,7 @@ func TestGETHomepage(t *testing.T) {
 		companyService := company.NewDefaultCompanyService(companyRepository)
 		jobRepository := sqlitedb.NewSqliteJobRepository(db)
 		jobService := job.NewDefaultJobService(jobRepository, companyService)
-		userService := user.NewDefaultUserService(db)
+		userService := models.NewDefaultUserService(db)
 
 		jobService.CreateJobs(ctx, jobsToCreate)
 
@@ -84,7 +84,7 @@ func TestGETHomepage(t *testing.T) {
 		companyService := company.NewDefaultCompanyService(companyRepository)
 		jobRepository := sqlitedb.NewSqliteJobRepository(db)
 		jobService := job.NewDefaultJobService(jobRepository, companyService)
-		userService := user.NewDefaultUserService(db)
+		userService := models.NewDefaultUserService(db)
 
 		request, _ := http.NewRequest(http.MethodGet, "/", nil)
 		response := httptest.NewRecorder()
