@@ -5,14 +5,33 @@ templ layout() {
 	<html>
 		<head>
 			<meta charset="utf-8"/>
-			<title></title>
+			<title>jobsummoner</title>
 			<meta name="author" content=""/>
 			<meta name="description" content=""/>
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
 			<script src="https://cdn.tailwindcss.com"></script>
+			<script src="https://unpkg.com/htmx.org@2.0.0" integrity="sha384-wS5l5IKJBvK6sPTKa2WZ1js3d947pvWXbPJ1OmWfEuxLgeHcEbjUUA5i9V5ZkpCw" crossorigin="anonymous"></script>
 		</head>
 		<body class="bg-gray-950 text-gray-50">
-			{ children... }
+			<main>
+				{ children... }
+			</main>
 		</body>
 	</html>
+}
+
+templ header(isAuthenticated bool) {
+	<header class="mb-6 py-3 border-b border-gray-700 px-4 flex justify-between items-center font-mono">
+		<a href="/">
+      <h1>m1yon/jobsummoner</h1>
+    </a>
+		<div class="flex gap-4">
+      if isAuthenticated {
+        <a hx-post="/user/logout" class="hover:underline cursor-pointer">Logout</a>
+      } else {
+        <a href="/user/login" class="hover:underline">Login</a>
+        <a href="/user/signup" class="hover:underline">Signup</a>
+      }
+		</div>
+	</header>
 }

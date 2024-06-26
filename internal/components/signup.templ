@@ -1,0 +1,28 @@
+package components
+
+import "github.com/m1yon/jobsummoner/pkg/validator"
+
+type UserSignupForm struct {
+	Name                string `form:"name"`
+	Email               string `form:"email"`
+	Password            string `form:"password"`
+	validator.Validator `form:"-"`
+}
+
+templ SignupPage() {
+	@layout() {
+		@header(false)
+		@SignupForm(UserSignupForm{})
+	}
+}
+
+templ SignupForm(form UserSignupForm) {
+	<form hx-post="/user/signup" hx-trigger="submit" hx-target="this" hx-swap="outerHTML" novalidate class="px-4">
+		@formInput("name", "text", "Name", "Enter your name", form.Name, form.FieldErrors["name"])
+		@formInput("email", "email", "Email", "Enter your email", form.Email, form.FieldErrors["email"])
+		@formInput("password", "password", "Password", "Enter your password", "", form.FieldErrors["password"])
+		<button class="bg-gray-800 py-1 px-3 font-mono mt-2">
+			Signup
+		</button>
+	</form>
+}

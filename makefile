@@ -7,7 +7,7 @@ test:
 
 .PHONY: test-ci
 test-ci:
-	go test ./...
+	go run gotest.tools/gotestsum@latest
 
 .PHONY: migrate-up
 migrate-up:
@@ -64,3 +64,7 @@ scraper:
 .PHONY: server
 server: 
 	go build -o ./bin/server ./cmd/server && ./bin/server
+
+.PHONY: dev
+dev: 
+	air -c .air.toml        

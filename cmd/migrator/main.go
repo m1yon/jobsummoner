@@ -7,6 +7,7 @@ import (
 	"log"
 	"path/filepath"
 
+	"github.com/m1yon/jobsummoner/internal/sqlitedb"
 	"github.com/m1yon/jobsummoner/sql/migrations"
 	"github.com/pressly/goose/v3"
 	"github.com/pressly/goose/v3/database"
@@ -16,11 +17,21 @@ import (
 
 func main() {
 	ctx := context.Background()
-	dsn := flag.String("dsn", "", "Database connection string")
+
+	useLocalDB := *flag.Bool("local-db", true, "Use a local sqlite DB")
+	dsn := *flag.String("dsn", "", "Database connection string")
 
 	flag.Parse()
 
-	db, err := sql.Open("libsql", *dsn)
+	var db *sql.DB
+	var err error
+
+	if useLocalDB {
+		db, err = sqlitedb.NewFileDB(&sqlitedb.SqlConnectionOpener{})
+	} else {
+		db, err = sqlitedb.NewTursoDB(dsn, &sqlitedb.SqlConnectionOpener{})
+	}
+
 	if err != nil {
 		log.Fatal(err)
 	}

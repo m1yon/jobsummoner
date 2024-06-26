@@ -5,5 +5,7 @@ type HomepageJobModel struct {
 	LastPostedText string
 }
 type HomepageViewModel struct {
-	Jobs []HomepageJobModel
+	Jobs            []HomepageJobModel
+	Flash           string
+	IsAuthenticated bool
 }
