@@ -16,7 +16,7 @@ func main() {
 	logger := slog.New(tint.NewHandler(os.Stdout, &tint.Options{Level: slog.LevelDebug}))
 
 	scraperApp := newScraperApp(logger)
-	scraperApp.AddScrapers([]models.Scraper{
+	scraperApp.AddScrapers([]models.ScraperModelInterface{
 		linkedin.NewLinkedInJobScraper(linkedin.NewHttpLinkedInReader(linkedin.LinkedInReaderConfig{
 			Keywords: []string{"typescript"},
 			Location: "United States",

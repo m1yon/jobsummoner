@@ -11,11 +11,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-type Scraper interface {
-	ScrapeJobs(lastScraped time.Time) ([]Job, []error)
-	GetSourceID() string
-}
-
 type ScrapeService interface {
 	Start(scraper []Scraper, crontab string)
 }

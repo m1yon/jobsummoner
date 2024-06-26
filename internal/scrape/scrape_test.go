@@ -76,7 +76,7 @@ func TestScrapeService(t *testing.T) {
 
 		scraper1 := NewSpyScraper()
 		scraper2 := NewSpyScraper()
-		scrapers := []models.Scraper{scraper1, scraper2}
+		scrapers := []models.ScraperModelInterface{scraper1, scraper2}
 		go scrapeService.Start(scrapers, "TZ=America/Denver */30 7-22 * * *", false)
 		c.BlockUntil(1)
 
@@ -116,7 +116,7 @@ func TestScrapeService(t *testing.T) {
 		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobs)
 
 		scraper1 := NewSpyScraper()
-		scrapers := []models.Scraper{scraper1}
+		scrapers := []models.ScraperModelInterface{scraper1}
 
 		go scrapeService.Start(scrapers, "TZ=America/Denver */30 7-22 * * *", false)
 		c.BlockUntil(1)
@@ -145,7 +145,7 @@ func TestScrapeService(t *testing.T) {
 		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobs)
 
 		scraper := newSpyFailingScraper()
-		scrapers := []models.Scraper{scraper}
+		scrapers := []models.ScraperModelInterface{scraper}
 
 		go scrapeService.Start(scrapers, "TZ=America/Denver */30 7-22 * * *", false)
 		c.BlockUntil(1)
@@ -173,7 +173,7 @@ func TestScrapeService(t *testing.T) {
 		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobs)
 
 		scraper1 := NewSpyScraper()
-		scrapers := []models.Scraper{scraper1}
+		scrapers := []models.ScraperModelInterface{scraper1}
 
 		go scrapeService.Start(scrapers, "TZ=America/Denver */30 7-22 * * *", true)
 		c.BlockUntil(1)

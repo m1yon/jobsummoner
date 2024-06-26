@@ -15,7 +15,7 @@ type scraperApp struct {
 	db            *sql.DB
 	scrapeService *scrape.DefaultScrapeService
 	httpClient    *http.Client
-	scrapers      []models.Scraper
+	scrapers      []models.ScraperModelInterface
 	config        *config
 }
 
@@ -34,7 +34,7 @@ func newScraperApp(logger *slog.Logger) *scraperApp {
 	return &scraperApp{logger: logger, db: db, scrapeService: scrapeService, httpClient: httpClient, config: config}
 }
 
-func (a *scraperApp) AddScrapers(scrapers []models.Scraper) {
+func (a *scraperApp) AddScrapers(scrapers []models.ScraperModelInterface) {
 	a.scrapers = scrapers
 }
 

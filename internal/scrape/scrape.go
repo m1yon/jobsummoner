@@ -21,7 +21,7 @@ func NewDefaultScrapeService(c clockwork.Clock, logger *slog.Logger, repository 
 	return &DefaultScrapeService{c, logger, repository, jobs}
 }
 
-func (ss *DefaultScrapeService) Start(scrapers []models.Scraper, crontab string, scrapeImmediately bool) {
+func (ss *DefaultScrapeService) Start(scrapers []models.ScraperModelInterface, crontab string, scrapeImmediately bool) {
 	ctx := context.Background()
 	ss.logger.Info("initializing scrape scheduler...")
 	s, err := gocron.NewScheduler(gocron.WithClock(ss.c))
