@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"log/slog"
 
-	"github.com/m1yon/jobsummoner/internal/sqlitedb"
+	"github.com/m1yon/jobsummoner/internal/database"
 )
 
 func openDB(logger *slog.Logger, config *config) (*sql.DB, error) {
@@ -12,10 +12,10 @@ func openDB(logger *slog.Logger, config *config) (*sql.DB, error) {
 	var err error
 
 	if config.useLocalDB {
-		db, err = sqlitedb.NewFileDB(&sqlitedb.SqlConnectionOpener{})
+		db, err = database.NewFileDB(&database.SqlConnectionOpener{})
 		logger.Info("using local DB")
 	} else {
-		db, err = sqlitedb.NewTursoDB(config.dsn, &sqlitedb.SqlConnectionOpener{})
+		db, err = database.NewTursoDB(config.dsn, &database.SqlConnectionOpener{})
 		logger.Info("using remote DB")
 	}
 

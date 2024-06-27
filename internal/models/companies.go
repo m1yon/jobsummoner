@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/m1yon/jobsummoner/internal/sqlitedb"
+	"github.com/m1yon/jobsummoner/internal/database"
 	"github.com/pkg/errors"
 )
 
@@ -23,11 +23,11 @@ type Company struct {
 }
 
 type CompanyModel struct {
-	Queries *sqlitedb.Queries
+	Queries *database.Queries
 }
 
 func (m *CompanyModel) CreateCompany(ctx context.Context, company Company) (string, error) {
-	err := m.Queries.CreateCompany(ctx, sqlitedb.CreateCompanyParams{
+	err := m.Queries.CreateCompany(ctx, database.CreateCompanyParams{
 		ID:       company.ID,
 		Name:     company.Name,
 		Url:      company.Url,

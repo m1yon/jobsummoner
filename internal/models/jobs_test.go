@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/m1yon/jobsummoner/internal/sqlitedb"
+	"github.com/m1yon/jobsummoner/internal/database"
 	_ "github.com/m1yon/jobsummoner/internal/testing"
 	"github.com/stretchr/testify/assert"
 )
@@ -34,9 +34,9 @@ func TestSqliteJobService(t *testing.T) {
 
 	t.Run("create job and immediately get created job", func(t *testing.T) {
 		ctx := context.Background()
-		db, _ := sqlitedb.NewInMemoryDB()
+		db, _ := database.NewInMemoryDB()
 
-		queries := sqlitedb.New(db)
+		queries := database.New(db)
 		companies := &CompanyModel{Queries: queries}
 		jobs := &JobModel{Queries: queries, Companies: companies}
 
@@ -64,9 +64,9 @@ func TestSqliteJobService(t *testing.T) {
 
 	t.Run("CreateJobs returns a list of job IDs", func(t *testing.T) {
 		ctx := context.Background()
-		db, _ := sqlitedb.NewInMemoryDB()
+		db, _ := database.NewInMemoryDB()
 
-		queries := sqlitedb.New(db)
+		queries := database.New(db)
 		companies := &CompanyModel{Queries: queries}
 		jobs := &JobModel{Queries: queries, Companies: companies}
 
@@ -81,9 +81,9 @@ func TestSqliteJobService(t *testing.T) {
 
 	t.Run("new companies exist after jobs created", func(t *testing.T) {
 		ctx := context.Background()
-		db, _ := sqlitedb.NewInMemoryDB()
+		db, _ := database.NewInMemoryDB()
 
-		queries := sqlitedb.New(db)
+		queries := database.New(db)
 		companies := &CompanyModel{Queries: queries}
 		jobs := &JobModel{Queries: queries, Companies: companies}
 
@@ -100,9 +100,9 @@ func TestSqliteJobService(t *testing.T) {
 
 	t.Run("can query new companies after jobs created", func(t *testing.T) {
 		ctx := context.Background()
-		db, _ := sqlitedb.NewInMemoryDB()
+		db, _ := database.NewInMemoryDB()
 
-		queries := sqlitedb.New(db)
+		queries := database.New(db)
 		companies := &CompanyModel{Queries: queries}
 		jobs := &JobModel{Queries: queries, Companies: companies}
 
@@ -124,9 +124,9 @@ func TestSqliteJobService(t *testing.T) {
 
 	t.Run("can get jobs after jobs created", func(t *testing.T) {
 		ctx := context.Background()
-		db, _ := sqlitedb.NewInMemoryDB()
+		db, _ := database.NewInMemoryDB()
 
-		queries := sqlitedb.New(db)
+		queries := database.New(db)
 		companies := &CompanyModel{Queries: queries}
 		jobs := &JobModel{Queries: queries, Companies: companies}
 
@@ -148,9 +148,9 @@ func TestSqliteJobService(t *testing.T) {
 
 	t.Run("get jobs", func(t *testing.T) {
 		ctx := context.Background()
-		db, _ := sqlitedb.NewInMemoryDB()
+		db, _ := database.NewInMemoryDB()
 
-		queries := sqlitedb.New(db)
+		queries := database.New(db)
 		companies := &CompanyModel{Queries: queries}
 		jobs := &JobModel{Queries: queries, Companies: companies}
 

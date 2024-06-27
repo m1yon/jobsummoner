@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/jonboulle/clockwork"
-	"github.com/m1yon/jobsummoner/internal/sqlitedb"
+	"github.com/m1yon/jobsummoner/internal/database"
 	"github.com/pkg/errors"
 )
 
@@ -23,12 +23,12 @@ type Scrape struct {
 }
 
 type ScrapeModel struct {
-	Queries *sqlitedb.Queries
+	Queries *database.Queries
 	C       clockwork.Clock
 }
 
 func (m *ScrapeModel) CreateScrape(ctx context.Context, sourceID string, createdAt time.Time) error {
-	err := m.Queries.CreateScrape(ctx, sqlitedb.CreateScrapeParams{SourceID: sourceID, CreatedAt: createdAt.UTC()})
+	err := m.Queries.CreateScrape(ctx, database.CreateScrapeParams{SourceID: sourceID, CreatedAt: createdAt.UTC()})
 
 	if err != nil {
 		return errors.Wrap(err, "problem creating scrape")

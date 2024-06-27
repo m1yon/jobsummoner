@@ -7,7 +7,7 @@ import (
 	"encoding/hex"
 	"time"
 
-	"github.com/m1yon/jobsummoner/internal/sqlitedb"
+	"github.com/m1yon/jobsummoner/internal/database"
 	"github.com/pkg/errors"
 )
 
@@ -31,7 +31,7 @@ type Job struct {
 }
 
 type JobModel struct {
-	Queries   *sqlitedb.Queries
+	Queries   *database.Queries
 	Companies CompanyModelInterface
 }
 
@@ -116,7 +116,7 @@ func (m *JobModel) CreateJob(ctx context.Context, job Job) (string, error) {
 	}
 
 	id := generateJobID(job.CompanyID, job.Position)
-	err = m.Queries.CreateJob(ctx, sqlitedb.CreateJobParams{
+	err = m.Queries.CreateJob(ctx, database.CreateJobParams{
 		ID:       id,
 		Position: job.Position,
 		Location: sql.NullString{

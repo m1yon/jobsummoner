@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/jonboulle/clockwork"
-	"github.com/m1yon/jobsummoner/internal/sqlitedb"
+	"github.com/m1yon/jobsummoner/internal/database"
 	_ "github.com/m1yon/jobsummoner/internal/testing"
 	"github.com/stretchr/testify/assert"
 )
@@ -16,8 +16,8 @@ func TestScrapeRepository(t *testing.T) {
 		ctx := context.Background()
 		c := clockwork.NewFakeClock()
 
-		db, _ := sqlitedb.NewInMemoryDB()
-		queries := sqlitedb.New(db)
+		db, _ := database.NewInMemoryDB()
+		queries := database.New(db)
 
 		scrapes := &ScrapeModel{Queries: queries, C: c}
 
@@ -34,8 +34,8 @@ func TestScrapeRepository(t *testing.T) {
 		ctx := context.Background()
 		c := clockwork.NewFakeClock()
 
-		db, _ := sqlitedb.NewInMemoryDB()
-		queries := sqlitedb.New(db)
+		db, _ := database.NewInMemoryDB()
+		queries := database.New(db)
 
 		scrapes := &ScrapeModel{Queries: queries, C: c}
 
@@ -56,8 +56,8 @@ func TestScrapeRepository(t *testing.T) {
 		ctx := context.Background()
 		c := clockwork.NewFakeClock()
 
-		db, _ := sqlitedb.NewInMemoryDB()
-		queries := sqlitedb.New(db)
+		db, _ := database.NewInMemoryDB()
+		queries := database.New(db)
 
 		scrapes := &ScrapeModel{Queries: queries, C: c}
 

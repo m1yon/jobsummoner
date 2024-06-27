@@ -15,8 +15,8 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/a-h/templ"
+	"github.com/m1yon/jobsummoner/internal/database"
 	"github.com/m1yon/jobsummoner/internal/models"
-	"github.com/m1yon/jobsummoner/internal/sqlitedb"
 	_ "github.com/m1yon/jobsummoner/internal/testing"
 	"github.com/stretchr/testify/assert"
 )
@@ -46,9 +46,9 @@ func TestGETHomepage(t *testing.T) {
 	t.Run("renders the page correctly", func(t *testing.T) {
 		ctx := context.Background()
 		logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
-		db, _ := sqlitedb.NewInMemoryDB()
+		db, _ := database.NewInMemoryDB()
 
-		queries := sqlitedb.New(db)
+		queries := database.New(db)
 
 		companies := &models.CompanyModel{Queries: queries}
 		jobs := &models.JobModel{Queries: queries, Companies: companies}
@@ -77,7 +77,7 @@ func TestGETHomepage(t *testing.T) {
 			logger.Error("failed starting db")
 		}
 
-		queries := sqlitedb.New(db)
+		queries := database.New(db)
 
 		companies := &models.CompanyModel{Queries: queries}
 		jobs := &models.JobModel{Queries: queries, Companies: companies}

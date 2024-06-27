@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/jonboulle/clockwork"
+	"github.com/m1yon/jobsummoner/internal/database"
 	"github.com/m1yon/jobsummoner/internal/models"
-	"github.com/m1yon/jobsummoner/internal/sqlitedb"
 	_ "github.com/m1yon/jobsummoner/internal/testing"
 	"github.com/stretchr/testify/assert"
 )
@@ -65,8 +65,8 @@ func TestScrapeService(t *testing.T) {
 		logBufferSpy := new(bytes.Buffer)
 		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
 
-		db, _ := sqlitedb.NewInMemoryDB()
-		queries := sqlitedb.New(db)
+		db, _ := database.NewInMemoryDB()
+		queries := database.New(db)
 
 		companies := &models.CompanyModel{Queries: queries}
 		jobs := &models.JobModel{Queries: queries, Companies: companies}
@@ -106,9 +106,9 @@ func TestScrapeService(t *testing.T) {
 		logBufferSpy := new(bytes.Buffer)
 		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
 
-		db, _ := sqlitedb.NewInMemoryDB()
+		db, _ := database.NewInMemoryDB()
 
-		queries := sqlitedb.New(db)
+		queries := database.New(db)
 
 		companies := &models.CompanyModel{Queries: queries}
 		jobs := &models.JobModel{Queries: queries, Companies: companies}
@@ -136,8 +136,8 @@ func TestScrapeService(t *testing.T) {
 		logBufferSpy := new(bytes.Buffer)
 		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
 
-		db, _ := sqlitedb.NewInMemoryDB()
-		queries := sqlitedb.New(db)
+		db, _ := database.NewInMemoryDB()
+		queries := database.New(db)
 
 		companies := &models.CompanyModel{Queries: queries}
 		jobs := &models.JobModel{Queries: queries, Companies: companies}
@@ -164,8 +164,8 @@ func TestScrapeService(t *testing.T) {
 		logBufferSpy := new(bytes.Buffer)
 		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
 
-		db, _ := sqlitedb.NewInMemoryDB()
-		queries := sqlitedb.New(db)
+		db, _ := database.NewInMemoryDB()
+		queries := database.New(db)
 
 		companies := &models.CompanyModel{Queries: queries}
 		jobs := &models.JobModel{Queries: queries, Companies: companies}

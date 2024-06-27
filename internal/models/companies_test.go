@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/m1yon/jobsummoner/internal/sqlitedb"
+	"github.com/m1yon/jobsummoner/internal/database"
 	_ "github.com/m1yon/jobsummoner/internal/testing"
 	"github.com/stretchr/testify/assert"
 )
@@ -12,9 +12,9 @@ import (
 func TestCompanies(t *testing.T) {
 	t.Run("create company and ensure it exists", func(t *testing.T) {
 		ctx := context.Background()
-		db, _ := sqlitedb.NewInMemoryDB()
+		db, _ := database.NewInMemoryDB()
 
-		queries := sqlitedb.New(db)
+		queries := database.New(db)
 		companies := CompanyModel{queries}
 
 		companyToCreate := Company{
@@ -40,9 +40,9 @@ func TestCompanies(t *testing.T) {
 
 	t.Run("create company and immediately get company", func(t *testing.T) {
 		ctx := context.Background()
-		db, _ := sqlitedb.NewInMemoryDB()
+		db, _ := database.NewInMemoryDB()
 
-		queries := sqlitedb.New(db)
+		queries := database.New(db)
 		companies := CompanyModel{queries}
 
 		companyToCreate := Company{

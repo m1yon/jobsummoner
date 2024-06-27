@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
+	"github.com/m1yon/jobsummoner/internal/database"
 	"github.com/pkg/errors"
 
-	"github.com/m1yon/jobsummoner/internal/sqlitedb"
 	"golang.org/x/crypto/bcrypt"
 	"modernc.org/sqlite"
 )
@@ -25,7 +25,7 @@ type User struct {
 	CreatedAt      time.Time
 }
 type UserModel struct {
-	Queries *sqlitedb.Queries
+	Queries *database.Queries
 }
 
 func (m *UserModel) Insert(name, email, password string) error {
@@ -36,7 +36,7 @@ func (m *UserModel) Insert(name, email, password string) error {
 		return err
 	}
 
-	err = m.Queries.CreateUser(ctx, sqlitedb.CreateUserParams{Name: name, Email: email, HashedPassword: string(hashedPassword)})
+	err = m.Queries.CreateUser(ctx, database.CreateUserParams{Name: name, Email: email, HashedPassword: string(hashedPassword)})
 
 	if err != nil {
 		var sqliteError *sqlite.Error

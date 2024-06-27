@@ -1,4 +1,4 @@
-package sqlitedb
+package database
 
 import (
 	"database/sql"

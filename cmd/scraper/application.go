@@ -7,8 +7,8 @@ import (
 	"os"
 
 	"github.com/jonboulle/clockwork"
+	"github.com/m1yon/jobsummoner/internal/database"
 	"github.com/m1yon/jobsummoner/internal/models"
-	"github.com/m1yon/jobsummoner/internal/sqlitedb"
 )
 
 type scraperApp struct {
@@ -30,7 +30,7 @@ func newScraperApp(logger *slog.Logger) *scraperApp {
 	}
 
 	c := clockwork.NewRealClock()
-	queries := sqlitedb.New(db)
+	queries := database.New(db)
 
 	companies := &models.CompanyModel{Queries: queries}
 	jobs := &models.JobModel{Queries: queries, Companies: companies}

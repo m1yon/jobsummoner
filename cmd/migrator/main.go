@@ -7,10 +7,10 @@ import (
 	"log"
 	"path/filepath"
 
-	"github.com/m1yon/jobsummoner/internal/sqlitedb"
+	"github.com/m1yon/jobsummoner/internal/database"
 	"github.com/m1yon/jobsummoner/sql/migrations"
 	"github.com/pressly/goose/v3"
-	"github.com/pressly/goose/v3/database"
+	gooseDB "github.com/pressly/goose/v3/database"
 	_ "github.com/tursodatabase/libsql-client-go/libsql"
 	_ "modernc.org/sqlite"
 )
@@ -28,16 +28,16 @@ func main() {
 	var err error
 
 	if *useLocalDB {
-		db, err = sqlitedb.NewFileDB(&sqlitedb.SqlConnectionOpener{})
+		db, err = database.NewFileDB(&database.SqlConnectionOpener{})
 	} else {
-		db, err = sqlitedb.NewTursoDB(*dsn, &sqlitedb.SqlConnectionOpener{})
+		db, err = database.NewTursoDB(*dsn, &database.SqlConnectionOpener{})
 	}
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	provider, err := goose.NewProvider(database.DialectSQLite3, db, migrations.Embed)
+	provider, err := goose.NewProvider(gooseDB.DialectSQLite3, db, migrations.Embed)
 	if err != nil {
 		log.Fatal(err)
 	}
