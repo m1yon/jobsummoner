@@ -6,14 +6,15 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/jonboulle/clockwork"
 	"github.com/m1yon/jobsummoner/internal/models"
-	"github.com/m1yon/jobsummoner/internal/scrape"
+	"github.com/m1yon/jobsummoner/internal/sqlitedb"
 )
 
 type scraperApp struct {
 	logger        *slog.Logger
 	db            *sql.DB
-	scrapeService *scrape.DefaultScrapeService
+	scrapeService *ScrapeService
 	httpClient    *http.Client
 	scrapers      []models.ScraperModelInterface
 	config        *config
@@ -28,7 +29,15 @@ func newScraperApp(logger *slog.Logger) *scraperApp {
 		os.Exit(1)
 	}
 
-	scrapeService := newScrapeService(logger, db)
+	c := clockwork.NewRealClock()
+	queries := sqlitedb.New(db)
+
+	companies := &models.CompanyModel{Queries: queries}
+	jobs := &models.JobModel{Queries: queries, Companies: companies}
+	scrapes := &models.ScrapeModel{Queries: queries, C: c}
+
+	scrapeService := &ScrapeService{c: c, logger: logger, scrapes: scrapes, jobs: jobs}
+
 	httpClient := newHttpClient(logger, config)
 
 	return &scraperApp{logger: logger, db: db, scrapeService: scrapeService, httpClient: httpClient, config: config}

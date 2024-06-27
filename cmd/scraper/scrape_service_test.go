@@ -1,4 +1,4 @@
-package scrape
+package main
 
 import (
 	"bytes"
@@ -66,13 +66,13 @@ func TestScrapeService(t *testing.T) {
 		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
 
 		db, _ := sqlitedb.NewInMemoryDB()
-
 		queries := sqlitedb.New(db)
+
 		companies := &models.CompanyModel{Queries: queries}
 		jobs := &models.JobModel{Queries: queries, Companies: companies}
+		scrapes := &models.ScrapeModel{Queries: queries, C: c}
 
-		scrapeRepository := models.NewSqliteScrapeRepository(db, c)
-		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobs)
+		scrapeService := &ScrapeService{c: c, logger: logger, scrapes: scrapes, jobs: jobs}
 
 		scraper1 := NewSpyScraper()
 		scraper2 := NewSpyScraper()
@@ -109,11 +109,12 @@ func TestScrapeService(t *testing.T) {
 		db, _ := sqlitedb.NewInMemoryDB()
 
 		queries := sqlitedb.New(db)
+
 		companies := &models.CompanyModel{Queries: queries}
 		jobs := &models.JobModel{Queries: queries, Companies: companies}
+		scrapes := &models.ScrapeModel{Queries: queries, C: c}
 
-		scrapeRepository := models.NewSqliteScrapeRepository(db, c)
-		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobs)
+		scrapeService := &ScrapeService{c: c, logger: logger, scrapes: scrapes, jobs: jobs}
 
 		scraper1 := NewSpyScraper()
 		scrapers := []models.ScraperModelInterface{scraper1}
@@ -123,7 +124,7 @@ func TestScrapeService(t *testing.T) {
 
 		simulateCron(c, callsBetween8pmAnd10pm+1, 30*time.Minute)
 
-		scrape, err := scrapeRepository.GetLastScrape(ctx, "linkedin")
+		scrape, err := scrapes.GetLastScrape(ctx, "linkedin")
 		assert.NoError(t, err)
 		assert.Equal(t, callsBetween8pmAnd10pm, scrape.ID)
 	})
@@ -136,13 +137,13 @@ func TestScrapeService(t *testing.T) {
 		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
 
 		db, _ := sqlitedb.NewInMemoryDB()
-
 		queries := sqlitedb.New(db)
+
 		companies := &models.CompanyModel{Queries: queries}
 		jobs := &models.JobModel{Queries: queries, Companies: companies}
+		scrapes := &models.ScrapeModel{Queries: queries, C: c}
 
-		scrapeRepository := models.NewSqliteScrapeRepository(db, c)
-		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobs)
+		scrapeService := &ScrapeService{c: c, logger: logger, scrapes: scrapes, jobs: jobs}
 
 		scraper := newSpyFailingScraper()
 		scrapers := []models.ScraperModelInterface{scraper}
@@ -164,13 +165,13 @@ func TestScrapeService(t *testing.T) {
 		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
 
 		db, _ := sqlitedb.NewInMemoryDB()
-
 		queries := sqlitedb.New(db)
+
 		companies := &models.CompanyModel{Queries: queries}
 		jobs := &models.JobModel{Queries: queries, Companies: companies}
+		scrapes := &models.ScrapeModel{Queries: queries, C: c}
 
-		scrapeRepository := models.NewSqliteScrapeRepository(db, c)
-		scrapeService := NewDefaultScrapeService(c, logger, scrapeRepository, jobs)
+		scrapeService := &ScrapeService{c: c, logger: logger, scrapes: scrapes, jobs: jobs}
 
 		scraper1 := NewSpyScraper()
 		scrapers := []models.ScraperModelInterface{scraper1}

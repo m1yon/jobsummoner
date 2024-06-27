@@ -14,14 +14,17 @@ import (
 func TestScrapeRepository(t *testing.T) {
 	t.Run("can create scrape and immediately get scrape", func(t *testing.T) {
 		ctx := context.Background()
-		db, _ := sqlitedb.NewInMemoryDB()
 		c := clockwork.NewFakeClock()
-		scrapeRepository := NewSqliteScrapeRepository(db, c)
 
-		err := scrapeRepository.CreateScrape(ctx, "linkedin", c.Now())
+		db, _ := sqlitedb.NewInMemoryDB()
+		queries := sqlitedb.New(db)
+
+		scrapes := &ScrapeModel{Queries: queries, C: c}
+
+		err := scrapes.CreateScrape(ctx, "linkedin", c.Now())
 		assert.NoError(t, err)
 
-		scrape, err := scrapeRepository.GetLastScrape(ctx, "linkedin")
+		scrape, err := scrapes.GetLastScrape(ctx, "linkedin")
 		if assert.NoError(t, err) {
 			assert.Equal(t, "linkedin", scrape.SourceID)
 		}
@@ -29,17 +32,20 @@ func TestScrapeRepository(t *testing.T) {
 
 	t.Run("gets latest scrape", func(t *testing.T) {
 		ctx := context.Background()
-		db, _ := sqlitedb.NewInMemoryDB()
 		c := clockwork.NewFakeClock()
-		scrapeRepository := NewSqliteScrapeRepository(db, c)
 
-		_ = scrapeRepository.CreateScrape(ctx, "linkedin", c.Now())
-		c.Advance(time.Hour * 1)
-		_ = scrapeRepository.CreateScrape(ctx, "linkedin", c.Now())
-		c.Advance(time.Hour * 1)
-		_ = scrapeRepository.CreateScrape(ctx, "linkedin", c.Now())
+		db, _ := sqlitedb.NewInMemoryDB()
+		queries := sqlitedb.New(db)
 
-		scrape, err := scrapeRepository.GetLastScrape(ctx, "linkedin")
+		scrapes := &ScrapeModel{Queries: queries, C: c}
+
+		_ = scrapes.CreateScrape(ctx, "linkedin", c.Now())
+		c.Advance(time.Hour * 1)
+		_ = scrapes.CreateScrape(ctx, "linkedin", c.Now())
+		c.Advance(time.Hour * 1)
+		_ = scrapes.CreateScrape(ctx, "linkedin", c.Now())
+
+		scrape, err := scrapes.GetLastScrape(ctx, "linkedin")
 		if assert.NoError(t, err) {
 			assert.Equal(t, "linkedin", scrape.SourceID)
 			assert.Equal(t, 3, scrape.ID)
@@ -48,17 +54,20 @@ func TestScrapeRepository(t *testing.T) {
 
 	t.Run("gets latest scrape time", func(t *testing.T) {
 		ctx := context.Background()
-		db, _ := sqlitedb.NewInMemoryDB()
 		c := clockwork.NewFakeClock()
-		scrapeRepository := NewSqliteScrapeRepository(db, c)
 
-		_ = scrapeRepository.CreateScrape(ctx, "linkedin", c.Now())
-		c.Advance(time.Hour * 1)
-		_ = scrapeRepository.CreateScrape(ctx, "linkedin", c.Now())
-		c.Advance(time.Hour * 1)
-		_ = scrapeRepository.CreateScrape(ctx, "linkedin", c.Now())
+		db, _ := sqlitedb.NewInMemoryDB()
+		queries := sqlitedb.New(db)
 
-		scrapeTime, err := scrapeRepository.GetLastScrapeTime(ctx, "linkedin")
+		scrapes := &ScrapeModel{Queries: queries, C: c}
+
+		_ = scrapes.CreateScrape(ctx, "linkedin", c.Now())
+		c.Advance(time.Hour * 1)
+		_ = scrapes.CreateScrape(ctx, "linkedin", c.Now())
+		c.Advance(time.Hour * 1)
+		_ = scrapes.CreateScrape(ctx, "linkedin", c.Now())
+
+		scrapeTime, err := scrapes.GetLastScrapeTime(ctx, "linkedin")
 		if assert.NoError(t, err) {
 			assert.Equal(t, c.Now().UTC(), scrapeTime)
 		}
