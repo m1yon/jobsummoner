@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGETHomepage(t *testing.T) {
+func TestHomepage(t *testing.T) {
 	jobsToCreate := []models.Job{
 		{
 			Position:      "Software Developer",
