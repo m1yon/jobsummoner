@@ -79,7 +79,7 @@ func (ss *scrapeService) start(cron string, scrapeImmediately bool) {
 			numberOfJobsScraped := 0
 
 			for _, scraper := range ss.scrapers {
-				lastScrapedTime, err := ss.scrapes.GetLastScrapeTime(ctx, scraper.GetSourceID())
+				lastScrapedTime, err := ss.scrapes.LastRan(ctx, scraper.GetSourceID())
 
 				if err != nil {
 					ss.logger.Error("failed getting last scraped time", slog.String("err", err.Error()))
@@ -91,9 +91,9 @@ func (ss *scrapeService) start(cron string, scrapeImmediately bool) {
 					ss.logger.Error("job scrape failure", slog.String("err", err.Error()))
 				}
 
-				ss.jobs.CreateJobs(ctx, results)
+				ss.jobs.CreateMany(ctx, results)
 
-				err = ss.scrapes.CreateScrape(ctx, scraper.GetSourceID(), ss.c.Now())
+				err = ss.scrapes.Create(ctx, scraper.GetSourceID(), ss.c.Now())
 
 				if err != nil {
 					ss.logger.Error("failed creating scrape")

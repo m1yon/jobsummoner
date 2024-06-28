@@ -14,17 +14,12 @@ import (
 func TestScrapeRepository(t *testing.T) {
 	t.Run("can create scrape and immediately get scrape", func(t *testing.T) {
 		ctx := context.Background()
-		c := clockwork.NewFakeClock()
+		scrapes, c := newTestScrapeModel()
 
-		db, _ := database.NewInMemoryDB()
-		queries := database.New(db)
-
-		scrapes := &ScrapeModel{Queries: queries, C: c}
-
-		err := scrapes.CreateScrape(ctx, "linkedin", c.Now())
+		err := scrapes.Create(ctx, "linkedin", c.Now())
 		assert.NoError(t, err)
 
-		scrape, err := scrapes.GetLastScrape(ctx, "linkedin")
+		scrape, err := scrapes.Latest(ctx, "linkedin")
 		if assert.NoError(t, err) {
 			assert.Equal(t, "linkedin", scrape.SourceID)
 		}
@@ -32,20 +27,15 @@ func TestScrapeRepository(t *testing.T) {
 
 	t.Run("gets latest scrape", func(t *testing.T) {
 		ctx := context.Background()
-		c := clockwork.NewFakeClock()
+		scrapes, c := newTestScrapeModel()
 
-		db, _ := database.NewInMemoryDB()
-		queries := database.New(db)
-
-		scrapes := &ScrapeModel{Queries: queries, C: c}
-
-		_ = scrapes.CreateScrape(ctx, "linkedin", c.Now())
+		_ = scrapes.Create(ctx, "linkedin", c.Now())
 		c.Advance(time.Hour * 1)
-		_ = scrapes.CreateScrape(ctx, "linkedin", c.Now())
+		_ = scrapes.Create(ctx, "linkedin", c.Now())
 		c.Advance(time.Hour * 1)
-		_ = scrapes.CreateScrape(ctx, "linkedin", c.Now())
+		_ = scrapes.Create(ctx, "linkedin", c.Now())
 
-		scrape, err := scrapes.GetLastScrape(ctx, "linkedin")
+		scrape, err := scrapes.Latest(ctx, "linkedin")
 		if assert.NoError(t, err) {
 			assert.Equal(t, "linkedin", scrape.SourceID)
 			assert.Equal(t, 3, scrape.ID)
@@ -54,22 +44,28 @@ func TestScrapeRepository(t *testing.T) {
 
 	t.Run("gets latest scrape time", func(t *testing.T) {
 		ctx := context.Background()
-		c := clockwork.NewFakeClock()
+		scrapes, c := newTestScrapeModel()
 
-		db, _ := database.NewInMemoryDB()
-		queries := database.New(db)
-
-		scrapes := &ScrapeModel{Queries: queries, C: c}
-
-		_ = scrapes.CreateScrape(ctx, "linkedin", c.Now())
+		_ = scrapes.Create(ctx, "linkedin", c.Now())
 		c.Advance(time.Hour * 1)
-		_ = scrapes.CreateScrape(ctx, "linkedin", c.Now())
+		_ = scrapes.Create(ctx, "linkedin", c.Now())
 		c.Advance(time.Hour * 1)
-		_ = scrapes.CreateScrape(ctx, "linkedin", c.Now())
+		_ = scrapes.Create(ctx, "linkedin", c.Now())
 
-		scrapeTime, err := scrapes.GetLastScrapeTime(ctx, "linkedin")
+		scrapeTime, err := scrapes.LastRan(ctx, "linkedin")
 		if assert.NoError(t, err) {
 			assert.Equal(t, c.Now().UTC(), scrapeTime)
 		}
 	})
+}
+
+func newTestScrapeModel() (*ScrapeModel, clockwork.FakeClock) {
+	c := clockwork.NewFakeClock()
+
+	db, _ := database.NewInMemoryDB()
+	queries := database.New(db)
+
+	scrapes := &ScrapeModel{Queries: queries, C: c}
+
+	return scrapes, c
 }

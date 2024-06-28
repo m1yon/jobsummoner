@@ -11,9 +11,9 @@ import (
 )
 
 type ScrapeModelInterface interface {
-	CreateScrape(ctx context.Context, sourceID string, createdAt time.Time) error
-	GetLastScrape(ctx context.Context, sourceID string) (Scrape, error)
-	GetLastScrapeTime(ctx context.Context, sourceID string) (time.Time, error)
+	Create(ctx context.Context, sourceID string, createdAt time.Time) error
+	Latest(ctx context.Context, sourceID string) (Scrape, error)
+	LastRan(ctx context.Context, sourceID string) (time.Time, error)
 }
 
 type Scrape struct {
@@ -27,7 +27,7 @@ type ScrapeModel struct {
 	C       clockwork.Clock
 }
 
-func (m *ScrapeModel) CreateScrape(ctx context.Context, sourceID string, createdAt time.Time) error {
+func (m *ScrapeModel) Create(ctx context.Context, sourceID string, createdAt time.Time) error {
 	err := m.Queries.CreateScrape(ctx, database.CreateScrapeParams{SourceID: sourceID, CreatedAt: createdAt.UTC()})
 
 	if err != nil {
@@ -37,7 +37,7 @@ func (m *ScrapeModel) CreateScrape(ctx context.Context, sourceID string, created
 	return nil
 }
 
-func (m *ScrapeModel) GetLastScrape(ctx context.Context, sourceID string) (Scrape, error) {
+func (m *ScrapeModel) Latest(ctx context.Context, sourceID string) (Scrape, error) {
 	scrape, err := m.Queries.GetLastScrape(ctx, sourceID)
 
 	if err != nil {
@@ -51,7 +51,7 @@ func (m *ScrapeModel) GetLastScrape(ctx context.Context, sourceID string) (Scrap
 	}, nil
 }
 
-func (m *ScrapeModel) GetLastScrapeTime(ctx context.Context, sourceID string) (time.Time, error) {
+func (m *ScrapeModel) LastRan(ctx context.Context, sourceID string) (time.Time, error) {
 	defaultLastScrapedTime := m.C.Now().Add(-24 * time.Hour)
 	lastScrape, err := m.Queries.GetLastScrape(ctx, sourceID)
 

@@ -54,7 +54,7 @@ func TestGETHomepage(t *testing.T) {
 		jobs := &models.JobModel{Queries: queries, Companies: companies}
 		users := &models.UserModel{Queries: queries}
 
-		jobs.CreateJobs(ctx, jobsToCreate)
+		jobs.CreateMany(ctx, jobsToCreate)
 
 		request, _ := http.NewRequest(http.MethodGet, "/", nil)
 		response := httptest.NewRecorder()

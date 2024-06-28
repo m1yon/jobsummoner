@@ -118,7 +118,7 @@ func TestScrapeService(t *testing.T) {
 
 		simulateCron(c, callsBetween8pmAnd10pm+1, 30*time.Minute)
 
-		scrape, err := scrapes.GetLastScrape(ctx, "linkedin")
+		scrape, err := scrapes.Latest(ctx, "linkedin")
 		assert.NoError(t, err)
 		assert.Equal(t, callsBetween8pmAnd10pm, scrape.ID)
 	})

@@ -34,43 +34,26 @@ func TestSqliteJobService(t *testing.T) {
 
 	t.Run("create job and immediately get created job", func(t *testing.T) {
 		ctx := context.Background()
-		db, _ := database.NewInMemoryDB()
+		companies, jobs := newTestModels()
 
-		queries := database.New(db)
-		companies := &CompanyModel{Queries: queries}
-		jobs := &JobModel{Queries: queries, Companies: companies}
+		jobToCreate := jobsToCreate[0]
 
-		jobToCreate := Job{
-			Position:    "Software Developer",
-			URL:         "https://linkedin.com/jobs/1",
-			Location:    "San Francisco",
-			CompanyID:   "/google",
-			CompanyName: "Google",
-			SourceID:    "linkedin",
-		}
-
-		id, err := jobs.CreateJob(ctx, jobToCreate)
+		id, err := jobs.Create(ctx, jobToCreate)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, id)
 
-		doesCompanyExist, err := companies.DoesCompanyExist(ctx, jobToCreate.CompanyID)
-		assert.NoError(t, err)
-		assert.Equal(t, true, doesCompanyExist)
+		assertCompanyExist(t, companies, jobToCreate.CompanyID)
 
-		job, err := jobs.GetJob(ctx, id)
+		job, err := jobs.Get(ctx, id)
 		assert.NoError(t, err)
 		assertJobsAreEqual(t, jobToCreate, job)
 	})
 
 	t.Run("CreateJobs returns a list of job IDs", func(t *testing.T) {
 		ctx := context.Background()
-		db, _ := database.NewInMemoryDB()
+		_, jobs := newTestModels()
 
-		queries := database.New(db)
-		companies := &CompanyModel{Queries: queries}
-		jobs := &JobModel{Queries: queries, Companies: companies}
-
-		ids, errs := jobs.CreateJobs(ctx, jobsToCreate)
+		ids, errs := jobs.CreateMany(ctx, jobsToCreate)
 		assert.Equal(t, 0, len(errs))
 
 		for i := range jobsToCreate {
@@ -81,85 +64,74 @@ func TestSqliteJobService(t *testing.T) {
 
 	t.Run("new companies exist after jobs created", func(t *testing.T) {
 		ctx := context.Background()
-		db, _ := database.NewInMemoryDB()
+		companies, jobs := newTestModels()
 
-		queries := database.New(db)
-		companies := &CompanyModel{Queries: queries}
-		jobs := &JobModel{Queries: queries, Companies: companies}
-
-		ids, errs := jobs.CreateJobs(ctx, jobsToCreate)
+		ids, errs := jobs.CreateMany(ctx, jobsToCreate)
 		assert.Equal(t, len(jobsToCreate), len(ids))
 		assert.Equal(t, 0, len(errs))
 
 		for _, jobToCreate := range jobsToCreate {
-			doesCompanyExist, err := companies.DoesCompanyExist(ctx, jobToCreate.CompanyID)
-			assert.NoError(t, err)
-			assert.Equal(t, true, doesCompanyExist)
+			assertCompanyExist(t, companies, jobToCreate.CompanyID)
 		}
 	})
 
 	t.Run("can query new companies after jobs created", func(t *testing.T) {
 		ctx := context.Background()
-		db, _ := database.NewInMemoryDB()
+		companies, jobs := newTestModels()
 
-		queries := database.New(db)
-		companies := &CompanyModel{Queries: queries}
-		jobs := &JobModel{Queries: queries, Companies: companies}
-
-		ids, errs := jobs.CreateJobs(ctx, jobsToCreate)
+		ids, errs := jobs.CreateMany(ctx, jobsToCreate)
 		assert.Equal(t, len(jobsToCreate), len(ids))
 		assert.Equal(t, 0, len(errs))
 
 		for _, jobToCreate := range jobsToCreate {
-			createdCompany, err := companies.GetCompany(ctx, jobToCreate.CompanyID)
+			createdCompany, err := companies.Get(ctx, jobToCreate.CompanyID)
 			assert.NoError(t, err)
 
-			assert.Equal(t, jobToCreate.CompanyID, createdCompany.ID)
-			assert.Equal(t, jobToCreate.CompanyName, createdCompany.Name)
-			assert.Equal(t, jobToCreate.CompanyName, createdCompany.Name)
-			assert.Equal(t, jobToCreate.CompanyAvatar, createdCompany.Avatar)
-			assert.Equal(t, jobToCreate.SourceID, createdCompany.SourceID)
+			assertCompanyFieldsOnJob(t, jobToCreate, createdCompany)
 		}
 	})
 
 	t.Run("can get jobs after jobs created", func(t *testing.T) {
 		ctx := context.Background()
-		db, _ := database.NewInMemoryDB()
+		_, jobs := newTestModels()
 
-		queries := database.New(db)
-		companies := &CompanyModel{Queries: queries}
-		jobs := &JobModel{Queries: queries, Companies: companies}
-
-		ids, errs := jobs.CreateJobs(ctx, jobsToCreate)
+		ids, errs := jobs.CreateMany(ctx, jobsToCreate)
 		assert.Equal(t, len(jobsToCreate), len(ids))
 		assert.Equal(t, 0, len(errs))
 
 		for i, jobToCreate := range jobsToCreate {
 			id := ids[i]
-			job, err := jobs.GetJob(ctx, id)
+			job, err := jobs.Get(ctx, id)
 			assert.NoError(t, err)
 
-			assert.Equal(t, jobToCreate.Position, job.Position)
-			assert.Equal(t, jobToCreate.Location, job.Location)
-			assert.Equal(t, jobToCreate.SourceID, job.SourceID)
-			assert.Equal(t, jobToCreate.URL, job.URL)
+			assert.EqualExportedValues(t, jobToCreate, job)
 		}
 	})
 
 	t.Run("get jobs", func(t *testing.T) {
 		ctx := context.Background()
-		db, _ := database.NewInMemoryDB()
+		_, jobs := newTestModels()
 
-		queries := database.New(db)
-		companies := &CompanyModel{Queries: queries}
-		jobs := &JobModel{Queries: queries, Companies: companies}
+		jobs.CreateMany(ctx, jobsToCreate)
 
-		jobs.CreateJobs(ctx, jobsToCreate)
-
-		res, errs := jobs.GetJobs(ctx)
+		res, errs := jobs.GetMany(ctx)
 		assert.Empty(t, errs)
 		assert.Equal(t, jobsToCreate, res)
 	})
+}
+
+func assertCompanyExist(t *testing.T, companies CompanyModelInterface, companyID string) {
+	doesCompanyExist, err := companies.Exists(context.Background(), companyID)
+	assert.NoError(t, err)
+	assert.Equal(t, true, doesCompanyExist)
+}
+
+func assertCompanyFieldsOnJob(t *testing.T, job Job, company Company) {
+	assert.Equal(t, company.ID, job.CompanyID)
+	assert.Equal(t, company.Name, job.CompanyName)
+	assert.Equal(t, company.Name, job.CompanyName)
+	assert.Equal(t, company.Avatar, job.CompanyAvatar)
+	assert.Equal(t, company.SourceID, job.SourceID)
 }
 
 func assertJobsAreEqual(t *testing.T, expectedJob, actualJob Job) {
@@ -174,4 +146,14 @@ func assertJobsAreEqual(t *testing.T, expectedJob, actualJob Job) {
 	assert.Equal(t, expectedJob.CompanyURL, actualJob.CompanyURL)
 
 	assert.Equal(t, expectedJob.LastPosted.Round(time.Second).UTC(), actualJob.LastPosted.Round(time.Second).UTC())
+}
+
+func newTestModels() (*CompanyModel, *JobModel) {
+	db, _ := database.NewInMemoryDB()
+
+	queries := database.New(db)
+	companies := &CompanyModel{queries}
+	jobs := &JobModel{Queries: queries, Companies: companies}
+
+	return companies, jobs
 }

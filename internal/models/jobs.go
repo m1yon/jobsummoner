@@ -12,10 +12,10 @@ import (
 )
 
 type JobModelInterface interface {
-	GetJob(ctx context.Context, id string) (Job, error)
-	GetJobs(ctx context.Context) ([]Job, error)
-	CreateJob(ctx context.Context, job Job) (string, error)
-	CreateJobs(ctx context.Context, jobs []Job) ([]string, []error)
+	Get(ctx context.Context, id string) (Job, error)
+	GetMany(ctx context.Context) ([]Job, error)
+	Create(ctx context.Context, job Job) (string, error)
+	CreateMany(ctx context.Context, jobs []Job) ([]string, []error)
 }
 
 type Job struct {
@@ -35,7 +35,7 @@ type JobModel struct {
 	Companies CompanyModelInterface
 }
 
-func (m *JobModel) GetJob(ctx context.Context, id string) (Job, error) {
+func (m *JobModel) Get(ctx context.Context, id string) (Job, error) {
 	dbJob, err := m.Queries.GetJob(ctx, id)
 
 	if err != nil {
@@ -57,7 +57,7 @@ func (m *JobModel) GetJob(ctx context.Context, id string) (Job, error) {
 	return job, nil
 }
 
-func (m *JobModel) GetJobs(ctx context.Context) ([]Job, error) {
+func (m *JobModel) GetMany(ctx context.Context) ([]Job, error) {
 	jobs, err := m.Queries.GetJobs(ctx)
 
 	if err != nil {
@@ -83,32 +83,15 @@ func (m *JobModel) GetJobs(ctx context.Context) ([]Job, error) {
 	return formattedJobs, nil
 }
 
-func (m *JobModel) CreateJobs(ctx context.Context, jobs []Job) ([]string, []error) {
-	ids := make([]string, 0, len(jobs))
-	errs := make([]error, 0)
-
-	for _, job := range jobs {
-		id, err := m.CreateJob(ctx, job)
-
-		if err != nil {
-			errs = append(errs, err)
-		}
-
-		ids = append(ids, id)
-	}
-
-	return ids, errs
-}
-
-func (m *JobModel) CreateJob(ctx context.Context, job Job) (string, error) {
-	doesCompanyExist, err := m.Companies.DoesCompanyExist(ctx, job.CompanyID)
+func (m *JobModel) Create(ctx context.Context, job Job) (string, error) {
+	doesCompanyExist, err := m.Companies.Exists(ctx, job.CompanyID)
 
 	if err != nil {
 		return "", errors.Wrap(err, "error fetching company in job service")
 	}
 
 	if !doesCompanyExist {
-		_, err := m.Companies.CreateCompany(ctx, Company{ID: job.CompanyID, Name: job.CompanyName, SourceID: job.SourceID, Url: job.CompanyURL, Avatar: job.CompanyAvatar})
+		_, err := m.Companies.Create(ctx, Company{ID: job.CompanyID, Name: job.CompanyName, SourceID: job.SourceID, Url: job.CompanyURL, Avatar: job.CompanyAvatar})
 
 		if err != nil {
 			return "", errors.Wrap(err, "error creating company in job service")
@@ -134,6 +117,23 @@ func (m *JobModel) CreateJob(ctx context.Context, job Job) (string, error) {
 	}
 
 	return id, nil
+}
+
+func (m *JobModel) CreateMany(ctx context.Context, jobs []Job) ([]string, []error) {
+	ids := make([]string, 0, len(jobs))
+	errs := make([]error, 0)
+
+	for _, job := range jobs {
+		id, err := m.Create(ctx, job)
+
+		if err != nil {
+			errs = append(errs, err)
+		}
+
+		ids = append(ids, id)
+	}
+
+	return ids, errs
 }
 
 func generateJobID(company_id string, position string) string {

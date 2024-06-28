@@ -9,9 +9,9 @@ import (
 )
 
 type CompanyModelInterface interface {
-	CreateCompany(ctx context.Context, company Company) (string, error)
-	DoesCompanyExist(ctx context.Context, id string) (bool, error)
-	GetCompany(ctx context.Context, id string) (Company, error)
+	Create(ctx context.Context, company Company) (string, error)
+	Exists(ctx context.Context, id string) (bool, error)
+	Get(ctx context.Context, id string) (Company, error)
 }
 
 type Company struct {
@@ -26,7 +26,7 @@ type CompanyModel struct {
 	Queries *database.Queries
 }
 
-func (m *CompanyModel) CreateCompany(ctx context.Context, company Company) (string, error) {
+func (m *CompanyModel) Create(ctx context.Context, company Company) (string, error) {
 	err := m.Queries.CreateCompany(ctx, database.CreateCompanyParams{
 		ID:       company.ID,
 		Name:     company.Name,
@@ -42,8 +42,8 @@ func (m *CompanyModel) CreateCompany(ctx context.Context, company Company) (stri
 	return company.ID, nil
 }
 
-func (m *CompanyModel) DoesCompanyExist(ctx context.Context, id string) (bool, error) {
-	company, err := m.GetCompany(ctx, id)
+func (m *CompanyModel) Exists(ctx context.Context, id string) (bool, error) {
+	company, err := m.Get(ctx, id)
 
 	if err != nil {
 		return false, errors.Wrap(err, "error finding company in company service")
@@ -52,7 +52,7 @@ func (m *CompanyModel) DoesCompanyExist(ctx context.Context, id string) (bool, e
 	return company.ID != "", nil
 }
 
-func (m *CompanyModel) GetCompany(ctx context.Context, id string) (Company, error) {
+func (m *CompanyModel) Get(ctx context.Context, id string) (Company, error) {
 	company, err := m.Queries.GetCompany(ctx, id)
 
 	if err != nil {
