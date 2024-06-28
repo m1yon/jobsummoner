@@ -4,9 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"flag"
-	"log"
+	"log/slog"
+	"os"
 	"path/filepath"
 
+	"github.com/lmittmann/tint"
 	"github.com/m1yon/jobsummoner/internal/database"
 	"github.com/m1yon/jobsummoner/sql/migrations"
 	"github.com/pressly/goose/v3"
@@ -16,6 +18,8 @@ import (
 )
 
 func main() {
+	logger := slog.New(tint.NewHandler(os.Stdout, &tint.Options{}))
+
 	ctx := context.Background()
 
 	useLocalDB := flag.Bool("local-db", true, "Use a local sqlite DB")
@@ -34,54 +38,50 @@ func main() {
 	}
 
 	if err != nil {
-		log.Fatal(err)
+		logger.Error("failed to init db", tint.Err(err))
+		os.Exit(1)
 	}
 
 	provider, err := goose.NewProvider(gooseDB.DialectSQLite3, db, migrations.Embed)
 	if err != nil {
-		log.Fatal(err)
+		logger.Error("failed to init provider", tint.Err(err))
+		os.Exit(1)
 	}
+
 	// List migration sources the provider is aware of.
-	log.Println("\n=== migration list ===")
 	sources := provider.ListSources()
 	for _, s := range sources {
-		log.Printf("%-3s %-2v %v\n", s.Type, s.Version, filepath.Base(s.Path))
-		// sql 1  00001_users_table.sql
-		// go  2  00002_add_users.go
-		// go  3  00003_count_users.go
+		logger.Info("migration source found", "type", s.Type, "version", s.Version, "path", filepath.Base(s.Path))
 	}
 
 	// List status of migrations before applying them.
 	stats, err := provider.Status(ctx)
 	if err != nil {
-		log.Fatal(err)
+		logger.Error("failed get migrations status", tint.Err(err))
+		os.Exit(1)
 	}
-	log.Println("\n=== migration status ===")
 	for _, s := range stats {
-		log.Printf("%-3s %-2v %v\n", s.Source.Type, s.Source.Version, s.State)
+		logger.Info("current migration status", "type", s.Source.Type, "version", s.Source.Version, "state", s.State)
 	}
 
-	log.Println("\n=== log migration output  ===")
 	var results []*goose.MigrationResult
-
 	if *down {
-		log.Println("\n=== down migration  ===")
 		result, err := provider.Down(ctx)
 		results = append(results, result)
 
 		if err != nil {
-			log.Fatal(err)
+			logger.Error("failed down migrations", tint.Err(err))
+			os.Exit(1)
 		}
 	} else {
-		log.Println("\n=== up migrations  ===")
 		results, err = provider.Up(ctx)
 		if err != nil {
-			log.Fatal(err)
+			logger.Error("failed up migrations", tint.Err(err))
+			os.Exit(1)
 		}
 	}
 
-	log.Println("\n=== migration results  ===")
 	for _, r := range results {
-		log.Printf("%-3s %-2v done: %v\n", r.Source.Type, r.Source.Version, r.Duration)
+		logger.Info("migration successful", "type", r.Source.Type, "version", r.Source.Version, "duration", r.Duration)
 	}
 }
