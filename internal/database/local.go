@@ -3,7 +3,6 @@ package database
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"os"
 
 	"github.com/pkg/errors"
@@ -23,20 +22,20 @@ func NewInMemoryDB() (*sql.DB, error) {
 	}
 
 	migrationsDir := workingDir + "/sql/migrations"
-	fmt.Println("migrationsDir", migrationsDir)
 
 	return migrateLocalDB(":memory:", migrationsDir)
 }
 
 func migrateLocalDB(dataSourceName string, migrationsDir string) (*sql.DB, error) {
 	ctx := context.Background()
+	goose.SetLogger(goose.NopLogger())
 	db, err := goose.OpenDBWithDriver("sqlite3", dataSourceName)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to open DB")
 	}
 
-	if err := goose.RunContext(ctx, "up", db, migrationsDir); err != nil {
+	if err := goose.RunContext(ctx, "up", db, migrationsDir, "> /dev/null"); err != nil {
 		return nil, errors.Wrap(err, "goose error")
 	}
 

@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSqliteJobService(t *testing.T) {
+func TestJobs(t *testing.T) {
 	jobsToCreate := []Job{
 		{
 			Position:      "Software Developer",
@@ -34,7 +34,7 @@ func TestSqliteJobService(t *testing.T) {
 
 	t.Run("create job and immediately get created job", func(t *testing.T) {
 		ctx := context.Background()
-		companies, jobs := newTestModels()
+		companies, jobs := newTestModels(t)
 
 		jobToCreate := jobsToCreate[0]
 
@@ -51,7 +51,7 @@ func TestSqliteJobService(t *testing.T) {
 
 	t.Run("CreateJobs returns a list of job IDs", func(t *testing.T) {
 		ctx := context.Background()
-		_, jobs := newTestModels()
+		_, jobs := newTestModels(t)
 
 		ids, errs := jobs.CreateMany(ctx, jobsToCreate)
 		assert.Equal(t, 0, len(errs))
@@ -64,7 +64,7 @@ func TestSqliteJobService(t *testing.T) {
 
 	t.Run("new companies exist after jobs created", func(t *testing.T) {
 		ctx := context.Background()
-		companies, jobs := newTestModels()
+		companies, jobs := newTestModels(t)
 
 		ids, errs := jobs.CreateMany(ctx, jobsToCreate)
 		assert.Equal(t, len(jobsToCreate), len(ids))
@@ -77,7 +77,7 @@ func TestSqliteJobService(t *testing.T) {
 
 	t.Run("can query new companies after jobs created", func(t *testing.T) {
 		ctx := context.Background()
-		companies, jobs := newTestModels()
+		companies, jobs := newTestModels(t)
 
 		ids, errs := jobs.CreateMany(ctx, jobsToCreate)
 		assert.Equal(t, len(jobsToCreate), len(ids))
@@ -93,7 +93,7 @@ func TestSqliteJobService(t *testing.T) {
 
 	t.Run("can get jobs after jobs created", func(t *testing.T) {
 		ctx := context.Background()
-		_, jobs := newTestModels()
+		_, jobs := newTestModels(t)
 
 		ids, errs := jobs.CreateMany(ctx, jobsToCreate)
 		assert.Equal(t, len(jobsToCreate), len(ids))
@@ -110,7 +110,7 @@ func TestSqliteJobService(t *testing.T) {
 
 	t.Run("get jobs", func(t *testing.T) {
 		ctx := context.Background()
-		_, jobs := newTestModels()
+		_, jobs := newTestModels(t)
 
 		jobs.CreateMany(ctx, jobsToCreate)
 
@@ -118,12 +118,6 @@ func TestSqliteJobService(t *testing.T) {
 		assert.Empty(t, errs)
 		assert.Equal(t, jobsToCreate, res)
 	})
-}
-
-func assertCompanyExist(t *testing.T, companies CompanyModelInterface, companyID string) {
-	doesCompanyExist, err := companies.Exists(context.Background(), companyID)
-	assert.NoError(t, err)
-	assert.Equal(t, true, doesCompanyExist)
 }
 
 func assertCompanyFieldsOnJob(t *testing.T, job Job, company Company) {
@@ -148,8 +142,12 @@ func assertJobsAreEqual(t *testing.T, expectedJob, actualJob Job) {
 	assert.Equal(t, expectedJob.LastPosted.Round(time.Second).UTC(), actualJob.LastPosted.Round(time.Second).UTC())
 }
 
-func newTestModels() (*CompanyModel, *JobModel) {
-	db, _ := database.NewInMemoryDB()
+func newTestModels(t *testing.T) (*CompanyModel, *JobModel) {
+	db, err := database.NewInMemoryDB()
+
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	queries := database.New(db)
 	companies := &CompanyModel{queries}

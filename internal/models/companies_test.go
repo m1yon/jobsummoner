@@ -20,7 +20,7 @@ func TestCompanies(t *testing.T) {
 
 	t.Run("create company and ensure it exists", func(t *testing.T) {
 		ctx := context.Background()
-		companies := newTestCompanyModel()
+		companies := newTestCompanyModel(t)
 
 		doesCompanyExist, err := companies.Exists(ctx, companyToCreate.ID)
 		assert.NoError(t, err)
@@ -37,7 +37,7 @@ func TestCompanies(t *testing.T) {
 
 	t.Run("create company and immediately get company", func(t *testing.T) {
 		ctx := context.Background()
-		companies := newTestCompanyModel()
+		companies := newTestCompanyModel(t)
 
 		id, err := companies.Create(ctx, companyToCreate)
 		assert.NoError(t, err)
@@ -49,11 +49,23 @@ func TestCompanies(t *testing.T) {
 	})
 }
 
-func newTestCompanyModel() *CompanyModel {
-	db, _ := database.NewInMemoryDB()
+func newTestCompanyModel(t *testing.T) *CompanyModel {
+	db, err := database.NewInMemoryDB()
+
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	queries := database.New(db)
 	companies := &CompanyModel{queries}
 
 	return companies
+}
+
+func assertCompanyExist(t *testing.T, companies CompanyModelInterface, companyID string) {
+	t.Helper()
+
+	doesCompanyExist, err := companies.Exists(context.Background(), companyID)
+	assert.NoError(t, err)
+	assert.Equal(t, true, doesCompanyExist)
 }

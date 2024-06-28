@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestScrapeRepository(t *testing.T) {
+func TestScrapes(t *testing.T) {
 	t.Run("can create scrape and immediately get scrape", func(t *testing.T) {
 		ctx := context.Background()
 		scrapes, c := newTestScrapeModel()

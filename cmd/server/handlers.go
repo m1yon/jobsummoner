@@ -55,7 +55,7 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.users.Insert(form.Name, form.Email, form.Password)
+	err = app.users.Create(form.Name, form.Email, form.Password)
 	if err != nil {
 		if errors.Is(err, models.ErrDuplicateEmail) {
 			form.AddFieldError("email", "Email address is already in use")
