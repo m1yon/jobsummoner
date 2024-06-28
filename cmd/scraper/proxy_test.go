@@ -1,4 +1,4 @@
-package jobsummoner
+package main
 
 import (
 	"net/http"
@@ -12,27 +12,27 @@ import (
 
 func TestHttpProxyBuilder(t *testing.T) {
 	t.Run("builds a valid URL", func(t *testing.T) {
-		fakeProxyConfig := ProxyConfig{
+		fakeProxyConfig := proxyConfig{
 			Hostname: "crazyproxies.com",
 			Port:     "44443",
 			Username: "michael",
 			Password: "hunter12",
 		}
 
-		url, err := BuildHttpProxyURL(fakeProxyConfig)
+		url, err := buildHttpProxyURL(fakeProxyConfig)
 		assert.NoError(t, err)
 		assert.Equal(t, "http://michael:hunter12@crazyproxies.com:44443", url.String())
 	})
 
 	t.Run("returns an error on empty values", func(t *testing.T) {
-		fakeProxyConfig := ProxyConfig{
+		fakeProxyConfig := proxyConfig{
 			Hostname: "",
 			Port:     "",
 			Username: "",
 			Password: "",
 		}
 
-		_, err := BuildHttpProxyURL(fakeProxyConfig)
+		_, err := buildHttpProxyURL(fakeProxyConfig)
 		assert.ErrorContains(t, err, ErrInvalidProxyConfig)
 	})
 }
@@ -47,7 +47,7 @@ func TestHttpProxyClient(t *testing.T) {
 		defer proxyServer.Close()
 
 		proxyServerURL, _ := url.Parse(proxyServer.URL)
-		client, _ := NewHttpProxyClient(proxyServerURL)
+		client, _ := newHttpProxyClient(proxyServerURL)
 
 		req, _ := http.NewRequest(http.MethodGet, "http://example.com", nil)
 		_, _ = client.Transport.RoundTrip(req)
@@ -68,7 +68,7 @@ func TestNewHttpProxyClientFromConfig(t *testing.T) {
 		// split into hostname/port
 		proxyInfo := strings.Split(strings.ReplaceAll(proxyServer.URL, "http://", ""), ":")
 
-		client, _ := NewHttpProxyClientFromConfig(ProxyConfig{
+		client, _ := newHttpProxyClientFromConfig(proxyConfig{
 			Hostname: proxyInfo[0],
 			Port:     proxyInfo[1],
 		})
@@ -88,7 +88,7 @@ func TestNewHttpProxyClientFromConfig(t *testing.T) {
 		// split into hostname/port
 		proxyInfo := strings.Split(strings.ReplaceAll(proxyServer.URL, "http://", ""), ":")
 
-		_, err := NewHttpProxyClientFromConfig(ProxyConfig{
+		_, err := newHttpProxyClientFromConfig(proxyConfig{
 			Hostname: "",
 			Port:     proxyInfo[1],
 		})

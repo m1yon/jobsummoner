@@ -1,7 +1,8 @@
-package jobsummoner
+package main
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/url"
 
@@ -14,14 +15,14 @@ const (
 	ErrProxySetup         = "problem setting up http proxy client"
 )
 
-type ProxyConfig struct {
+type proxyConfig struct {
 	Hostname string
 	Port     string
 	Username string
 	Password string
 }
 
-func BuildHttpProxyURL(config ProxyConfig) (*url.URL, error) {
+func buildHttpProxyURL(config proxyConfig) (*url.URL, error) {
 	if config.Hostname == "" || config.Port == "" {
 		return &url.URL{}, errors.New(ErrInvalidProxyConfig)
 	}
@@ -36,7 +37,7 @@ func BuildHttpProxyURL(config ProxyConfig) (*url.URL, error) {
 	return parsedURL, nil
 }
 
-func NewHttpProxyClient(proxyURL *url.URL) (*http.Client, error) {
+func newHttpProxyClient(proxyURL *url.URL) (*http.Client, error) {
 	proxy := http.ProxyURL(proxyURL)
 	transport := &http.Transport{Proxy: proxy}
 	client := &http.Client{Transport: transport}
@@ -44,18 +45,30 @@ func NewHttpProxyClient(proxyURL *url.URL) (*http.Client, error) {
 	return client, nil
 }
 
-func NewHttpProxyClientFromConfig(config ProxyConfig) (*http.Client, error) {
-	proxyURL, err := BuildHttpProxyURL(config)
+func newHttpProxyClientFromConfig(config proxyConfig) (*http.Client, error) {
+	proxyURL, err := buildHttpProxyURL(config)
 
 	if err != nil {
 		return &http.Client{}, errors.Wrap(err, ErrBuildingProxyURL)
 	}
 
-	client, err := NewHttpProxyClient(proxyURL)
+	client, err := newHttpProxyClient(proxyURL)
 
 	if err != nil {
 		return &http.Client{}, errors.Wrap(err, ErrProxySetup)
 	}
 
 	return client, nil
+}
+
+func newHttpClient(logger *slog.Logger, config *config) *http.Client {
+	httpClient, err := newHttpProxyClientFromConfig(config.proxyConfig)
+
+	if err != nil {
+		logger.Warn("proxy server disabled", "reason", err.Error())
+	} else {
+		logger.Info("proxy server enabled")
+	}
+
+	return httpClient
 }

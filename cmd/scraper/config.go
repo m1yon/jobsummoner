@@ -2,14 +2,12 @@ package main
 
 import (
 	"flag"
-
-	"github.com/m1yon/jobsummoner"
 )
 
 type config struct {
 	useLocalDB  bool
 	dsn         string
-	proxyConfig jobsummoner.ProxyConfig
+	proxyConfig proxyConfig
 }
 
 func getConfigFromFlags() *config {
@@ -23,7 +21,7 @@ func getConfigFromFlags() *config {
 
 	flag.Parse()
 
-	proxy := jobsummoner.ProxyConfig{
+	proxy := proxyConfig{
 		Hostname: *proxyHostname,
 		Port:     *proxyPort,
 		Username: *proxyUsername,
