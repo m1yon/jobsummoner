@@ -3,21 +3,51 @@ package main
 import (
 	"context"
 	"log/slog"
+	"net/http"
+	"os"
 
 	"github.com/go-co-op/gocron/v2"
 	"github.com/jonboulle/clockwork"
+	"github.com/m1yon/jobsummoner/internal/database"
 	"github.com/m1yon/jobsummoner/internal/models"
 	"github.com/pkg/errors"
 )
 
-type ScrapeService struct {
-	c       clockwork.Clock
-	logger  *slog.Logger
-	scrapes models.ScrapeModelInterface
-	jobs    models.JobModelInterface
+type scrapeService struct {
+	logger     *slog.Logger
+	httpClient *http.Client
+	scrapers   []models.ScraperModelInterface
+	c          clockwork.Clock
+	scrapes    models.ScrapeModelInterface
+	jobs       models.JobModelInterface
 }
 
-func (ss *ScrapeService) Start(scrapers []models.ScraperModelInterface, crontab string, scrapeImmediately bool) {
+func newScrapeService(logger *slog.Logger) *scrapeService {
+	config := getConfigFromFlags()
+
+	db, err := openDB(logger, config)
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+
+	c := clockwork.NewRealClock()
+	queries := database.New(db)
+
+	companies := &models.CompanyModel{Queries: queries}
+	jobs := &models.JobModel{Queries: queries, Companies: companies}
+	scrapes := &models.ScrapeModel{Queries: queries, C: c}
+
+	httpClient := newHttpClient(logger, config)
+
+	return &scrapeService{logger: logger, httpClient: httpClient, scrapes: scrapes, jobs: jobs}
+}
+
+func (a *scrapeService) addScrapers(scrapers []models.ScraperModelInterface) {
+	a.scrapers = scrapers
+}
+
+func (ss *scrapeService) start(cron string, scrapeImmediately bool) {
 	ctx := context.Background()
 	ss.logger.Info("initializing scrape scheduler...")
 	s, err := gocron.NewScheduler(gocron.WithClock(ss.c))
@@ -42,13 +72,13 @@ func (ss *ScrapeService) Start(scrapers []models.ScraperModelInterface, crontab 
 	}
 
 	_, err = s.NewJob(
-		gocron.CronJob(crontab, false),
+		gocron.CronJob(cron, false),
 		gocron.NewTask(func() {
 			ss.logger.Info("scraping jobs...")
 
 			numberOfJobsScraped := 0
 
-			for _, scraper := range scrapers {
+			for _, scraper := range ss.scrapers {
 				lastScrapedTime, err := ss.scrapes.GetLastScrapeTime(ctx, scraper.GetSourceID())
 
 				if err != nil {

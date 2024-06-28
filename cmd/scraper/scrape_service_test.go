@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"fmt"
 	"log/slog"
 	"testing"
@@ -66,18 +67,14 @@ func TestScrapeService(t *testing.T) {
 		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
 
 		db, _ := database.NewInMemoryDB()
-		queries := database.New(db)
 
-		companies := &models.CompanyModel{Queries: queries}
-		jobs := &models.JobModel{Queries: queries, Companies: companies}
-		scrapes := &models.ScrapeModel{Queries: queries, C: c}
-
-		scrapeService := &ScrapeService{c: c, logger: logger, scrapes: scrapes, jobs: jobs}
+		scrapeService := newTestScrapeService(logger, db, c)
 
 		scraper1 := NewSpyScraper()
 		scraper2 := NewSpyScraper()
 		scrapers := []models.ScraperModelInterface{scraper1, scraper2}
-		go scrapeService.Start(scrapers, "TZ=America/Denver */30 7-22 * * *", false)
+		scrapeService.addScrapers(scrapers)
+		go scrapeService.start("TZ=America/Denver */30 7-22 * * *", false)
 		c.BlockUntil(1)
 
 		// loop one extra time to ensure no extra calls are made
@@ -109,17 +106,14 @@ func TestScrapeService(t *testing.T) {
 		db, _ := database.NewInMemoryDB()
 
 		queries := database.New(db)
-
-		companies := &models.CompanyModel{Queries: queries}
-		jobs := &models.JobModel{Queries: queries, Companies: companies}
 		scrapes := &models.ScrapeModel{Queries: queries, C: c}
 
-		scrapeService := &ScrapeService{c: c, logger: logger, scrapes: scrapes, jobs: jobs}
-
+		scrapeService := newTestScrapeService(logger, db, c)
 		scraper1 := NewSpyScraper()
 		scrapers := []models.ScraperModelInterface{scraper1}
+		scrapeService.addScrapers(scrapers)
 
-		go scrapeService.Start(scrapers, "TZ=America/Denver */30 7-22 * * *", false)
+		go scrapeService.start("TZ=America/Denver */30 7-22 * * *", false)
 		c.BlockUntil(1)
 
 		simulateCron(c, callsBetween8pmAnd10pm+1, 30*time.Minute)
@@ -137,18 +131,14 @@ func TestScrapeService(t *testing.T) {
 		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
 
 		db, _ := database.NewInMemoryDB()
-		queries := database.New(db)
 
-		companies := &models.CompanyModel{Queries: queries}
-		jobs := &models.JobModel{Queries: queries, Companies: companies}
-		scrapes := &models.ScrapeModel{Queries: queries, C: c}
-
-		scrapeService := &ScrapeService{c: c, logger: logger, scrapes: scrapes, jobs: jobs}
+		scrapeService := newTestScrapeService(logger, db, c)
 
 		scraper := newSpyFailingScraper()
 		scrapers := []models.ScraperModelInterface{scraper}
+		scrapeService.addScrapers(scrapers)
 
-		go scrapeService.Start(scrapers, "TZ=America/Denver */30 7-22 * * *", false)
+		go scrapeService.start("TZ=America/Denver */30 7-22 * * *", false)
 		c.BlockUntil(1)
 
 		simulateCron(c, 2, 30*time.Minute)
@@ -165,18 +155,14 @@ func TestScrapeService(t *testing.T) {
 		logger := slog.New(slog.NewTextHandler(logBufferSpy, nil))
 
 		db, _ := database.NewInMemoryDB()
-		queries := database.New(db)
 
-		companies := &models.CompanyModel{Queries: queries}
-		jobs := &models.JobModel{Queries: queries, Companies: companies}
-		scrapes := &models.ScrapeModel{Queries: queries, C: c}
-
-		scrapeService := &ScrapeService{c: c, logger: logger, scrapes: scrapes, jobs: jobs}
+		scrapeService := newTestScrapeService(logger, db, c)
 
 		scraper1 := NewSpyScraper()
 		scrapers := []models.ScraperModelInterface{scraper1}
+		scrapeService.addScrapers(scrapers)
 
-		go scrapeService.Start(scrapers, "TZ=America/Denver */30 7-22 * * *", true)
+		go scrapeService.start("TZ=America/Denver */30 7-22 * * *", true)
 		c.BlockUntil(1)
 
 		simulateCron(c, 3, 30*time.Minute)
@@ -220,4 +206,16 @@ func assertCallNotMade(t *testing.T, callNotMade bool, calls int) {
 	if !assert.Equal(t, true, callNotMade, fmt.Sprintf("should not make calls outside of cron interval\nscraper.calls is %v, expected %v", calls, callsBetween8pmAnd10pm+callsBetween7amAnd8am)) {
 		t.FailNow()
 	}
+}
+
+func newTestScrapeService(logger *slog.Logger, db *sql.DB, c clockwork.Clock) *scrapeService {
+	queries := database.New(db)
+
+	companies := &models.CompanyModel{Queries: queries}
+	jobs := &models.JobModel{Queries: queries, Companies: companies}
+	scrapes := &models.ScrapeModel{Queries: queries, C: c}
+
+	httpClient := newHttpClient(logger, &config{})
+
+	return &scrapeService{logger: logger, httpClient: httpClient, scrapes: scrapes, jobs: jobs, c: c}
 }
