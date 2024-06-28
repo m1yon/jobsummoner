@@ -7,7 +7,7 @@ import (
 	"github.com/m1yon/jobsummoner/internal/models"
 )
 
-func (s *Server) NewHomepageViewModel(r *http.Request, jobs []models.Job) components.HomepageViewModel {
+func (s *server) NewHomepageViewModel(r *http.Request, jobs []models.Job) components.HomepageViewModel {
 	flash := s.sessionManager.PopString(r.Context(), "flash")
 	jobModels := make([]components.HomepageJobModel, 0, len(jobs))
 

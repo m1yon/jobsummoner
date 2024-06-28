@@ -10,7 +10,7 @@ import (
 	"github.com/m1yon/jobsummoner/pkg/validator"
 )
 
-func (s *Server) getHomepageHandler(w http.ResponseWriter, r *http.Request) {
+func (s *server) getHomepageHandler(w http.ResponseWriter, r *http.Request) {
 	jobs, err := s.jobs.GetJobs(r.Context())
 
 	if err != nil {
@@ -26,7 +26,7 @@ func (s *Server) getHomepageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) userSignup(w http.ResponseWriter, r *http.Request) {
+func (s *server) userSignup(w http.ResponseWriter, r *http.Request) {
 	component := components.SignupPage()
 	err := s.Render(component, context.Background(), w)
 
@@ -35,7 +35,7 @@ func (s *Server) userSignup(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) userSignupPost(w http.ResponseWriter, r *http.Request) {
+func (s *server) userSignupPost(w http.ResponseWriter, r *http.Request) {
 	var form components.UserSignupForm
 
 	err := s.decodePostForm(r, &form)
@@ -73,7 +73,7 @@ func (s *Server) userSignupPost(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusSeeOther)
 }
 
-func (s *Server) userLogin(w http.ResponseWriter, r *http.Request) {
+func (s *server) userLogin(w http.ResponseWriter, r *http.Request) {
 	component := components.LoginPage()
 	err := s.Render(component, context.Background(), w)
 
@@ -82,7 +82,7 @@ func (s *Server) userLogin(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) userLoginPost(w http.ResponseWriter, r *http.Request) {
+func (s *server) userLoginPost(w http.ResponseWriter, r *http.Request) {
 	var form components.UserLoginForm
 
 	err := s.decodePostForm(r, &form)
@@ -113,7 +113,7 @@ func (s *Server) userLoginPost(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusSeeOther)
 }
 
-func (s *Server) userLogoutPost(w http.ResponseWriter, r *http.Request) {
+func (s *server) userLogoutPost(w http.ResponseWriter, r *http.Request) {
 	err := s.sessionManager.RenewToken(r.Context())
 	if err != nil {
 		s.serverError(w, r, err)

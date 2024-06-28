@@ -11,7 +11,7 @@ import (
 	"github.com/go-playground/form/v4"
 )
 
-func (s *Server) serverError(w http.ResponseWriter, r *http.Request, err error) {
+func (s *server) serverError(w http.ResponseWriter, r *http.Request, err error) {
 	var (
 		method = r.Method
 		uri    = r.URL.RequestURI()
@@ -21,11 +21,11 @@ func (s *Server) serverError(w http.ResponseWriter, r *http.Request, err error) 
 	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 }
 
-func (s *Server) clientError(w http.ResponseWriter, status int) {
+func (s *server) clientError(w http.ResponseWriter, status int) {
 	http.Error(w, http.StatusText(status), status)
 }
 
-func (s *Server) decodePostForm(r *http.Request, dst any) error {
+func (s *server) decodePostForm(r *http.Request, dst any) error {
 	err := r.ParseForm()
 	if err != nil {
 		return err
@@ -44,7 +44,7 @@ func (s *Server) decodePostForm(r *http.Request, dst any) error {
 	return nil
 }
 
-func (s *Server) render(w http.ResponseWriter, r *http.Request, status int, component templ.Component) {
+func (s *server) render(w http.ResponseWriter, r *http.Request, status int, component templ.Component) {
 	w.WriteHeader(status)
 
 	err := s.Render(component, context.Background(), w)
@@ -93,6 +93,6 @@ func timeAgo(from time.Time) string {
 	return fmt.Sprintf("%d years ago", int(years))
 }
 
-func (s *Server) isAuthenticated(r *http.Request) bool {
+func (s *server) isAuthenticated(r *http.Request) bool {
 	return s.sessionManager.Exists(r.Context(), "authenticatedUserID")
 }

@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func (s *Server) logRequest(next http.Handler) http.Handler {
+func (s *server) logRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var (
 			ip     = r.RemoteAddr
@@ -30,7 +30,7 @@ func commonHeaders(next http.Handler) http.Handler {
 	})
 }
 
-func (s *Server) recoverPanic(next http.Handler) http.Handler {
+func (s *server) recoverPanic(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {

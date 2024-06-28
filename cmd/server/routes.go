@@ -6,7 +6,7 @@ import (
 	"github.com/justinas/alice"
 )
 
-func (s *Server) routes() http.Handler {
+func (s *server) routes() http.Handler {
 	mux := http.NewServeMux()
 
 	dynamic := alice.New(s.sessionManager.LoadAndSave)

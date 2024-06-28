@@ -1,21 +1,65 @@
 package main
 
 import (
+	"context"
 	"database/sql"
+	"io"
 	"log/slog"
+	"net/http"
+	"os"
+	"time"
 
-	"github.com/m1yon/jobsummoner/internal/database"
+	"github.com/a-h/templ"
+	"github.com/alexedwards/scs/v2"
+	"github.com/go-playground/form/v4"
+	"github.com/m1yon/jobsummoner/internal/components"
 	"github.com/m1yon/jobsummoner/internal/models"
+	"github.com/m1yon/jobsummoner/internal/sqlite3store"
 )
 
-func newServer(logger *slog.Logger, db *sql.DB) *Server {
-	queries := database.New(db)
+type server struct {
+	logger         *slog.Logger
+	Render         func(component templ.Component, ctx context.Context, w io.Writer) error
+	jobs           models.JobModelInterface
+	users          models.UserModelInterface
+	sessionManager *scs.SessionManager
+	formDecoder    *form.Decoder
+	*http.Server
+}
 
-	companies := &models.CompanyModel{Queries: queries}
-	jobs := &models.JobModel{Queries: queries, Companies: companies}
-	users := &models.UserModel{Queries: queries}
+func newServer(logger *slog.Logger, jobs models.JobModelInterface, users models.UserModelInterface, db *sql.DB) *server {
+	formDecoder := form.NewDecoder()
 
-	server := NewServer(logger, jobs, users, db)
+	sessionManager := scs.New()
+	sessionManager.Store = sqlite3store.New(db)
+	sessionManager.Lifetime = 12 * time.Hour
+	sessionManager.Cookie.Secure = os.Getenv("FLY_APP_NAME") != ""
 
-	return server
+	s := &server{
+		logger:         logger,
+		Render:         components.Render,
+		jobs:           jobs,
+		users:          users,
+		sessionManager: sessionManager,
+		formDecoder:    formDecoder,
+	}
+
+	s.Server = &http.Server{
+		Addr:         ":3000",
+		Handler:      s.routes(),
+		ErrorLog:     slog.NewLogLogger(s.logger.Handler(), slog.LevelError),
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+	}
+
+	return s
+}
+
+func (s *server) Start(addr string) {
+	s.logger.Info("server started", "addr", s.Server.Addr)
+
+	err := s.ListenAndServe()
+	s.logger.Error(err.Error())
+	os.Exit(1)
 }
