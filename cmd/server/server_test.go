@@ -22,6 +22,64 @@ import (
 )
 
 func TestGETHomepage(t *testing.T) {
+
+	t.Run("renders the page correctly", func(t *testing.T) {
+		server := newTestServer()
+
+		request, _ := http.NewRequest(http.MethodGet, "/", nil)
+		response := httptest.NewRecorder()
+
+		server.Handler.ServeHTTP(response, request)
+
+		assert.Equal(t, response.Code, 200)
+		assertHeadingExists(t, response, "m1yon/jobsummoner")
+	})
+
+	t.Run("handles a template rendering failure", func(t *testing.T) {
+		server := newTestServer()
+		server.Render = func(component templ.Component, ctx context.Context, w io.Writer) error {
+			return errors.New("could not render template")
+		}
+
+		request, _ := http.NewRequest(http.MethodGet, "/", nil)
+		response := httptest.NewRecorder()
+
+		server.Handler.ServeHTTP(response, request)
+
+		assert.Equal(t, 500, response.Code)
+		assert.Contains(t, response.Body.String(), "Internal Server Error")
+	})
+}
+
+func assertHeadingExists(t *testing.T, r *httptest.ResponseRecorder, text string) {
+	t.Helper()
+
+	doc, _ := goquery.NewDocumentFromReader(r.Body)
+
+	found := false
+	doc.Find("h1, h2, h3, h4, h5, h6").Each(func(i int, s *goquery.Selection) {
+		if strings.TrimSpace(s.Text()) == text {
+			found = true
+		}
+	})
+
+	assert.Equal(t, true, found, fmt.Sprintf("heading with text '%v' doesn't exist", text))
+}
+
+func newTestServer() *server {
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+	db, err := sql.Open("sqlite", "./db/database.db")
+
+	if err != nil {
+		logger.Error("failed starting db")
+	}
+
+	queries := database.New(db)
+
+	companies := &models.CompanyModel{Queries: queries}
+	jobs := &models.JobModel{Queries: queries, Companies: companies}
+	users := &models.UserModel{Queries: queries}
+
 	jobsToCreate := []models.Job{
 		{
 			Position:      "Software Developer",
@@ -43,69 +101,9 @@ func TestGETHomepage(t *testing.T) {
 		},
 	}
 
-	t.Run("renders the page correctly", func(t *testing.T) {
-		ctx := context.Background()
-		logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
-		db, _ := database.NewInMemoryDB()
+	jobs.CreateMany(context.Background(), jobsToCreate)
 
-		queries := database.New(db)
+	server := newServer(logger, jobs, users, db)
 
-		companies := &models.CompanyModel{Queries: queries}
-		jobs := &models.JobModel{Queries: queries, Companies: companies}
-		users := &models.UserModel{Queries: queries}
-
-		jobs.CreateMany(ctx, jobsToCreate)
-
-		request, _ := http.NewRequest(http.MethodGet, "/", nil)
-		response := httptest.NewRecorder()
-
-		server := newServer(logger, jobs, users, db)
-		server.Handler.ServeHTTP(response, request)
-
-		assert.Equal(t, response.Code, 200)
-
-		doc, _ := goquery.NewDocumentFromReader(response.Body)
-
-		assertHeadingExists(t, doc, "m1yon/jobsummoner")
-	})
-
-	t.Run("handles a template rendering failure", func(t *testing.T) {
-		logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
-		db, err := sql.Open("sqlite", "./db/database.db")
-
-		if err != nil {
-			logger.Error("failed starting db")
-		}
-
-		queries := database.New(db)
-
-		companies := &models.CompanyModel{Queries: queries}
-		jobs := &models.JobModel{Queries: queries, Companies: companies}
-		users := &models.UserModel{Queries: queries}
-
-		request, _ := http.NewRequest(http.MethodGet, "/", nil)
-		response := httptest.NewRecorder()
-
-		server := newServer(logger, jobs, users, db)
-		server.Render = func(component templ.Component, ctx context.Context, w io.Writer) error {
-			return errors.New("could not render template")
-		}
-		server.Handler.ServeHTTP(response, request)
-
-		assert.Equal(t, 500, response.Code)
-		assert.Contains(t, response.Body.String(), "Internal Server Error")
-	})
-}
-
-func assertHeadingExists(t *testing.T, doc *goquery.Document, text string) {
-	t.Helper()
-
-	found := false
-	doc.Find("h1, h2, h3, h4, h5, h6").Each(func(i int, s *goquery.Selection) {
-		if strings.TrimSpace(s.Text()) == text {
-			found = true
-		}
-	})
-
-	assert.Equal(t, true, found, fmt.Sprintf("heading with text '%v' doesn't exist", text))
+	return server
 }
