@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"database/sql"
 	"io"
 	"log/slog"
 	"net/http"
@@ -17,7 +16,7 @@ import (
 
 func newTestApplication(t *testing.T) *application {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
-	db, err := sql.Open("sqlite", "./db/database.db")
+	db, err := database.NewInMemoryDB()
 
 	if err != nil {
 		t.Fatal("failed starting db")

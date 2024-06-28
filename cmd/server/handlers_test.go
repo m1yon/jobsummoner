@@ -47,7 +47,7 @@ func TestGETHomepage(t *testing.T) {
 
 		code, _, body := ts.get(t, "/")
 
-		assert.Equal(t, code, 200)
+		assert.Equal(t, 200, code)
 		assertHeadingExists(t, body, "m1yon/jobsummoner")
 	})
 
