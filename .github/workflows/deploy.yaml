@@ -8,7 +8,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  static_checks:
+    uses: m1yon/jobsummoner/.github/workflows/static-checks.yaml@v2
   deploy:
+    needs: [static_checks]
     name: Deploy app
     runs-on: ubuntu-latest
     steps:

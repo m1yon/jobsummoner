@@ -1,6 +1,10 @@
 name: Static Checks
 
-on: push
+on:
+  push:
+    branches:
+      - "!v2"
+  workflow_call:
 
 jobs:
   code:
