@@ -40,7 +40,7 @@ func newScrapeService(logger *slog.Logger) *scrapeService {
 
 	httpClient := newHttpClient(logger, config)
 
-	return &scrapeService{logger: logger, httpClient: httpClient, scrapes: scrapes, jobs: jobs}
+	return &scrapeService{logger: logger, httpClient: httpClient, scrapes: scrapes, jobs: jobs, c: c}
 }
 
 func (a *scrapeService) addScrapers(scrapers []models.ScraperModelInterface) {
