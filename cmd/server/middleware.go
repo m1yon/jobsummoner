@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func (s *server) logRequest(next http.Handler) http.Handler {
+func (app *application) logRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var (
 			ip     = r.RemoteAddr
@@ -14,7 +14,7 @@ func (s *server) logRequest(next http.Handler) http.Handler {
 			uri    = r.URL.RequestURI()
 		)
 
-		s.logger.Info("received request", "ip", ip, "proto", proto, "method", method, "uri", uri)
+		app.logger.Info("received request", "ip", ip, "proto", proto, "method", method, "uri", uri)
 
 		next.ServeHTTP(w, r)
 	})
@@ -30,12 +30,12 @@ func commonHeaders(next http.Handler) http.Handler {
 	})
 }
 
-func (s *server) recoverPanic(next http.Handler) http.Handler {
+func (app *application) recoverPanic(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {
 				w.Header().Set("Connection", "close")
-				s.serverError(w, r, fmt.Errorf("%s", err))
+				app.serverError(w, r, fmt.Errorf("%s", err))
 			}
 		}()
 

@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"io"
 	"log/slog"
-	"net/http"
 	"os"
 	"time"
 
@@ -17,17 +16,16 @@ import (
 	"github.com/m1yon/jobsummoner/internal/sqlite3store"
 )
 
-type server struct {
+type application struct {
 	logger         *slog.Logger
 	Render         func(component templ.Component, ctx context.Context, w io.Writer) error
 	jobs           models.JobModelInterface
 	users          models.UserModelInterface
 	sessionManager *scs.SessionManager
 	formDecoder    *form.Decoder
-	*http.Server
 }
 
-func newServer(logger *slog.Logger, jobs models.JobModelInterface, users models.UserModelInterface, db *sql.DB) *server {
+func newApplication(logger *slog.Logger, jobs models.JobModelInterface, users models.UserModelInterface, db *sql.DB) *application {
 	formDecoder := form.NewDecoder()
 
 	sessionManager := scs.New()
@@ -35,7 +33,7 @@ func newServer(logger *slog.Logger, jobs models.JobModelInterface, users models.
 	sessionManager.Lifetime = 12 * time.Hour
 	sessionManager.Cookie.Secure = os.Getenv("FLY_APP_NAME") != ""
 
-	s := &server{
+	app := &application{
 		logger:         logger,
 		Render:         components.Render,
 		jobs:           jobs,
@@ -44,22 +42,5 @@ func newServer(logger *slog.Logger, jobs models.JobModelInterface, users models.
 		formDecoder:    formDecoder,
 	}
 
-	s.Server = &http.Server{
-		Addr:         ":3000",
-		Handler:      s.routes(),
-		ErrorLog:     slog.NewLogLogger(s.logger.Handler(), slog.LevelError),
-		IdleTimeout:  time.Minute,
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
-	}
-
-	return s
-}
-
-func (s *server) Start(addr string) {
-	s.logger.Info("server started", "addr", s.Server.Addr)
-
-	err := s.ListenAndServe()
-	s.logger.Error(err.Error())
-	os.Exit(1)
+	return app
 }

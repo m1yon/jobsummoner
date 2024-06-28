@@ -11,27 +11,27 @@ import (
 	"github.com/go-playground/form/v4"
 )
 
-func (s *server) serverError(w http.ResponseWriter, r *http.Request, err error) {
+func (app *application) serverError(w http.ResponseWriter, r *http.Request, err error) {
 	var (
 		method = r.Method
 		uri    = r.URL.RequestURI()
 	)
 
-	s.logger.Error(err.Error(), "method", method, "uri", uri)
+	app.logger.Error(err.Error(), "method", method, "uri", uri)
 	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 }
 
-func (s *server) clientError(w http.ResponseWriter, status int) {
+func (app *application) clientError(w http.ResponseWriter, status int) {
 	http.Error(w, http.StatusText(status), status)
 }
 
-func (s *server) decodePostForm(r *http.Request, dst any) error {
+func (app *application) decodePostForm(r *http.Request, dst any) error {
 	err := r.ParseForm()
 	if err != nil {
 		return err
 	}
 
-	err = s.formDecoder.Decode(dst, r.PostForm)
+	err = app.formDecoder.Decode(dst, r.PostForm)
 	if err != nil {
 		var invalidDecoderError *form.InvalidDecoderError
 
@@ -44,12 +44,12 @@ func (s *server) decodePostForm(r *http.Request, dst any) error {
 	return nil
 }
 
-func (s *server) render(w http.ResponseWriter, r *http.Request, status int, component templ.Component) {
+func (app *application) render(w http.ResponseWriter, r *http.Request, status int, component templ.Component) {
 	w.WriteHeader(status)
 
-	err := s.Render(component, context.Background(), w)
+	err := app.Render(component, context.Background(), w)
 	if err != nil {
-		s.serverError(w, r, err)
+		app.serverError(w, r, err)
 		return
 	}
 }
@@ -93,6 +93,6 @@ func timeAgo(from time.Time) string {
 	return fmt.Sprintf("%d years ago", int(years))
 }
 
-func (s *server) isAuthenticated(r *http.Request) bool {
-	return s.sessionManager.Exists(r.Context(), "authenticatedUserID")
+func (app *application) isAuthenticated(r *http.Request) bool {
+	return app.sessionManager.Exists(r.Context(), "authenticatedUserID")
 }

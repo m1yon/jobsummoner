@@ -1,8 +1,11 @@
 package main
 
 import (
+	"log"
 	"log/slog"
+	"net/http"
 	"os"
+	"time"
 
 	"github.com/lmittmann/tint"
 	"github.com/m1yon/jobsummoner/internal/database"
@@ -28,7 +31,15 @@ func main() {
 	jobs := &models.JobModel{Queries: queries, Companies: companies}
 	users := &models.UserModel{Queries: queries}
 
-	server := newServer(logger, jobs, users, db)
+	app := newApplication(logger, jobs, users, db)
+	server := &http.Server{
+		Addr:         ":3000",
+		Handler:      app.routes(),
+		ErrorLog:     slog.NewLogLogger(app.logger.Handler(), slog.LevelError),
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+	}
 
-	server.Start(":3000")
+	log.Fatal(server.ListenAndServe())
 }

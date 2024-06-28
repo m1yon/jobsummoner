@@ -10,37 +10,37 @@ import (
 	"github.com/m1yon/jobsummoner/pkg/validator"
 )
 
-func (s *server) getHomepageHandler(w http.ResponseWriter, r *http.Request) {
-	jobs, err := s.jobs.GetMany(r.Context())
+func (app *application) getHomepageHandler(w http.ResponseWriter, r *http.Request) {
+	jobs, err := app.jobs.GetMany(r.Context())
 
 	if err != nil {
-		s.serverError(w, r, err)
+		app.serverError(w, r, err)
 	}
 
-	m := s.NewHomepageViewModel(r, jobs)
+	m := app.NewHomepageViewModel(r, jobs)
 	component := components.Homepage(m)
-	err = s.Render(component, context.Background(), w)
+	err = app.Render(component, context.Background(), w)
 
 	if err != nil {
-		s.serverError(w, r, err)
+		app.serverError(w, r, err)
 	}
 }
 
-func (s *server) userSignup(w http.ResponseWriter, r *http.Request) {
+func (app *application) userSignup(w http.ResponseWriter, r *http.Request) {
 	component := components.SignupPage()
-	err := s.Render(component, context.Background(), w)
+	err := app.Render(component, context.Background(), w)
 
 	if err != nil {
-		s.serverError(w, r, err)
+		app.serverError(w, r, err)
 	}
 }
 
-func (s *server) userSignupPost(w http.ResponseWriter, r *http.Request) {
+func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 	var form components.UserSignupForm
 
-	err := s.decodePostForm(r, &form)
+	err := app.decodePostForm(r, &form)
 	if err != nil {
-		s.clientError(w, http.StatusBadRequest)
+		app.clientError(w, http.StatusBadRequest)
 		return
 	}
 
@@ -51,43 +51,43 @@ func (s *server) userSignupPost(w http.ResponseWriter, r *http.Request) {
 	form.CheckField(validator.MinChars(form.Password, 8), "password", "This field must be at least 8 characters long")
 
 	if !form.Valid() {
-		s.render(w, r, http.StatusOK, components.SignupForm(form))
+		app.render(w, r, http.StatusOK, components.SignupForm(form))
 		return
 	}
 
-	err = s.users.Insert(form.Name, form.Email, form.Password)
+	err = app.users.Insert(form.Name, form.Email, form.Password)
 	if err != nil {
 		if errors.Is(err, models.ErrDuplicateEmail) {
 			form.AddFieldError("email", "Email address is already in use")
-			s.render(w, r, http.StatusOK, components.SignupForm(form))
+			app.render(w, r, http.StatusOK, components.SignupForm(form))
 			return
 		}
 
-		s.serverError(w, r, err)
+		app.serverError(w, r, err)
 		return
 	}
 
-	s.sessionManager.Put(r.Context(), "flash", "Your account has successfully been created.")
+	app.sessionManager.Put(r.Context(), "flash", "Your account has successfully been created.")
 
 	w.Header().Set("HX-Redirect", "/")
 	w.WriteHeader(http.StatusSeeOther)
 }
 
-func (s *server) userLogin(w http.ResponseWriter, r *http.Request) {
+func (app *application) userLogin(w http.ResponseWriter, r *http.Request) {
 	component := components.LoginPage()
-	err := s.Render(component, context.Background(), w)
+	err := app.Render(component, context.Background(), w)
 
 	if err != nil {
-		s.serverError(w, r, err)
+		app.serverError(w, r, err)
 	}
 }
 
-func (s *server) userLoginPost(w http.ResponseWriter, r *http.Request) {
+func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
 	var form components.UserLoginForm
 
-	err := s.decodePostForm(r, &form)
+	err := app.decodePostForm(r, &form)
 	if err != nil {
-		s.clientError(w, http.StatusBadRequest)
+		app.clientError(w, http.StatusBadRequest)
 		return
 	}
 
@@ -95,33 +95,33 @@ func (s *server) userLoginPost(w http.ResponseWriter, r *http.Request) {
 	form.CheckField(validator.NotBlank(form.Password), "password", "This field cannot be blank")
 
 	if !form.Valid() {
-		s.render(w, r, http.StatusOK, components.LoginForm(form))
+		app.render(w, r, http.StatusOK, components.LoginForm(form))
 		return
 	}
 
-	id, err := s.users.Authenticate(r.Context(), form.Email, form.Password)
+	id, err := app.users.Authenticate(r.Context(), form.Email, form.Password)
 	if err != nil {
 		form.AddNonFieldError("Email or password is incorrect")
-		s.render(w, r, http.StatusOK, components.LoginForm(form))
+		app.render(w, r, http.StatusOK, components.LoginForm(form))
 		return
 	}
 
-	s.sessionManager.Put(r.Context(), "authenticatedUserID", id)
-	s.sessionManager.Put(r.Context(), "flash", "Login successful.")
+	app.sessionManager.Put(r.Context(), "authenticatedUserID", id)
+	app.sessionManager.Put(r.Context(), "flash", "Login successful.")
 
 	w.Header().Set("HX-Redirect", "/")
 	w.WriteHeader(http.StatusSeeOther)
 }
 
-func (s *server) userLogoutPost(w http.ResponseWriter, r *http.Request) {
-	err := s.sessionManager.RenewToken(r.Context())
+func (app *application) userLogoutPost(w http.ResponseWriter, r *http.Request) {
+	err := app.sessionManager.RenewToken(r.Context())
 	if err != nil {
-		s.serverError(w, r, err)
+		app.serverError(w, r, err)
 		return
 	}
 
-	s.sessionManager.Remove(r.Context(), "authenticatedUserID")
-	s.sessionManager.Put(r.Context(), "flash", "You've been logged out successfully!")
+	app.sessionManager.Remove(r.Context(), "authenticatedUserID")
+	app.sessionManager.Put(r.Context(), "flash", "You've been logged out successfully!")
 
 	w.Header().Set("HX-Redirect", "/")
 	w.WriteHeader(http.StatusSeeOther)

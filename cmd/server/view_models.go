@@ -7,8 +7,8 @@ import (
 	"github.com/m1yon/jobsummoner/internal/models"
 )
 
-func (s *server) NewHomepageViewModel(r *http.Request, jobs []models.Job) components.HomepageViewModel {
-	flash := s.sessionManager.PopString(r.Context(), "flash")
+func (app *application) NewHomepageViewModel(r *http.Request, jobs []models.Job) components.HomepageViewModel {
+	flash := app.sessionManager.PopString(r.Context(), "flash")
 	jobModels := make([]components.HomepageJobModel, 0, len(jobs))
 
 	for _, job := range jobs {
@@ -21,7 +21,7 @@ func (s *server) NewHomepageViewModel(r *http.Request, jobs []models.Job) compon
 	m := components.HomepageViewModel{
 		Jobs:            jobModels,
 		Flash:           flash,
-		IsAuthenticated: s.isAuthenticated(r),
+		IsAuthenticated: app.isAuthenticated(r),
 	}
 
 	return m
