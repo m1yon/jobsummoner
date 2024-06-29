@@ -3,11 +3,11 @@ export
 
 .PHONY: test
 test:
-	gotestsum --watch
+	gotestsum --watch -- -short
 
 .PHONY: test-ci
 test-ci:
-	go run gotest.tools/gotestsum@latest
+	go run gotest.tools/gotestsum@latest --format=standard-verbose
 
 .PHONY: migrate-up
 migrate-up:
@@ -29,10 +29,6 @@ migrate-remote-up:
 migrate-remote-down:
 	go build -o bin/migrator ./cmd/migrator && ./bin/migrator -local-db=false -dsn=${DATABASE_URL} -down
 
-.PHONY: build-server
-build-server:
-	docker/server/build.sh
-
 .PHONY: deploy-server
 deploy-server:
 	flyctl deploy --config docker/server/fly.toml --dockerfile docker/server/Dockerfile
@@ -46,7 +42,7 @@ deploy-scraper:
 	flyctl deploy --config docker/scraper/fly.toml --dockerfile docker/scraper/Dockerfile
 
 .PHONY: build-all
-build-all: build-server build-scraper
+build-all: build-scraper
 
 .PHONY: deploy-all
 deploy-all: deploy-server deploy-scraper
