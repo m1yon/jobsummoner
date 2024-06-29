@@ -1,7 +1,6 @@
 package web
 
 import (
-	"fmt"
 	"net/http"
 	"testing"
 	"time"
@@ -15,7 +14,7 @@ type Driver struct {
 	browser *rod.Browser
 }
 
-func NewWebDriver(port string) (*Driver, error) {
+func NewWebDriver(baseURL string) (*Driver, error) {
 	browser := rod.New()
 	err := browser.Connect()
 
@@ -24,7 +23,7 @@ func NewWebDriver(port string) (*Driver, error) {
 	}
 
 	return &Driver{
-		BaseURL: fmt.Sprintf("http://localhost:%s", port),
+		BaseURL: "http://" + baseURL,
 		Client: &http.Client{
 			Timeout: 1 * time.Second,
 		},

@@ -14,12 +14,18 @@ func TestServer(t *testing.T) {
 	}
 
 	port := "3000"
-	driver, err := web.NewWebDriver(port)
+
+	baseURL, err := tests.StartDockerServer(t, port)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	driver, err := web.NewWebDriver(baseURL)
 
 	if err != nil {
 		t.Fatal("failed creating web driver:", err.Error())
 	}
 
-	tests.StartDockerServer(t, port)
 	specifications.AuthSpecification(t, driver)
 }

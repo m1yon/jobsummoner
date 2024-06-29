@@ -18,6 +18,9 @@ jobs:
 
       - run: go version
 
+      - name: Seed local db
+        run: make reset-db
+
       - name: Run tests
         run: make test-ci
 

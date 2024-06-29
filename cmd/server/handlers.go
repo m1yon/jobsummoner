@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"net/http"
 
@@ -18,21 +17,11 @@ func (app *application) getHomepageHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	m := app.NewHomepageViewModel(r, jobs)
-	component := components.Homepage(m)
-	err = app.Render(component, context.Background(), w)
-
-	if err != nil {
-		app.serverError(w, r, err)
-	}
+	app.render(w, r, http.StatusOK, components.Homepage(m))
 }
 
 func (app *application) userSignup(w http.ResponseWriter, r *http.Request) {
-	component := components.SignupPage()
-	err := app.Render(component, context.Background(), w)
-
-	if err != nil {
-		app.serverError(w, r, err)
-	}
+	app.render(w, r, http.StatusOK, components.SignupPage())
 }
 
 func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
@@ -74,12 +63,8 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) userLogin(w http.ResponseWriter, r *http.Request) {
-	component := components.LoginPage()
-	err := app.Render(component, context.Background(), w)
+	app.render(w, r, http.StatusOK, components.LoginPage())
 
-	if err != nil {
-		app.serverError(w, r, err)
-	}
 }
 
 func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {

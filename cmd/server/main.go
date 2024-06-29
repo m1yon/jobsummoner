@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
@@ -41,5 +42,6 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 	}
 
+	fmt.Println("server started")
 	log.Fatal(server.ListenAndServe())
 }

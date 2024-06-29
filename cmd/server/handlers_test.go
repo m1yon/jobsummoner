@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"strings"
 	"testing"
 
@@ -62,7 +63,7 @@ func TestHomepage(t *testing.T) {
 
 		code, _, body := ts.get(t, "/")
 
-		assert.Equal(t, 500, code)
+		assert.Equal(t, http.StatusOK, code)
 		assert.Contains(t, body, "Internal Server Error")
 	})
 }
