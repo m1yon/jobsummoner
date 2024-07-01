@@ -47,7 +47,7 @@ func (app *application) decodePostForm(r *http.Request, dst any) error {
 func (app *application) render(w http.ResponseWriter, r *http.Request, status int, component templ.Component) {
 	w.WriteHeader(status)
 
-	err := app.Render(component, context.Background(), w)
+	err := templ.Component.Render(component, context.Background(), w)
 	if err != nil {
 		app.serverError(w, r, err)
 		return

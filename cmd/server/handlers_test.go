@@ -2,15 +2,11 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"io"
-	"net/http"
 	"strings"
 	"testing"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/a-h/templ"
 	"github.com/m1yon/jobsummoner/internal/models"
 	_ "github.com/m1yon/jobsummoner/internal/testing"
 	"github.com/stretchr/testify/assert"
@@ -50,21 +46,6 @@ func TestHomepage(t *testing.T) {
 
 		assert.Equal(t, 200, code)
 		assertHeadingExists(t, body, "m1yon/jobsummoner")
-	})
-
-	t.Run("handles a template rendering failure", func(t *testing.T) {
-		app := newTestApplication(t)
-		app.Render = func(component templ.Component, ctx context.Context, w io.Writer) error {
-			return errors.New("could not render template")
-		}
-
-		ts := newTestServer(t, app.routes())
-		defer ts.Close()
-
-		code, _, body := ts.get(t, "/")
-
-		assert.Equal(t, http.StatusOK, code)
-		assert.Contains(t, body, "Internal Server Error")
 	})
 }
 
