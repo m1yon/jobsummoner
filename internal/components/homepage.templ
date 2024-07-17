@@ -1,5 +1,7 @@
 package components
 
+import "fmt"
+
 templ Homepage(m HomepageViewModel) {
 	@layout() {
 		@header(m.IsAuthenticated)
@@ -9,14 +11,24 @@ templ Homepage(m HomepageViewModel) {
 			</div>
 		}
 		<div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4 mx-4 ">
-			@jobCards(m.Jobs)
+			@JobCards(m.Jobs, 0, len(m.Jobs) < m.PaginationOffset)
 		</div>
 	}
 }
 
-templ jobCards(jobs []HomepageJobModel) {
+templ JobCards(jobs []HomepageJobModel, page int, lastPage bool) {
   for _, job := range jobs {
     @jobCard(job)
+  }
+
+  if !lastPage {
+    <p
+      hx-get={fmt.Sprintf("/jobs?page=%v", page + 1)}
+      hx-trigger="revealed"
+      hx-swap="outerHTML"
+    >
+      loading...
+    </p>
   }
 }
 

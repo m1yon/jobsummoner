@@ -8,7 +8,12 @@ type HomepageJobModel struct {
 }
 
 type HomepageViewModel struct {
-	Jobs            []HomepageJobModel
-	Flash           string
-	IsAuthenticated bool
+	Jobs             []HomepageJobModel
+	Flash            string
+	IsAuthenticated  bool
+	PaginationOffset int
+}
+
+type JobsViewModel struct {
+	Jobs []HomepageJobModel
 }

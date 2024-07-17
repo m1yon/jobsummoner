@@ -2,22 +2,46 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/m1yon/jobsummoner/internal/components"
 	"github.com/m1yon/jobsummoner/internal/models"
 	"github.com/m1yon/jobsummoner/pkg/validator"
 )
 
+const paginationOffset = 30
+
 func (app *application) getHomepageHandler(w http.ResponseWriter, r *http.Request) {
-	jobs, err := app.jobs.GetMany(r.Context(), 0, 30)
+	jobs, err := app.jobs.GetMany(r.Context(), 0, paginationOffset)
 
 	if err != nil {
 		app.serverError(w, r, err)
 	}
 
-	m := app.NewHomepageViewModel(r, jobs)
+	m := app.NewHomepageViewModel(r, jobs, paginationOffset)
 	app.render(w, r, http.StatusOK, components.Homepage(m))
+}
+
+func (app *application) getJobsHandler(w http.ResponseWriter, r *http.Request) {
+	pageRaw := r.URL.Query().Get("page")
+
+	page, err := strconv.Atoi(pageRaw)
+	if err != nil {
+		page = 1
+	}
+
+	fmt.Println("page", page)
+
+	jobs, err := app.jobs.GetMany(r.Context(), page, paginationOffset)
+
+	if err != nil {
+		app.serverError(w, r, err)
+	}
+
+	m := app.NewHomepageViewModel(r, jobs, paginationOffset)
+	app.render(w, r, http.StatusOK, components.JobCards(m.Jobs, page, len(m.Jobs) < paginationOffset))
 }
 
 func (app *application) userSignup(w http.ResponseWriter, r *http.Request) {
