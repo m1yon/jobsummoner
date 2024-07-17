@@ -83,7 +83,13 @@ const getJobs = `-- name: GetJobs :many
 SELECT jobs.position, jobs.location, jobs.url AS job_url, companies.url AS company_url, companies.name AS company_name, companies.id AS company_id, jobs.source_id, companies.avatar AS company_avatar, companies.url AS company_url, jobs.last_posted
 FROM jobs
 JOIN companies ON jobs.company_id = companies.id
+LIMIT ? OFFSET ?
 `
+
+type GetJobsParams struct {
+	Limit  int64
+	Offset int64
+}
 
 type GetJobsRow struct {
 	Position      string
@@ -98,8 +104,8 @@ type GetJobsRow struct {
 	LastPosted    time.Time
 }
 
-func (q *Queries) GetJobs(ctx context.Context) ([]GetJobsRow, error) {
-	rows, err := q.db.QueryContext(ctx, getJobs)
+func (q *Queries) GetJobs(ctx context.Context, arg GetJobsParams) ([]GetJobsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getJobs, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}

@@ -114,9 +114,24 @@ func TestJobs(t *testing.T) {
 
 		jobs.CreateMany(ctx, jobsToCreate)
 
-		res, errs := jobs.GetMany(ctx)
+		res, errs := jobs.GetMany(ctx, 0, 30)
 		assert.Empty(t, errs)
 		assert.Equal(t, jobsToCreate, res)
+	})
+
+	t.Run("paginate jobs", func(t *testing.T) {
+		ctx := context.Background()
+		_, jobs := newTestModels(t)
+
+		jobs.CreateMany(ctx, jobsToCreate)
+
+		res, errs := jobs.GetMany(ctx, 0, 1)
+		assert.Empty(t, errs)
+		assert.Equal(t, []Job{jobsToCreate[0]}, res)
+
+		res, errs = jobs.GetMany(ctx, 1, 1)
+		assert.Empty(t, errs)
+		assert.Equal(t, []Job{jobsToCreate[1]}, res)
 	})
 }
 

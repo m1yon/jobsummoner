@@ -10,7 +10,7 @@ import (
 )
 
 func (app *application) getHomepageHandler(w http.ResponseWriter, r *http.Request) {
-	jobs, err := app.jobs.GetMany(r.Context())
+	jobs, err := app.jobs.GetMany(r.Context(), 0, 30)
 
 	if err != nil {
 		app.serverError(w, r, err)

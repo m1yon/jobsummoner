@@ -13,7 +13,7 @@ import (
 
 type JobModelInterface interface {
 	Get(ctx context.Context, id string) (Job, error)
-	GetMany(ctx context.Context) ([]Job, error)
+	GetMany(ctx context.Context, page int, limit int) ([]Job, error)
 	Create(ctx context.Context, job Job) (string, error)
 	CreateMany(ctx context.Context, jobs []Job) ([]string, []error)
 }
@@ -57,8 +57,8 @@ func (m *JobModel) Get(ctx context.Context, id string) (Job, error) {
 	return job, nil
 }
 
-func (m *JobModel) GetMany(ctx context.Context) ([]Job, error) {
-	jobs, err := m.Queries.GetJobs(ctx)
+func (m *JobModel) GetMany(ctx context.Context, page int, limit int) ([]Job, error) {
+	jobs, err := m.Queries.GetJobs(ctx, database.GetJobsParams{Offset: int64(page * limit), Limit: int64(limit)})
 
 	if err != nil {
 		return []Job{}, errors.Wrap(err, "error getting jobs from db")

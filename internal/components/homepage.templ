@@ -9,11 +9,15 @@ templ Homepage(m HomepageViewModel) {
 			</div>
 		}
 		<div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4 mx-4 ">
-			for _, job := range m.Jobs {
-				@jobCard(job)
-			}
+			@jobCards(m.Jobs)
 		</div>
 	}
+}
+
+templ jobCards(jobs []HomepageJobModel) {
+  for _, job := range jobs {
+    @jobCard(job)
+  }
 }
 
 templ jobCard(job HomepageJobModel) {
